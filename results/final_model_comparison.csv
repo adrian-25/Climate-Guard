@@ -1,0 +1,3 @@
+Config,Model,Feature_Set,Strategy,Training_Data,Threshold,F1,Precision,Recall,PR_AUC,TP,FP,FN
+"Phase 13 Part C (train-only, test eval)",Random_Forest,temporal_wqd,random_undersample,train only (1990-01-11 to 2019-12-31),0.7,0.7586,0.6735,0.8684,0.7885,33,16,5
+"Phase 14 FINAL (train+val, test eval)",Random_Forest,temporal_wqd,random_undersample,train+val (1990-01-11 to 2022-12-31),0.7,0.6947,0.5789,0.8684,0.8339,33,24,5

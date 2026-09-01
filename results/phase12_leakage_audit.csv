@@ -1,0 +1,13 @@
+Check,Result
+Test labels never used during model training (Phase 11),PASS
+Test labels never used during threshold selection (Phase 11),PASS
+Thresholds FIXED from Phase 11 validation -- no test-set tuning,PASS
+"Test set NOT resampled, oversampled, or undersampled",PASS
+Models loaded from Phase 11 artifacts -- no retraining,PASS
+Scaler (LR models) fitted on training data only -- none needed here,PASS
+"Phase 9 split boundaries unchanged (train<=2019, val=2020-2022, test>=2023)",PASS
+"Phase 8 datasets (ml_baseline.csv, ml_temporal.csv) not modified",PASS
+Phase 11 model artifacts not modified,PASS
+No future weather variables (T+1) in feature sets,PASS
+heatwave_next_day (target) absent from feature matrices,PASS
+Candidate selection based on validation results only,PASS

@@ -1,0 +1,8 @@
+Ablation_Set,Feature_Count,Model,Strategy,Threshold,Val_F1,Val_Precision,Val_Recall,Val_PR_AUC,Val_ROC_AUC,Val_TP,Val_FP,Val_TN,Val_FN,Val_Predicted_Pos
+baseline_only,29,Random_Forest,random_undersample,0.7,0.6122,0.5085,0.7692,0.5497,0.9946,30,29,5412,9,59
+baseline_lag,62,Random_Forest,random_undersample,0.7,0.5957,0.5091,0.7179,0.5538,0.9945,28,27,5414,11,55
+baseline_rolling,71,Random_Forest,random_undersample,0.7,0.6024,0.5682,0.641,0.5822,0.9947,25,19,5422,14,44
+baseline_trend,34,Random_Forest,random_undersample,0.7,0.6105,0.5179,0.7436,0.5247,0.9943,29,27,5414,10,56
+baseline_anomaly,30,Random_Forest,random_undersample,0.7,0.6263,0.5167,0.7949,0.5037,0.9941,31,29,5412,8,60
+full_temporal,110,Random_Forest,random_undersample,0.7,0.6154,0.5385,0.7179,0.5298,0.9942,28,24,5417,11,52
+full_temporal_nqd,109,Random_Forest,random_undersample,0.7,0.5393,0.48,0.6154,0.5527,0.9941,24,26,5415,15,50

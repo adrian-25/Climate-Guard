@@ -1,0 +1,188 @@
+2026-09-01 22:48:21  INFO      ======================================================================
+2026-09-01 22:48:21  INFO      ClimateGuard -- Phase 9: Train / Validation / Test Split
+2026-09-01 22:48:21  INFO      ======================================================================
+2026-09-01 22:48:21  INFO        Split boundaries:
+2026-09-01 22:48:21  INFO          TRAIN      : 1990-01-11  ->  2019-12-31
+2026-09-01 22:48:21  INFO          VALIDATION : 2020-01-01  ->  2022-12-31
+2026-09-01 22:48:21  INFO          TEST       : 2023-01-01  ->  2025-08-30
+2026-09-01 22:48:21  INFO        Split method : chronological / year-based (NO random shuffle)
+2026-09-01 22:48:21  INFO      ======================================================================
+2026-09-01 22:48:21  INFO      STEP 1 -- LOAD PHASE 8 DATASETS
+2026-09-01 22:48:21  INFO      ======================================================================
+2026-09-01 22:48:21  INFO        [baseline]  ml_baseline.csv  shape=(65080, 40)  md5=7851299a3bfa3293f6f66e1870b83d41
+2026-09-01 22:48:22  INFO        [temporal]  ml_temporal.csv  shape=(65080, 121)  md5=513724a7c1ab7d4fec417997a8df540b
+2026-09-01 22:48:22  INFO        city+date index match: PASS (both datasets have identical rows)
+2026-09-01 22:48:22  INFO        Overall date range: 1990-01-11 -> 2025-08-30
+2026-09-01 22:48:22  INFO        Target binary check: [np.float64(0.0), np.float64(1.0)] -- positives=505
+2026-09-01 22:48:22  INFO      ======================================================================
+2026-09-01 22:48:22  INFO      STEP 2 -- APPLY CHRONOLOGICAL SPLIT
+2026-09-01 22:48:22  INFO      ======================================================================
+2026-09-01 22:48:22  INFO        [baseline/train]  rows=54,735  positives=428  (0.78%)
+2026-09-01 22:48:22  INFO        [baseline/val]  rows=5,480  positives=39  (0.71%)
+2026-09-01 22:48:22  INFO        [baseline/test]  rows=4,865  positives=38  (0.78%)
+2026-09-01 22:48:22  INFO        [temporal/train]  rows=54,735  positives=428  (0.78%)
+2026-09-01 22:48:22  INFO        [temporal/val]  rows=5,480  positives=39  (0.71%)
+2026-09-01 22:48:22  INFO        [temporal/test]  rows=4,865  positives=38  (0.78%)
+2026-09-01 22:48:22  INFO      ======================================================================
+2026-09-01 22:48:22  INFO      STEP 3 -- EXTRACT X / y / meta
+2026-09-01 22:48:22  INFO      ======================================================================
+2026-09-01 22:48:22  INFO        [baseline] Feature columns: 29
+2026-09-01 22:48:22  INFO        [baseline] Target: heatwave_next_day -- confirmed absent from X
+2026-09-01 22:48:22  INFO        [temporal] Feature columns: 110
+2026-09-01 22:48:22  INFO        [temporal] Target: heatwave_next_day -- confirmed absent from X
+2026-09-01 22:48:22  INFO      ======================================================================
+2026-09-01 22:48:22  INFO      STEP 4 -- SPLIT LEAKAGE AUDIT
+2026-09-01 22:48:22  INFO      ======================================================================
+2026-09-01 22:48:22  INFO        [baseline]  max(train)=2019-12-31  min(val)=2020-01-01  max(val)=2022-12-31  min(test)=2023-01-01  max(test)=2025-08-30
+2026-09-01 22:48:22  INFO        [baseline]  max(train) < min(val) : PASS  (2019-12-31 < 2020-01-01)
+2026-09-01 22:48:22  INFO        [baseline]  max(val)   < min(test): PASS  (2022-12-31 < 2023-01-01)
+2026-09-01 22:48:22  INFO          baseline/delhi  train_end=2019-12-31  val_start=2020-01-01  val_end=2022-12-31  test_start=2023-01-01  [PASS]
+2026-09-01 22:48:22  INFO          baseline/lucknow  train_end=2019-12-31  val_start=2020-01-01  val_end=2022-12-31  test_start=2023-01-01  [PASS]
+2026-09-01 22:48:22  INFO          baseline/nagpur  train_end=2019-12-31  val_start=2020-01-01  val_end=2022-12-31  test_start=2023-01-01  [PASS]
+2026-09-01 22:48:22  INFO          baseline/ahmedabad  train_end=2019-12-31  val_start=2020-01-01  val_end=2022-12-31  test_start=2023-01-01  [PASS]
+2026-09-01 22:48:22  INFO          baseline/mumbai  train_end=2019-12-31  val_start=2020-01-01  val_end=2022-12-31  test_start=2023-01-01  [PASS]
+2026-09-01 22:48:22  INFO        [baseline]  city+date duplicates across splits: 0  (PASS)
+2026-09-01 22:48:22  INFO        [baseline/train]  target NOT in X: PASS
+2026-09-01 22:48:22  INFO        [baseline/val]  target NOT in X: PASS
+2026-09-01 22:48:22  INFO        [baseline/test]  target NOT in X: PASS
+2026-09-01 22:48:22  INFO        [temporal]  max(train)=2019-12-31  min(val)=2020-01-01  max(val)=2022-12-31  min(test)=2023-01-01  max(test)=2025-08-30
+2026-09-01 22:48:22  INFO        [temporal]  max(train) < min(val) : PASS  (2019-12-31 < 2020-01-01)
+2026-09-01 22:48:22  INFO        [temporal]  max(val)   < min(test): PASS  (2022-12-31 < 2023-01-01)
+2026-09-01 22:48:22  INFO          temporal/delhi  train_end=2019-12-31  val_start=2020-01-01  val_end=2022-12-31  test_start=2023-01-01  [PASS]
+2026-09-01 22:48:22  INFO          temporal/lucknow  train_end=2019-12-31  val_start=2020-01-01  val_end=2022-12-31  test_start=2023-01-01  [PASS]
+2026-09-01 22:48:22  INFO          temporal/nagpur  train_end=2019-12-31  val_start=2020-01-01  val_end=2022-12-31  test_start=2023-01-01  [PASS]
+2026-09-01 22:48:22  INFO          temporal/ahmedabad  train_end=2019-12-31  val_start=2020-01-01  val_end=2022-12-31  test_start=2023-01-01  [PASS]
+2026-09-01 22:48:22  INFO          temporal/mumbai  train_end=2019-12-31  val_start=2020-01-01  val_end=2022-12-31  test_start=2023-01-01  [PASS]
+2026-09-01 22:48:22  INFO        [temporal]  city+date duplicates across splits: 0  (PASS)
+2026-09-01 22:48:22  INFO        [temporal/train]  target NOT in X: PASS
+2026-09-01 22:48:22  INFO        [temporal/val]  target NOT in X: PASS
+2026-09-01 22:48:22  INFO        [temporal/test]  target NOT in X: PASS
+2026-09-01 22:48:22  INFO        LEAKAGE AUDIT: ALL CHECKS PASSED
+2026-09-01 22:48:22  INFO      ======================================================================
+2026-09-01 22:48:22  INFO      STEP 5 -- CLASS DISTRIBUTION REPORT
+2026-09-01 22:48:22  INFO      ======================================================================
+2026-09-01 22:48:22  INFO        [baseline]
+2026-09-01 22:48:22  INFO        Split       Total    Pos      Neg    Pos%
+2026-09-01 22:48:22  INFO        --------  -------  -----  -------  ------
+2026-09-01 22:48:22  INFO        train      54,735    428   54,307    0.78%
+2026-09-01 22:48:22  INFO          delhi         total=10,947  pos= 167  neg=10,780  pos%=1.53%
+2026-09-01 22:48:22  INFO          lucknow       total=10,947  pos= 118  neg=10,829  pos%=1.08%
+2026-09-01 22:48:22  INFO          nagpur        total=10,947  pos= 111  neg=10,836  pos%=1.01%
+2026-09-01 22:48:22  INFO          ahmedabad     total=10,947  pos=  32  neg=10,915  pos%=0.29%
+2026-09-01 22:48:22  INFO          mumbai        total=10,947  pos=   0  neg=10,947  pos%=0.00%
+2026-09-01 22:48:22  INFO        val         5,480     39    5,441    0.71%
+2026-09-01 22:48:23  INFO          delhi         total=1,096  pos=  28  neg=1,068  pos%=2.55%
+2026-09-01 22:48:23  INFO          lucknow       total=1,096  pos=   7  neg=1,089  pos%=0.64%
+2026-09-01 22:48:23  INFO          nagpur        total=1,096  pos=   4  neg=1,092  pos%=0.36%
+2026-09-01 22:48:23  INFO          ahmedabad     total=1,096  pos=   0  neg=1,096  pos%=0.00%
+2026-09-01 22:48:23  INFO          mumbai        total=1,096  pos=   0  neg=1,096  pos%=0.00%
+2026-09-01 22:48:23  INFO        test        4,865     38    4,827    0.78%
+2026-09-01 22:48:23  INFO          delhi         total=  973  pos=  18  neg=  955  pos%=1.85%
+2026-09-01 22:48:23  INFO          lucknow       total=  973  pos=  16  neg=  957  pos%=1.64%
+2026-09-01 22:48:23  INFO          nagpur        total=  973  pos=   4  neg=  969  pos%=0.41%
+2026-09-01 22:48:23  INFO          ahmedabad     total=  973  pos=   0  neg=  973  pos%=0.00%
+2026-09-01 22:48:23  INFO          mumbai        total=  973  pos=   0  neg=  973  pos%=0.00%
+2026-09-01 22:48:23  INFO      
+2026-09-01 22:48:23  INFO        [temporal]
+2026-09-01 22:48:23  INFO        Split       Total    Pos      Neg    Pos%
+2026-09-01 22:48:23  INFO        --------  -------  -----  -------  ------
+2026-09-01 22:48:23  INFO        train      54,735    428   54,307    0.78%
+2026-09-01 22:48:23  INFO          delhi         total=10,947  pos= 167  neg=10,780  pos%=1.53%
+2026-09-01 22:48:23  INFO          lucknow       total=10,947  pos= 118  neg=10,829  pos%=1.08%
+2026-09-01 22:48:23  INFO          nagpur        total=10,947  pos= 111  neg=10,836  pos%=1.01%
+2026-09-01 22:48:23  INFO          ahmedabad     total=10,947  pos=  32  neg=10,915  pos%=0.29%
+2026-09-01 22:48:23  INFO          mumbai        total=10,947  pos=   0  neg=10,947  pos%=0.00%
+2026-09-01 22:48:23  INFO        val         5,480     39    5,441    0.71%
+2026-09-01 22:48:23  INFO          delhi         total=1,096  pos=  28  neg=1,068  pos%=2.55%
+2026-09-01 22:48:23  INFO          lucknow       total=1,096  pos=   7  neg=1,089  pos%=0.64%
+2026-09-01 22:48:23  INFO          nagpur        total=1,096  pos=   4  neg=1,092  pos%=0.36%
+2026-09-01 22:48:23  INFO          ahmedabad     total=1,096  pos=   0  neg=1,096  pos%=0.00%
+2026-09-01 22:48:23  INFO          mumbai        total=1,096  pos=   0  neg=1,096  pos%=0.00%
+2026-09-01 22:48:23  INFO        test        4,865     38    4,827    0.78%
+2026-09-01 22:48:23  INFO          delhi         total=  973  pos=  18  neg=  955  pos%=1.85%
+2026-09-01 22:48:23  INFO          lucknow       total=  973  pos=  16  neg=  957  pos%=1.64%
+2026-09-01 22:48:23  INFO          nagpur        total=  973  pos=   4  neg=  969  pos%=0.41%
+2026-09-01 22:48:23  INFO          ahmedabad     total=  973  pos=   0  neg=  973  pos%=0.00%
+2026-09-01 22:48:23  INFO          mumbai        total=  973  pos=   0  neg=  973  pos%=0.00%
+2026-09-01 22:48:23  INFO      
+2026-09-01 22:48:23  INFO      ======================================================================
+2026-09-01 22:48:23  INFO      STEP 6 -- SAVE SPLITS: BASELINE
+2026-09-01 22:48:23  INFO      ======================================================================
+2026-09-01 22:48:23  INFO        train  X=(54735, 29)  y=(54735, 1)  meta=(54735, 10)
+2026-09-01 22:48:23  INFO          X_train.csv   y_train.csv   meta_train.csv
+2026-09-01 22:48:23  INFO        val    X=(5480, 29)  y=(5480, 1)  meta=(5480, 10)
+2026-09-01 22:48:23  INFO          X_val.csv   y_val.csv   meta_val.csv
+2026-09-01 22:48:23  INFO        test   X=(4865, 29)  y=(4865, 1)  meta=(4865, 10)
+2026-09-01 22:48:23  INFO          X_test.csv   y_test.csv   meta_test.csv
+2026-09-01 22:48:23  INFO        Output directory: C:\Users\Adrian\Documents\climate guard\data\splits\baseline
+2026-09-01 22:48:23  INFO      ======================================================================
+2026-09-01 22:48:23  INFO      STEP 6 -- SAVE SPLITS: TEMPORAL
+2026-09-01 22:48:23  INFO      ======================================================================
+2026-09-01 22:48:27  INFO        train  X=(54735, 110)  y=(54735, 1)  meta=(54735, 10)
+2026-09-01 22:48:27  INFO          X_train.csv   y_train.csv   meta_train.csv
+2026-09-01 22:48:27  INFO        val    X=(5480, 110)  y=(5480, 1)  meta=(5480, 10)
+2026-09-01 22:48:27  INFO          X_val.csv   y_val.csv   meta_val.csv
+2026-09-01 22:48:27  INFO        test   X=(4865, 110)  y=(4865, 1)  meta=(4865, 10)
+2026-09-01 22:48:27  INFO          X_test.csv   y_test.csv   meta_test.csv
+2026-09-01 22:48:27  INFO        Output directory: C:\Users\Adrian\Documents\climate guard\data\splits\temporal
+2026-09-01 22:48:27  INFO        Leakage audit CSV saved: C:\Users\Adrian\Documents\climate guard\results\phase9_leakage_audit.csv
+2026-09-01 22:48:27  INFO      ======================================================================
+2026-09-01 22:48:27  INFO      STEP 7 -- VERIFY PHASE 8 SOURCE INTEGRITY
+2026-09-01 22:48:27  INFO      ======================================================================
+2026-09-01 22:48:27  INFO        ml_baseline.csv  MD5 UNCHANGED: 7851299a3bfa3293f6f66e1870b83d41  PASS
+2026-09-01 22:48:27  INFO        ml_temporal.csv  MD5 UNCHANGED: 513724a7c1ab7d4fec417997a8df540b  PASS
+2026-09-01 22:48:27  INFO        Split report saved: C:\Users\Adrian\Documents\climate guard\results\phase9_split_report.json
+2026-09-01 22:48:27  INFO      ======================================================================
+2026-09-01 22:48:27  INFO      PHASE 9 COMPLETE -- FINAL SUMMARY
+2026-09-01 22:48:27  INFO      ======================================================================
+2026-09-01 22:48:27  INFO        SPLIT BOUNDARIES
+2026-09-01 22:48:27  INFO          TRAIN      : 1990-01-11 -> 2019-12-31
+2026-09-01 22:48:27  INFO          VALIDATION : 2020-01-01 -> 2022-12-31
+2026-09-01 22:48:27  INFO          TEST       : 2023-01-01 -> 2025-08-30
+2026-09-01 22:48:27  INFO      
+2026-09-01 22:48:27  INFO        [BASELINE]  features=29
+2026-09-01 22:48:27  INFO          train  X=(54735, 29)  y=(54735, 1)  pos=428  (0.78%)
+2026-09-01 22:48:27  INFO          val    X=(5480, 29)  y=(5480, 1)  pos=39  (0.71%)
+2026-09-01 22:48:27  INFO          test   X=(4865, 29)  y=(4865, 1)  pos=38  (0.78%)
+2026-09-01 22:48:27  INFO        [TEMPORAL]  features=110
+2026-09-01 22:48:27  INFO          train  X=(54735, 110)  y=(54735, 1)  pos=428  (0.78%)
+2026-09-01 22:48:27  INFO          val    X=(5480, 110)  y=(5480, 1)  pos=39  (0.71%)
+2026-09-01 22:48:27  INFO          test   X=(4865, 110)  y=(4865, 1)  pos=38  (0.78%)
+2026-09-01 22:48:27  INFO      
+2026-09-01 22:48:27  INFO        LEAKAGE AUDIT: PASSED
+2026-09-01 22:48:27  INFO        PHASE 8 SOURCE FILES: UNTOUCHED (MD5 verified)
+2026-09-01 22:48:27  INFO        NO scaling, NO SMOTE, NO model training performed
+2026-09-01 22:48:27  INFO      
+2026-09-01 22:48:27  INFO        FILES CREATED:
+2026-09-01 22:48:27  INFO          data/splits/baseline/X_train.csv
+2026-09-01 22:48:27  INFO          data/splits/baseline/X_val.csv
+2026-09-01 22:48:27  INFO          data/splits/baseline/X_test.csv
+2026-09-01 22:48:27  INFO          data/splits/baseline/y_train.csv
+2026-09-01 22:48:27  INFO          data/splits/baseline/y_val.csv
+2026-09-01 22:48:27  INFO          data/splits/baseline/y_test.csv
+2026-09-01 22:48:27  INFO          data/splits/baseline/meta_train.csv
+2026-09-01 22:48:27  INFO          data/splits/baseline/meta_val.csv
+2026-09-01 22:48:27  INFO          data/splits/baseline/meta_test.csv
+2026-09-01 22:48:27  INFO          data/splits/temporal/X_train.csv
+2026-09-01 22:48:27  INFO          data/splits/temporal/X_val.csv
+2026-09-01 22:48:27  INFO          data/splits/temporal/X_test.csv
+2026-09-01 22:48:27  INFO          data/splits/temporal/y_train.csv
+2026-09-01 22:48:27  INFO          data/splits/temporal/y_val.csv
+2026-09-01 22:48:27  INFO          data/splits/temporal/y_test.csv
+2026-09-01 22:48:27  INFO          data/splits/temporal/meta_train.csv
+2026-09-01 22:48:27  INFO          data/splits/temporal/meta_val.csv
+2026-09-01 22:48:27  INFO          data/splits/temporal/meta_test.csv
+2026-09-01 22:48:27  INFO          results/phase9_split_report.json
+2026-09-01 22:48:27  INFO          results/phase9_split_log.txt
+2026-09-01 22:48:27  INFO          results/phase9_leakage_audit.csv
+2026-09-01 22:48:27  INFO      
+2026-09-01 22:48:27  INFO        CONCERNS / DECISIONS REQUIRING REVIEW:
+2026-09-01 22:48:27  INFO          1. qualifying_day is included in X -- it is leakage-safe (same-day T)
+2026-09-01 22:48:27  INFO             but is strongly correlated with the target. Review in Phase 10/12.
+2026-09-01 22:48:27  INFO          2. Mumbai has 0 positives in ALL splits (train/val/test).
+2026-09-01 22:48:27  INFO             Training-inclusion decision deferred to Phase 10.
+2026-09-01 22:48:27  INFO          3. Class imbalance is severe (approx 1:128 overall).
+2026-09-01 22:48:27  INFO             This will be addressed with class weights / SMOTE in Phase 11.
+2026-09-01 22:48:27  INFO          4. Validation period (2020-2022) contains only 3 years.
+2026-09-01 22:48:27  INFO             This is intentional -- test set must use the most recent data.
+2026-09-01 22:48:27  INFO      ======================================================================

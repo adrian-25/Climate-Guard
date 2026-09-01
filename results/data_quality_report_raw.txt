@@ -1,0 +1,358 @@
+
+======================================================================
+  1. FILE INVENTORY
+======================================================================
+Directory : C:\Users\Adrian\Documents\climate guard\data\raw
+CSV files found: 6
+
+  ahmedabad_era5_raw.csv                   1.71 MB
+  all_cities_era5_raw.csv                  8.40 MB
+  delhi_era5_raw.csv                       1.61 MB
+  lucknow_era5_raw.csv                     1.72 MB
+  mumbai_era5_raw.csv                      1.69 MB
+  nagpur_era5_raw.csv                      1.67 MB
+
+======================================================================
+  2. COMBINED FILE — all_cities_era5_raw.csv
+======================================================================
+Shape        : 65135 rows  x  23 columns
+
+Columns:
+   1. city
+   2. city_key
+   3. latitude
+   4. longitude
+   5. region_type
+   6. state
+   7. date
+   8. temperature_2m_max
+   9. temperature_2m_min
+  10. temperature_2m_mean
+  11. apparent_temperature_max
+  12. apparent_temperature_min
+  13. apparent_temperature_mean
+  14. precipitation_sum
+  15. rain_sum
+  16. wind_speed_10m_max
+  17. wind_gusts_10m_max
+  18. relative_humidity_2m_max
+  19. relative_humidity_2m_min
+  20. relative_humidity_2m_mean
+  21. surface_pressure_mean
+  22. shortwave_radiation_sum
+  23. et0_fao_evapotranspiration
+
+Data types:
+  city                                     str
+  city_key                                 str
+  latitude                                 float64
+  longitude                                float64
+  region_type                              str
+  state                                    str
+  date                                     str
+  temperature_2m_max                       float64
+  temperature_2m_min                       float64
+  temperature_2m_mean                      float64
+  apparent_temperature_max                 float64
+  apparent_temperature_min                 float64
+  apparent_temperature_mean                float64
+  precipitation_sum                        float64
+  rain_sum                                 float64
+  wind_speed_10m_max                       float64
+  wind_gusts_10m_max                       float64
+  relative_humidity_2m_max                 int64
+  relative_humidity_2m_min                 int64
+  relative_humidity_2m_mean                int64
+  surface_pressure_mean                    float64
+  shortwave_radiation_sum                  float64
+  et0_fao_evapotranspiration               float64
+
+======================================================================
+  3. CITY COVERAGE
+======================================================================
+City key        City name            Region     State                   Rows
+--------------------------------------------------------------------------------
+  ahmedabad     Ahmedabad            plains     Gujarat                13027
+  delhi         New Delhi            plains     Delhi                  13027
+  lucknow       Lucknow              plains     Uttar Pradesh          13027
+  mumbai        Mumbai               coastal    Maharashtra            13027
+  nagpur        Nagpur               plains     Maharashtra            13027
+
+All 5 expected cities present.
+
+======================================================================
+  4. DATE RANGE AND COVERAGE PER CITY
+======================================================================
+City            Start        End             Rows  Expected  Missing dates  Dup dates
+-------------------------------------------------------------------------------------
+  ahmedabad     1990-01-01   2025-08-31     13027     13027              0          0
+  delhi         1990-01-01   2025-08-31     13027     13027              0          0
+  lucknow       1990-01-01   2025-08-31     13027     13027              0          0
+  mumbai        1990-01-01   2025-08-31     13027     13027              0          0
+  nagpur        1990-01-01   2025-08-31     13027     13027              0          0
+
+======================================================================
+  5. DUPLICATE ROW CHECK
+======================================================================
+Fully duplicate rows    : 0
+city_key + date duplicates : 0
+
+======================================================================
+  6. MISSING VALUES — OVERALL (ALL CITIES COMBINED)
+======================================================================
+Variable                                  Missing    Pct (%)
+--------------------------------------------------------------
+  temperature_2m_max                            0     0.0000
+  temperature_2m_min                            0     0.0000
+  temperature_2m_mean                           0     0.0000
+  apparent_temperature_max                      0     0.0000
+  apparent_temperature_min                      0     0.0000
+  apparent_temperature_mean                     0     0.0000
+  precipitation_sum                             0     0.0000
+  rain_sum                                      0     0.0000
+  wind_speed_10m_max                            0     0.0000
+  wind_gusts_10m_max                            0     0.0000
+  relative_humidity_2m_max                      0     0.0000
+  relative_humidity_2m_min                      0     0.0000
+  relative_humidity_2m_mean                     0     0.0000
+  surface_pressure_mean                         0     0.0000
+  shortwave_radiation_sum                       0     0.0000
+  et0_fao_evapotranspiration                    0     0.0000
+
+Total cells (weather cols) : 1042160
+Total missing              : 0
+Overall missing pct        : 0.0000%
+
+======================================================================
+  7. MISSING VALUES — PER CITY PER VARIABLE
+======================================================================
+
+--- AHMEDABAD (13027 rows) ---
+  Variable                                  Missing    Pct (%)
+  ------------------------------------------------------------
+    temperature_2m_max                            0     0.0000
+    temperature_2m_min                            0     0.0000
+    temperature_2m_mean                           0     0.0000
+    apparent_temperature_max                      0     0.0000
+    apparent_temperature_min                      0     0.0000
+    apparent_temperature_mean                     0     0.0000
+    precipitation_sum                             0     0.0000
+    rain_sum                                      0     0.0000
+    wind_speed_10m_max                            0     0.0000
+    wind_gusts_10m_max                            0     0.0000
+    relative_humidity_2m_max                      0     0.0000
+    relative_humidity_2m_min                      0     0.0000
+    relative_humidity_2m_mean                     0     0.0000
+    surface_pressure_mean                         0     0.0000
+    shortwave_radiation_sum                       0     0.0000
+    et0_fao_evapotranspiration                    0     0.0000
+    No missing values.
+
+--- DELHI (13027 rows) ---
+  Variable                                  Missing    Pct (%)
+  ------------------------------------------------------------
+    temperature_2m_max                            0     0.0000
+    temperature_2m_min                            0     0.0000
+    temperature_2m_mean                           0     0.0000
+    apparent_temperature_max                      0     0.0000
+    apparent_temperature_min                      0     0.0000
+    apparent_temperature_mean                     0     0.0000
+    precipitation_sum                             0     0.0000
+    rain_sum                                      0     0.0000
+    wind_speed_10m_max                            0     0.0000
+    wind_gusts_10m_max                            0     0.0000
+    relative_humidity_2m_max                      0     0.0000
+    relative_humidity_2m_min                      0     0.0000
+    relative_humidity_2m_mean                     0     0.0000
+    surface_pressure_mean                         0     0.0000
+    shortwave_radiation_sum                       0     0.0000
+    et0_fao_evapotranspiration                    0     0.0000
+    No missing values.
+
+--- LUCKNOW (13027 rows) ---
+  Variable                                  Missing    Pct (%)
+  ------------------------------------------------------------
+    temperature_2m_max                            0     0.0000
+    temperature_2m_min                            0     0.0000
+    temperature_2m_mean                           0     0.0000
+    apparent_temperature_max                      0     0.0000
+    apparent_temperature_min                      0     0.0000
+    apparent_temperature_mean                     0     0.0000
+    precipitation_sum                             0     0.0000
+    rain_sum                                      0     0.0000
+    wind_speed_10m_max                            0     0.0000
+    wind_gusts_10m_max                            0     0.0000
+    relative_humidity_2m_max                      0     0.0000
+    relative_humidity_2m_min                      0     0.0000
+    relative_humidity_2m_mean                     0     0.0000
+    surface_pressure_mean                         0     0.0000
+    shortwave_radiation_sum                       0     0.0000
+    et0_fao_evapotranspiration                    0     0.0000
+    No missing values.
+
+--- MUMBAI (13027 rows) ---
+  Variable                                  Missing    Pct (%)
+  ------------------------------------------------------------
+    temperature_2m_max                            0     0.0000
+    temperature_2m_min                            0     0.0000
+    temperature_2m_mean                           0     0.0000
+    apparent_temperature_max                      0     0.0000
+    apparent_temperature_min                      0     0.0000
+    apparent_temperature_mean                     0     0.0000
+    precipitation_sum                             0     0.0000
+    rain_sum                                      0     0.0000
+    wind_speed_10m_max                            0     0.0000
+    wind_gusts_10m_max                            0     0.0000
+    relative_humidity_2m_max                      0     0.0000
+    relative_humidity_2m_min                      0     0.0000
+    relative_humidity_2m_mean                     0     0.0000
+    surface_pressure_mean                         0     0.0000
+    shortwave_radiation_sum                       0     0.0000
+    et0_fao_evapotranspiration                    0     0.0000
+    No missing values.
+
+--- NAGPUR (13027 rows) ---
+  Variable                                  Missing    Pct (%)
+  ------------------------------------------------------------
+    temperature_2m_max                            0     0.0000
+    temperature_2m_min                            0     0.0000
+    temperature_2m_mean                           0     0.0000
+    apparent_temperature_max                      0     0.0000
+    apparent_temperature_min                      0     0.0000
+    apparent_temperature_mean                     0     0.0000
+    precipitation_sum                             0     0.0000
+    rain_sum                                      0     0.0000
+    wind_speed_10m_max                            0     0.0000
+    wind_gusts_10m_max                            0     0.0000
+    relative_humidity_2m_max                      0     0.0000
+    relative_humidity_2m_min                      0     0.0000
+    relative_humidity_2m_mean                     0     0.0000
+    surface_pressure_mean                         0     0.0000
+    shortwave_radiation_sum                       0     0.0000
+    et0_fao_evapotranspiration                    0     0.0000
+    No missing values.
+
+======================================================================
+  8. CONSTANT COLUMNS CHECK
+======================================================================
+Checking for columns with zero variance (constant values)...
+  OK      : temperature_2m_max  (344 unique values)
+  OK      : temperature_2m_min  (320 unique values)
+  OK      : temperature_2m_mean  (331 unique values)
+  OK      : apparent_temperature_max  (401 unique values)
+  OK      : apparent_temperature_min  (382 unique values)
+  OK      : apparent_temperature_mean  (378 unique values)
+  OK      : precipitation_sum  (860 unique values)
+  OK      : rain_sum  (860 unique values)
+  OK      : wind_speed_10m_max  (344 unique values)
+  OK      : wind_gusts_10m_max  (187 unique values)
+  OK      : relative_humidity_2m_max  (81 unique values)
+  OK      : relative_humidity_2m_min  (91 unique values)
+  OK      : relative_humidity_2m_mean  (86 unique values)
+  OK      : surface_pressure_mean  (575 unique values)
+  OK      : shortwave_radiation_sum  (2731 unique values)
+  OK      : et0_fao_evapotranspiration  (1082 unique values)
+
+======================================================================
+  9. DESCRIPTIVE STATISTICS — ALL CITIES COMBINED
+======================================================================
+Variable                                      min      25%      50%      75%      max     mean
+------------------------------------------------------------------------------------------------
+  temperature_2m_max                        10.20    28.70    31.60    34.70    46.90    31.76
+  temperature_2m_min                         2.50    17.40    23.70    26.30    35.50    21.68
+  temperature_2m_mean                        5.90    23.20    27.20    29.70    40.10    26.27
+  apparent_temperature_max                   8.20    30.70    35.30    39.10    50.90    34.40
+  apparent_temperature_min                  -0.50    17.10    25.80    30.50    39.00    23.47
+  apparent_temperature_mean                  3.80    23.50    30.50    34.10    42.80    28.42
+  precipitation_sum                          0.00     0.00     0.00     1.00   317.30     3.01
+  rain_sum                                   0.00     0.00     0.00     1.00   317.30     3.01
+  wind_speed_10m_max                         4.30    10.60    13.80    17.50    53.90    14.48
+  wind_gusts_10m_max                        11.50    23.00    28.10    34.60    99.40    29.31
+  relative_humidity_2m_max                  20.00    72.00    85.00    92.00   100.00    80.23
+  relative_humidity_2m_min                   4.00    29.00    42.00    62.00    95.00    45.43
+  relative_humidity_2m_mean                 14.00    52.00    66.00    78.00    99.00    64.30
+  surface_pressure_mean                    957.90   979.90   993.70  1004.80  1018.10   992.33
+  shortwave_radiation_sum                    1.14    15.79    18.83    22.87    29.42    18.82
+  et0_fao_evapotranspiration                 0.38     3.43     4.37     5.68    12.27     4.65
+
+======================================================================
+  10. PHYSICAL RANGE VALIDATION
+======================================================================
+  [OK] temperature_2m_max                      range [-20, 60]  |  below: 0  above: 0  negative: 0  (°C — plausible for India: -10 to 55)
+  [OK] temperature_2m_min                      range [-20, 50]  |  below: 0  above: 0  negative: 0  (°C — plausible for India: -5 to 40)
+  [OK] temperature_2m_mean                     range [-20, 55]  |  below: 0  above: 0  negative: 0  (°C)
+  [OK] apparent_temperature_max                range [-30, 70]  |  below: 0  above: 0  negative: 0  (°C — feels-like can exceed actual)
+  [OK] apparent_temperature_min                range [-30, 60]  |  below: 0  above: 0  negative: 0  (°C)
+  [OK] apparent_temperature_mean               range [-30, 65]  |  below: 0  above: 0  negative: 0  (°C)
+  [OK] precipitation_sum                       range [0, 500]  |  below: 0  above: 0  negative: 0  (mm/day — 500mm extreme but possible in monsoon)
+  [OK] rain_sum                                range [0, 500]  |  below: 0  above: 0  negative: 0  (mm/day)
+  [OK] wind_speed_10m_max                      range [0, 200]  |  below: 0  above: 0  negative: 0  (km/h)
+  [OK] wind_gusts_10m_max                      range [0, 300]  |  below: 0  above: 0  negative: 0  (km/h)
+  [OK] relative_humidity_2m_max                range [0, 100]  |  below: 0  above: 0  negative: 0  (%)
+  [OK] relative_humidity_2m_min                range [0, 100]  |  below: 0  above: 0  negative: 0  (%)
+  [OK] relative_humidity_2m_mean               range [0, 100]  |  below: 0  above: 0  negative: 0  (%)
+  [OK] surface_pressure_mean                   range [800, 1100]  |  below: 0  above: 0  negative: 0  (hPa)
+  [OK] shortwave_radiation_sum                 range [0, 50]  |  below: 0  above: 0  negative: 0  (MJ/m² — daily total)
+  [OK] et0_fao_evapotranspiration              range [0, 20]  |  below: 0  above: 0  negative: 0  (mm/day)
+
+======================================================================
+  11. META-COLUMN CONSISTENCY
+======================================================================
+
+  ahmedabad:
+    [OK] city: ['Ahmedabad']
+    [OK] latitude: [23.0225]
+    [OK] longitude: [72.5714]
+    [OK] region_type: ['plains']
+    [OK] state: ['Gujarat']
+
+  delhi:
+    [OK] city: ['New Delhi']
+    [OK] latitude: [28.6139]
+    [OK] longitude: [77.209]
+    [OK] region_type: ['plains']
+    [OK] state: ['Delhi']
+
+  lucknow:
+    [OK] city: ['Lucknow']
+    [OK] latitude: [26.8467]
+    [OK] longitude: [80.9462]
+    [OK] region_type: ['plains']
+    [OK] state: ['Uttar Pradesh']
+
+  mumbai:
+    [OK] city: ['Mumbai']
+    [OK] latitude: [19.076]
+    [OK] longitude: [72.8777]
+    [OK] region_type: ['coastal']
+    [OK] state: ['Maharashtra']
+
+  nagpur:
+    [OK] city: ['Nagpur']
+    [OK] latitude: [21.1458]
+    [OK] longitude: [79.0882]
+    [OK] region_type: ['plains']
+    [OK] state: ['Maharashtra']
+
+======================================================================
+  12. INDIVIDUAL CITY FILES — ROW COUNTS vs COMBINED
+======================================================================
+File                                      File rows  In combined   Match?
+--------------------------------------------------------------------------
+  delhi_era5_raw.csv                          13027        13027      YES
+  lucknow_era5_raw.csv                        13027        13027      YES
+  nagpur_era5_raw.csv                         13027        13027      YES
+  ahmedabad_era5_raw.csv                      13027        13027      YES
+  mumbai_era5_raw.csv                         13027        13027      YES
+
+======================================================================
+  13. SUMMARY
+======================================================================
+Total rows in combined file : 65135
+Total columns               : 23
+Cities present              : ['ahmedabad', 'delhi', 'lucknow', 'mumbai', 'nagpur']
+Date range (combined)       : 1990-01-01 to 2025-08-31
+Duplicate rows              : 0
+city+date duplicates        : 0
+Weather variables           : 16
+Total missing weather vals  : 0

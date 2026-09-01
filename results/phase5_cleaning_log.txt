@@ -1,0 +1,220 @@
+
+====================================================================
+  PHASE 5 — DATA CLEANING
+====================================================================
+  Input  : data\raw\all_cities_era5_raw.csv
+  Output : data\processed\weather_cleaned.csv
+  Raw MD5: 71d25a015e2c6a8015a155785b8d7cd0  (will re-check after save)
+
+====================================================================
+  CHECK 1 — LOAD RAW DATASET
+====================================================================
+  Loaded 65,135 rows × 23 columns
+    [PASS] Row count = 65,135
+    [PASS] Column count = 23
+
+====================================================================
+  CHECK 2 — DATE DTYPE AND CHRONOLOGICAL ORDER
+====================================================================
+    [PASS] date column is datetime64
+    [PASS] delhi: dates are consecutive daily (no gaps, no jumps)
+    [PASS] lucknow: dates are consecutive daily (no gaps, no jumps)
+    [PASS] nagpur: dates are consecutive daily (no gaps, no jumps)
+    [PASS] ahmedabad: dates are consecutive daily (no gaps, no jumps)
+    [PASS] mumbai: dates are consecutive daily (no gaps, no jumps)
+
+====================================================================
+  CHECK 3 — DATE RANGE
+====================================================================
+    [PASS] Date range 1990-01-01 → 2025-08-31
+
+====================================================================
+  CHECK 4 — NUMERICAL COLUMN DTYPES
+====================================================================
+    [PASS] temperature_2m_max: float64
+    [PASS] temperature_2m_min: float64
+    [PASS] temperature_2m_mean: float64
+    [PASS] apparent_temperature_max: float64
+    [PASS] apparent_temperature_min: float64
+    [PASS] apparent_temperature_mean: float64
+    [PASS] precipitation_sum: float64
+    [PASS] rain_sum: float64
+    [PASS] wind_speed_10m_max: float64
+    [PASS] wind_gusts_10m_max: float64
+    [PASS] relative_humidity_2m_max: int64
+    [PASS] relative_humidity_2m_min: int64
+    [PASS] relative_humidity_2m_mean: int64
+    [PASS] surface_pressure_mean: float64
+    [PASS] shortwave_radiation_sum: float64
+    [PASS] et0_fao_evapotranspiration: float64
+
+====================================================================
+  CHECK 5 — CITY METADATA CONSISTENCY
+====================================================================
+    [PASS] delhi: 13,027 rows
+    [PASS]   delhi.city = New Delhi
+    [PASS]   delhi.state = Delhi
+    [PASS]   delhi.region_type = plains
+    [PASS]   delhi.latitude = 28.6139
+    [PASS]   delhi.longitude = 77.209
+    [PASS] lucknow: 13,027 rows
+    [PASS]   lucknow.city = Lucknow
+    [PASS]   lucknow.state = Uttar Pradesh
+    [PASS]   lucknow.region_type = plains
+    [PASS]   lucknow.latitude = 26.8467
+    [PASS]   lucknow.longitude = 80.9462
+    [PASS] nagpur: 13,027 rows
+    [PASS]   nagpur.city = Nagpur
+    [PASS]   nagpur.state = Maharashtra
+    [PASS]   nagpur.region_type = plains
+    [PASS]   nagpur.latitude = 21.1458
+    [PASS]   nagpur.longitude = 79.0882
+    [PASS] ahmedabad: 13,027 rows
+    [PASS]   ahmedabad.city = Ahmedabad
+    [PASS]   ahmedabad.state = Gujarat
+    [PASS]   ahmedabad.region_type = plains
+    [PASS]   ahmedabad.latitude = 23.0225
+    [PASS]   ahmedabad.longitude = 72.5714
+    [PASS] mumbai: 13,027 rows
+    [PASS]   mumbai.city = Mumbai
+    [PASS]   mumbai.state = Maharashtra
+    [PASS]   mumbai.region_type = coastal
+    [PASS]   mumbai.latitude = 19.076
+    [PASS]   mumbai.longitude = 72.8777
+
+====================================================================
+  CHECK 6 — DUPLICATES
+====================================================================
+    [PASS] Full duplicate rows = 0
+    [PASS] city_key + date duplicates = 0
+
+====================================================================
+  CHECK 7 — MISSING VALUES
+====================================================================
+    [PASS] Missing values across all weather variables = 0
+
+====================================================================
+  CHECK 8 — PHYSICAL RANGES
+====================================================================
+    [PASS] temperature_2m_max: [10.20, 46.90]  within [-20, 60]
+    [PASS] temperature_2m_min: [2.50, 35.50]  within [-20, 50]
+    [PASS] temperature_2m_mean: [5.90, 40.10]  within [-20, 55]
+    [PASS] apparent_temperature_max: [8.20, 50.90]  within [-30, 70]
+    [PASS] apparent_temperature_min: [-0.50, 39.00]  within [-30, 60]
+    [PASS] apparent_temperature_mean: [3.80, 42.80]  within [-30, 65]
+    [PASS] precipitation_sum: [0.00, 317.30]  within [0, 600]
+    [PASS] wind_speed_10m_max: [4.30, 53.90]  within [0, 200]
+    [PASS] wind_gusts_10m_max: [11.50, 99.40]  within [0, 300]
+    [PASS] relative_humidity_2m_max: [20.00, 100.00]  within [0, 100]
+    [PASS] relative_humidity_2m_min: [4.00, 95.00]  within [0, 100]
+    [PASS] relative_humidity_2m_mean: [14.00, 99.00]  within [0, 100]
+    [PASS] surface_pressure_mean: [957.90, 1018.10]  within [800, 1100]
+    [PASS] shortwave_radiation_sum: [1.14, 29.42]  within [0, 50]
+    [PASS] et0_fao_evapotranspiration: [0.38, 12.27]  within [0, 20]
+
+====================================================================
+  CHECK 9 — rain_sum IDENTITY VERIFICATION
+====================================================================
+    [PASS] rain_sum == precipitation_sum everywhere (max abs diff = 0.0)
+
+  Decision: rain_sum is removed.
+  Reason  : It is identical to precipitation_sum (r=1.000, max diff=0.0).
+            Retaining it would introduce perfect multicollinearity with no
+            additional information for any downstream model.
+
+====================================================================
+  STEP 10 — BUILD CLEANED DATASET
+====================================================================
+  Columns in raw    : 23
+  Columns removed   : 1  (rain_sum)
+  Columns retained  : 22
+  Rows unchanged    : 65,135
+    [PASS] delhi: dates are monotonically increasing after sort
+    [PASS] lucknow: dates are monotonically increasing after sort
+    [PASS] nagpur: dates are monotonically increasing after sort
+    [PASS] ahmedabad: dates are monotonically increasing after sort
+    [PASS] mumbai: dates are monotonically increasing after sort
+
+====================================================================
+  STEP 11 — SAVE weather_cleaned.csv
+====================================================================
+  Saved : data\processed\weather_cleaned.csv
+  Size  : 8.54 MB
+  Rows  : 65,135
+  Cols  : 22
+
+====================================================================
+  POST-SAVE VALIDATION — CLEANED FILE
+====================================================================
+  Re-loaded: 65,135 rows × 22 columns
+    [PASS] Row count preserved = 65,135
+    [PASS] Column count = 22
+    [PASS] rain_sum is absent from cleaned file
+    [PASS] precipitation_sum is present in cleaned file
+    [PASS] Missing values in cleaned file = 0
+    [PASS] city_key+date duplicates in cleaned file = 0
+    [PASS] All 5 cities present: ['ahmedabad', 'delhi', 'lucknow', 'mumbai', 'nagpur']
+    [PASS] Date range 1990-01-01 → 2025-08-31
+    [PASS] temperature_2m_max: [10.20, 46.90] in [-20, 60]
+    [PASS] temperature_2m_min: [2.50, 35.50] in [-20, 50]
+    [PASS] temperature_2m_mean: [5.90, 40.10] in [-20, 55]
+    [PASS] apparent_temperature_max: [8.20, 50.90] in [-30, 70]
+    [PASS] apparent_temperature_min: [-0.50, 39.00] in [-30, 60]
+    [PASS] apparent_temperature_mean: [3.80, 42.80] in [-30, 65]
+    [PASS] precipitation_sum: [0.00, 317.30] in [0, 600]
+    [PASS] wind_speed_10m_max: [4.30, 53.90] in [0, 200]
+    [PASS] wind_gusts_10m_max: [11.50, 99.40] in [0, 300]
+    [PASS] relative_humidity_2m_max: [20.00, 100.00] in [0, 100]
+    [PASS] relative_humidity_2m_min: [4.00, 95.00] in [0, 100]
+    [PASS] relative_humidity_2m_mean: [14.00, 99.00] in [0, 100]
+    [PASS] surface_pressure_mean: [957.90, 1018.10] in [800, 1100]
+    [PASS] shortwave_radiation_sum: [1.14, 29.42] in [0, 50]
+    [PASS] et0_fao_evapotranspiration: [0.38, 12.27] in [0, 20]
+
+====================================================================
+  FINAL CHECK — RAW DATASET UNTOUCHED
+====================================================================
+    [PASS] Raw dataset MD5 unchanged: 71d25a015e2c6a8015a155785b8d7cd0
+    [PASS] Raw file re-loads as 65,135 rows × 23 cols  (unchanged)
+    [PASS] rain_sum still present in raw file (raw is untouched)
+
+====================================================================
+  SUMMARY
+====================================================================
+
+  Original shape  : 65,135 rows × 23 columns
+  Cleaned shape   : 65,135 rows × 22 columns
+  Columns removed : 1  (rain_sum)
+  Rows removed    : 0
+  Missing values  : 0
+  Outliers removed: 0  (none — extremes retained)
+
+  Checks passed   : 105
+  Checks failed   : 0
+
+  DATA CLEANING STATUS: PASS
+  Output: data\processed\weather_cleaned.csv
+
+  Final columns in weather_cleaned.csv:
+     1. city
+     2. city_key
+     3. latitude
+     4. longitude
+     5. region_type
+     6. state
+     7. date
+     8. temperature_2m_max
+     9. temperature_2m_min
+    10. temperature_2m_mean
+    11. apparent_temperature_max
+    12. apparent_temperature_min
+    13. apparent_temperature_mean
+    14. precipitation_sum
+    15. wind_speed_10m_max
+    16. wind_gusts_10m_max
+    17. relative_humidity_2m_max
+    18. relative_humidity_2m_min
+    19. relative_humidity_2m_mean
+    20. surface_pressure_mean
+    21. shortwave_radiation_sum
+    22. et0_fao_evapotranspiration

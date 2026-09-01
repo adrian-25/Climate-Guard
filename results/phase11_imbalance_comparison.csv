@@ -1,0 +1,61 @@
+Model,Feature_Set,Imbalance_Strategy,Strategy_Detail,Threshold,Val_Precision,Val_Recall,Val_F1,Val_PR_AUC,Val_ROC_AUC,Val_TP,Val_FP,Val_TN,Val_FN,Val_Predicted_Pos,Val_Actual_Pos
+Logistic_Regression,with_qd,baseline_weight,class_weight=balanced,0.5,0.1689,0.9744,0.2879,0.6356,0.9942,38,187,5254,1,225,39
+Logistic_Regression,with_qd,baseline_weight_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.375,0.8462,0.5197,0.6356,0.9942,33,55,5386,6,88,39
+Logistic_Regression,without_qd,baseline_weight,class_weight=balanced,0.5,0.1625,1.0,0.2796,0.6216,0.9936,39,201,5240,0,240,39
+Logistic_Regression,without_qd,baseline_weight_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.3523,0.7949,0.4882,0.6216,0.9936,31,57,5384,8,88,39
+Random_Forest,with_qd,baseline_weight,class_weight=balanced,0.5,0.3505,0.8718,0.5,0.5535,0.9948,34,63,5378,5,97,39
+Random_Forest,with_qd,baseline_weight_thresh_opt,threshold optimised to 0.70 (best val-F1),0.7,0.4324,0.8205,0.5664,0.5535,0.9948,32,42,5399,7,74,39
+Random_Forest,without_qd,baseline_weight,class_weight=balanced,0.5,0.3301,0.8718,0.4789,0.5325,0.9944,34,69,5372,5,103,39
+Random_Forest,without_qd,baseline_weight_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.5366,0.5641,0.55,0.5325,0.9944,22,19,5422,17,41,39
+XGBoost,with_qd,baseline_weight,scale_pos_weight=126.89,0.5,0.3974,0.7949,0.5299,0.5668,0.9943,31,47,5394,8,78,39
+XGBoost,with_qd,baseline_weight_thresh_opt,threshold optimised to 0.80 (best val-F1),0.8,0.5,0.7436,0.5979,0.5668,0.9943,29,29,5412,10,58,39
+XGBoost,without_qd,baseline_weight,scale_pos_weight=126.89,0.5,0.4051,0.8205,0.5424,0.5433,0.994,32,47,5394,7,79,39
+XGBoost,without_qd,baseline_weight_thresh_opt,threshold optimised to 0.80 (best val-F1),0.8,0.5179,0.7436,0.6105,0.5433,0.994,29,27,5414,10,56,39
+Logistic_Regression,with_qd,strong_weight,"class_weight={0:1,1:254}",0.5,0.1293,0.9744,0.2282,0.6078,0.9935,38,256,5185,1,294,39
+Logistic_Regression,with_qd,strong_weight_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.2764,0.8718,0.4198,0.6078,0.9935,34,89,5352,5,123,39
+Logistic_Regression,without_qd,strong_weight,"class_weight={0:1,1:254}",0.5,0.125,1.0,0.2222,0.5686,0.9928,39,273,5168,0,312,39
+Logistic_Regression,without_qd,strong_weight_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.2558,0.8462,0.3929,0.5686,0.9928,33,96,5345,6,129,39
+Random_Forest,with_qd,strong_weight,"class_weight={0:1,1:254}",0.5,0.313,0.9231,0.4675,0.5299,0.9947,36,79,5362,3,115,39
+Random_Forest,with_qd,strong_weight_thresh_opt,threshold optimised to 0.80 (best val-F1),0.8,0.4286,0.7692,0.5505,0.5299,0.9947,30,40,5401,9,70,39
+Random_Forest,without_qd,strong_weight,"class_weight={0:1,1:254}",0.5,0.3,0.9231,0.4528,0.5324,0.9942,36,84,5357,3,120,39
+Random_Forest,without_qd,strong_weight_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.48,0.6154,0.5393,0.5324,0.9942,24,26,5415,15,50,39
+XGBoost,with_qd,spw_64,scale_pos_weight=64,0.5,0.4545,0.7692,0.5714,0.5111,0.9939,30,36,5405,9,66,39
+XGBoost,with_qd,spw_64_thresh_opt,threshold optimised to 0.60 (best val-F1),0.6,0.4833,0.7436,0.5859,0.5111,0.9939,29,31,5410,10,60,39
+XGBoost,without_qd,spw_64,scale_pos_weight=64,0.5,0.4265,0.7436,0.5421,0.5223,0.9936,29,39,5402,10,68,39
+XGBoost,without_qd,spw_64_thresh_opt,threshold optimised to 0.70 (best val-F1),0.7,0.4912,0.7179,0.5833,0.5223,0.9936,28,29,5412,11,57,39
+XGBoost,with_qd,spw_128,scale_pos_weight=128,0.5,0.3896,0.7692,0.5172,0.5535,0.9945,30,47,5394,9,77,39
+XGBoost,with_qd,spw_128_thresh_opt,threshold optimised to 0.80 (best val-F1),0.8,0.5,0.7436,0.5979,0.5535,0.9945,29,29,5412,10,58,39
+XGBoost,without_qd,spw_128,scale_pos_weight=128,0.5,0.3704,0.7692,0.5,0.5654,0.9934,30,51,5390,9,81,39
+XGBoost,without_qd,spw_128_thresh_opt,threshold optimised to 0.80 (best val-F1),0.8,0.5185,0.7179,0.6022,0.5654,0.9934,28,26,5415,11,54,39
+XGBoost,with_qd,spw_256,scale_pos_weight=256,0.5,0.3529,0.7692,0.4839,0.5142,0.9942,30,55,5386,9,85,39
+XGBoost,with_qd,spw_256_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.5192,0.6923,0.5934,0.5142,0.9942,27,25,5416,12,52,39
+XGBoost,without_qd,spw_256,scale_pos_weight=256,0.5,0.3855,0.8205,0.5246,0.535,0.993,32,51,5390,7,83,39
+XGBoost,without_qd,spw_256_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.5185,0.7179,0.6022,0.535,0.993,28,26,5415,11,54,39
+XGBoost,with_qd,spw_512,scale_pos_weight=512,0.5,0.3636,0.8205,0.5039,0.4972,0.9933,32,56,5385,7,88,39
+XGBoost,with_qd,spw_512_thresh_opt,threshold optimised to 0.80 (best val-F1),0.8,0.4462,0.7436,0.5577,0.4972,0.9933,29,36,5405,10,65,39
+XGBoost,without_qd,spw_512,scale_pos_weight=512,0.5,0.375,0.8462,0.5197,0.5842,0.9935,33,55,5386,6,88,39
+XGBoost,without_qd,spw_512_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.5094,0.6923,0.587,0.5842,0.9935,27,26,5415,12,53,39
+XGBoost,with_qd,random_oversample,"random oversample minority to 1:1, scale_pos_weight=1",0.5,0.375,0.7692,0.5042,0.5119,0.9933,30,50,5391,9,80,39
+XGBoost,with_qd,random_oversample_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.5,0.6154,0.5517,0.5119,0.9933,24,24,5417,15,48,39
+XGBoost,without_qd,random_oversample,"random oversample minority to 1:1, scale_pos_weight=1",0.5,0.3797,0.7692,0.5085,0.5297,0.9928,30,49,5392,9,79,39
+XGBoost,without_qd,random_oversample_thresh_opt,threshold optimised to 0.80 (best val-F1),0.8,0.4746,0.7179,0.5714,0.5297,0.9928,28,31,5410,11,59,39
+Random_Forest,with_qd,random_oversample,"random oversample minority to 1:1, class_weight=None",0.5,0.3208,0.8718,0.469,0.5542,0.9946,34,72,5369,5,106,39
+Random_Forest,with_qd,random_oversample_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.5227,0.5897,0.5542,0.5542,0.9946,23,21,5420,16,44,39
+Random_Forest,without_qd,random_oversample,"random oversample minority to 1:1, class_weight=None",0.5,0.3182,0.8974,0.4698,0.5974,0.9944,35,75,5366,4,110,39
+Random_Forest,without_qd,random_oversample_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.5349,0.5897,0.561,0.5974,0.9944,23,20,5421,16,43,39
+XGBoost,with_qd,random_undersample,"random undersample majority to 1:10, scale_pos_weight=1",0.5,0.33,0.8462,0.4748,0.483,0.9935,33,67,5374,6,100,39
+XGBoost,with_qd,random_undersample_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.434,0.5897,0.5,0.483,0.9935,23,30,5411,16,53,39
+XGBoost,without_qd,random_undersample,"random undersample majority to 1:10, scale_pos_weight=1",0.5,0.3438,0.8462,0.4889,0.539,0.9938,33,63,5378,6,96,39
+XGBoost,without_qd,random_undersample_thresh_opt,threshold optimised to 0.90 (best val-F1),0.9,0.451,0.5897,0.5111,0.539,0.9938,23,28,5413,16,51,39
+Random_Forest,with_qd,random_undersample,"random undersample majority to 1:10, class_weight=None",0.5,0.4177,0.8462,0.5593,0.5497,0.9946,33,46,5395,6,79,39
+Random_Forest,with_qd,random_undersample_thresh_opt,threshold optimised to 0.70 (best val-F1),0.7,0.5085,0.7692,0.6122,0.5497,0.9946,30,29,5412,9,59,39
+Random_Forest,without_qd,random_undersample,"random undersample majority to 1:10, class_weight=None",0.5,0.4024,0.8462,0.5455,0.5767,0.9944,33,49,5392,6,82,39
+Random_Forest,without_qd,random_undersample_thresh_opt,threshold optimised to 0.70 (best val-F1),0.7,0.52,0.6667,0.5843,0.5767,0.9944,26,24,5417,13,50,39
+XGBoost,with_qd,smote_skipped,SMOTE on X_train/y_train only; scale_pos_weight=1,0.5,0.5769,0.3846,0.4615,0.5654,0.9943,15,11,5430,24,26,39
+XGBoost,with_qd,smote_skipped_thresh_opt,threshold optimised to 0.30 (best val-F1),0.3,0.561,0.5897,0.575,0.5654,0.9943,23,18,5423,16,41,39
+XGBoost,without_qd,smote_skipped,SMOTE on X_train/y_train only; scale_pos_weight=1,0.5,0.5455,0.3077,0.3934,0.5526,0.9943,12,10,5431,27,22,39
+XGBoost,without_qd,smote_skipped_thresh_opt,threshold optimised to 0.15 (best val-F1),0.15,0.5,0.7692,0.6061,0.5526,0.9943,30,30,5411,9,60,39
+Random_Forest,with_qd,smote_skipped,SMOTE on X_train/y_train only; class_weight=None,0.5,0.56,0.359,0.4375,0.5951,0.9941,14,11,5430,25,25,39
+Random_Forest,with_qd,smote_skipped_thresh_opt,threshold optimised to 0.20 (best val-F1),0.2,0.5179,0.7436,0.6105,0.5951,0.9941,29,27,5414,10,56,39
+Random_Forest,without_qd,smote_skipped,SMOTE on X_train/y_train only; class_weight=None,0.5,0.7692,0.2564,0.3846,0.6048,0.9938,10,3,5438,29,13,39
+Random_Forest,without_qd,smote_skipped_thresh_opt,threshold optimised to 0.15 (best val-F1),0.15,0.4848,0.8205,0.6095,0.6048,0.9938,32,34,5407,7,66,39

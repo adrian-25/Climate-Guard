@@ -1,0 +1,15 @@
+Check,Result
+All lag features use shift(N>=1) -- only T-1 or earlier (Phase 7 verified),PASS
+All rolling features use shift(1).rolling(N) -- excludes T (Phase 7 verified),PASS
+tmax_departure_zscore uses 30-day trailing window -- excludes T (Phase 7 verified),PASS
+heatwave_lag1 = heatwave(T-1) -- not heatwave(T) or heatwave(T+1),PASS
+No T+1 weather variable present in any feature set,PASS
+"Target = heatwave_next_day(T) = heatwave(T+1) -- target only, not a feature",PASS
+"Phase 9 split boundaries unchanged (train<=2019, val=2020-2022, test>=2023)",PASS
+No StandardScaler used (RF/XGBoost are scale-invariant),PASS
+Undersampling applied only to X_train/y_train,PASS
+Validation set not modified or resampled,PASS
+Test set locked until Part C -- not used for config selection,PASS
+Thresholds carried from Phase 11 validation -- not tuned on test,PASS
+Phase 7 feature group registry used for ablation column selection,PASS
+Phase 8 and Phase 9 datasets not modified,PASS

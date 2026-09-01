@@ -1,0 +1,9 @@
+Model,Feature_Set,Feature_Count,Imbalance_Strategy,Threshold,Split,Val_Precision,Val_Recall,Val_F1,Val_PR_AUC,Val_ROC_AUC,Val_TP,Val_FP,Val_TN,Val_FN,Val_Predicted_Pos,Val_Actual_Pos
+Random_Forest,baseline_wqd,29,random_undersample,0.7,val,0.5085,0.7692,0.6122,0.5497,0.9946,30,29,5412,9,59,39
+Random_Forest,baseline_nqd,28,random_undersample,0.7,val,0.52,0.6667,0.5843,0.5767,0.9944,26,24,5417,13,50,39
+Random_Forest,temporal_wqd,110,random_undersample,0.7,val,0.5385,0.7179,0.6154,0.5298,0.9942,28,24,5417,11,52,39
+Random_Forest,temporal_nqd,109,random_undersample,0.7,val,0.48,0.6154,0.5393,0.5527,0.9941,24,26,5415,15,50,39
+XGBoost,baseline_wqd,29,baseline_weight,0.8,val,0.5,0.7436,0.5979,0.5668,0.9943,29,29,5412,10,58,39
+XGBoost,baseline_nqd,28,baseline_weight,0.8,val,0.5179,0.7436,0.6105,0.5433,0.994,29,27,5414,10,56,39
+XGBoost,temporal_wqd,110,baseline_weight,0.8,val,0.5,0.5385,0.5185,0.5452,0.994,21,21,5420,18,42,39
+XGBoost,temporal_nqd,109,baseline_weight,0.8,val,0.5128,0.5128,0.5128,0.5711,0.9945,20,19,5422,19,39,39

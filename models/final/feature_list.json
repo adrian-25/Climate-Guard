@@ -1,0 +1,552 @@
+[
+  {
+    "index": 0,
+    "name": "apparent_temperature_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 1,
+    "name": "apparent_temperature_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 2,
+    "name": "apparent_temperature_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 3,
+    "name": "city_encoded",
+    "dtype": "int64"
+  },
+  {
+    "index": 4,
+    "name": "day_of_year",
+    "dtype": "int64"
+  },
+  {
+    "index": 5,
+    "name": "doy_cos",
+    "dtype": "float64"
+  },
+  {
+    "index": 6,
+    "name": "doy_sin",
+    "dtype": "float64"
+  },
+  {
+    "index": 7,
+    "name": "et0_fao_evapotranspiration",
+    "dtype": "float64"
+  },
+  {
+    "index": 8,
+    "name": "heatwave_lag1",
+    "dtype": "float64"
+  },
+  {
+    "index": 9,
+    "name": "is_coastal",
+    "dtype": "int64"
+  },
+  {
+    "index": 10,
+    "name": "latitude",
+    "dtype": "float64"
+  },
+  {
+    "index": 11,
+    "name": "longitude",
+    "dtype": "float64"
+  },
+  {
+    "index": 12,
+    "name": "month",
+    "dtype": "int64"
+  },
+  {
+    "index": 13,
+    "name": "month_cos",
+    "dtype": "float64"
+  },
+  {
+    "index": 14,
+    "name": "month_sin",
+    "dtype": "float64"
+  },
+  {
+    "index": 15,
+    "name": "precipitation_sum",
+    "dtype": "float64"
+  },
+  {
+    "index": 16,
+    "name": "precipitation_sum_lag1",
+    "dtype": "float64"
+  },
+  {
+    "index": 17,
+    "name": "precipitation_sum_lag2",
+    "dtype": "float64"
+  },
+  {
+    "index": 18,
+    "name": "precipitation_sum_lag3",
+    "dtype": "float64"
+  },
+  {
+    "index": 19,
+    "name": "precipitation_sum_lag7",
+    "dtype": "float64"
+  },
+  {
+    "index": 20,
+    "name": "precipitation_sum_roll3_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 21,
+    "name": "precipitation_sum_roll3_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 22,
+    "name": "precipitation_sum_roll3_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 23,
+    "name": "precipitation_sum_roll7_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 24,
+    "name": "precipitation_sum_roll7_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 25,
+    "name": "precipitation_sum_roll7_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 26,
+    "name": "qualifying_day",
+    "dtype": "int64"
+  },
+  {
+    "index": 27,
+    "name": "relative_humidity_2m_max",
+    "dtype": "int64"
+  },
+  {
+    "index": 28,
+    "name": "relative_humidity_2m_mean",
+    "dtype": "int64"
+  },
+  {
+    "index": 29,
+    "name": "relative_humidity_2m_mean_lag1",
+    "dtype": "float64"
+  },
+  {
+    "index": 30,
+    "name": "relative_humidity_2m_mean_lag2",
+    "dtype": "float64"
+  },
+  {
+    "index": 31,
+    "name": "relative_humidity_2m_mean_lag3",
+    "dtype": "float64"
+  },
+  {
+    "index": 32,
+    "name": "relative_humidity_2m_mean_lag7",
+    "dtype": "float64"
+  },
+  {
+    "index": 33,
+    "name": "relative_humidity_2m_mean_roll3_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 34,
+    "name": "relative_humidity_2m_mean_roll3_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 35,
+    "name": "relative_humidity_2m_mean_roll3_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 36,
+    "name": "relative_humidity_2m_mean_roll7_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 37,
+    "name": "relative_humidity_2m_mean_roll7_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 38,
+    "name": "relative_humidity_2m_mean_roll7_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 39,
+    "name": "relative_humidity_2m_min",
+    "dtype": "int64"
+  },
+  {
+    "index": 40,
+    "name": "season_code",
+    "dtype": "int64"
+  },
+  {
+    "index": 41,
+    "name": "shortwave_radiation_sum",
+    "dtype": "float64"
+  },
+  {
+    "index": 42,
+    "name": "surface_pressure_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 43,
+    "name": "surface_pressure_mean_lag1",
+    "dtype": "float64"
+  },
+  {
+    "index": 44,
+    "name": "surface_pressure_mean_lag2",
+    "dtype": "float64"
+  },
+  {
+    "index": 45,
+    "name": "surface_pressure_mean_lag3",
+    "dtype": "float64"
+  },
+  {
+    "index": 46,
+    "name": "surface_pressure_mean_lag7",
+    "dtype": "float64"
+  },
+  {
+    "index": 47,
+    "name": "surface_pressure_mean_roll3_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 48,
+    "name": "surface_pressure_mean_roll3_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 49,
+    "name": "surface_pressure_mean_roll3_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 50,
+    "name": "surface_pressure_mean_roll7_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 51,
+    "name": "surface_pressure_mean_roll7_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 52,
+    "name": "surface_pressure_mean_roll7_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 53,
+    "name": "temperature_2m_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 54,
+    "name": "temperature_2m_max_lag1",
+    "dtype": "float64"
+  },
+  {
+    "index": 55,
+    "name": "temperature_2m_max_lag2",
+    "dtype": "float64"
+  },
+  {
+    "index": 56,
+    "name": "temperature_2m_max_lag3",
+    "dtype": "float64"
+  },
+  {
+    "index": 57,
+    "name": "temperature_2m_max_lag7",
+    "dtype": "float64"
+  },
+  {
+    "index": 58,
+    "name": "temperature_2m_max_roll3_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 59,
+    "name": "temperature_2m_max_roll3_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 60,
+    "name": "temperature_2m_max_roll3_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 61,
+    "name": "temperature_2m_max_roll7_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 62,
+    "name": "temperature_2m_max_roll7_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 63,
+    "name": "temperature_2m_max_roll7_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 64,
+    "name": "temperature_2m_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 65,
+    "name": "temperature_2m_mean_lag1",
+    "dtype": "float64"
+  },
+  {
+    "index": 66,
+    "name": "temperature_2m_mean_lag2",
+    "dtype": "float64"
+  },
+  {
+    "index": 67,
+    "name": "temperature_2m_mean_lag3",
+    "dtype": "float64"
+  },
+  {
+    "index": 68,
+    "name": "temperature_2m_mean_lag7",
+    "dtype": "float64"
+  },
+  {
+    "index": 69,
+    "name": "temperature_2m_mean_roll3_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 70,
+    "name": "temperature_2m_mean_roll3_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 71,
+    "name": "temperature_2m_mean_roll3_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 72,
+    "name": "temperature_2m_mean_roll7_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 73,
+    "name": "temperature_2m_mean_roll7_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 74,
+    "name": "temperature_2m_mean_roll7_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 75,
+    "name": "temperature_2m_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 76,
+    "name": "temperature_2m_min_lag1",
+    "dtype": "float64"
+  },
+  {
+    "index": 77,
+    "name": "temperature_2m_min_lag2",
+    "dtype": "float64"
+  },
+  {
+    "index": 78,
+    "name": "temperature_2m_min_lag3",
+    "dtype": "float64"
+  },
+  {
+    "index": 79,
+    "name": "temperature_2m_min_lag7",
+    "dtype": "float64"
+  },
+  {
+    "index": 80,
+    "name": "temperature_2m_min_roll3_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 81,
+    "name": "temperature_2m_min_roll3_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 82,
+    "name": "temperature_2m_min_roll3_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 83,
+    "name": "temperature_2m_min_roll7_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 84,
+    "name": "temperature_2m_min_roll7_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 85,
+    "name": "temperature_2m_min_roll7_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 86,
+    "name": "tmax_delta_1d",
+    "dtype": "float64"
+  },
+  {
+    "index": 87,
+    "name": "tmax_delta_3d",
+    "dtype": "float64"
+  },
+  {
+    "index": 88,
+    "name": "tmax_delta_7d",
+    "dtype": "float64"
+  },
+  {
+    "index": 89,
+    "name": "tmax_departure",
+    "dtype": "float64"
+  },
+  {
+    "index": 90,
+    "name": "tmax_departure_lag1",
+    "dtype": "float64"
+  },
+  {
+    "index": 91,
+    "name": "tmax_departure_lag2",
+    "dtype": "float64"
+  },
+  {
+    "index": 92,
+    "name": "tmax_departure_lag3",
+    "dtype": "float64"
+  },
+  {
+    "index": 93,
+    "name": "tmax_departure_lag7",
+    "dtype": "float64"
+  },
+  {
+    "index": 94,
+    "name": "tmax_departure_zscore",
+    "dtype": "float64"
+  },
+  {
+    "index": 95,
+    "name": "tmax_normal",
+    "dtype": "float64"
+  },
+  {
+    "index": 96,
+    "name": "tmax_slope_3d",
+    "dtype": "float64"
+  },
+  {
+    "index": 97,
+    "name": "tmax_slope_7d",
+    "dtype": "float64"
+  },
+  {
+    "index": 98,
+    "name": "wind_gusts_10m_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 99,
+    "name": "wind_speed_10m_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 100,
+    "name": "wind_speed_10m_max_lag1",
+    "dtype": "float64"
+  },
+  {
+    "index": 101,
+    "name": "wind_speed_10m_max_lag2",
+    "dtype": "float64"
+  },
+  {
+    "index": 102,
+    "name": "wind_speed_10m_max_lag3",
+    "dtype": "float64"
+  },
+  {
+    "index": 103,
+    "name": "wind_speed_10m_max_lag7",
+    "dtype": "float64"
+  },
+  {
+    "index": 104,
+    "name": "wind_speed_10m_max_roll3_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 105,
+    "name": "wind_speed_10m_max_roll3_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 106,
+    "name": "wind_speed_10m_max_roll3_min",
+    "dtype": "float64"
+  },
+  {
+    "index": 107,
+    "name": "wind_speed_10m_max_roll7_max",
+    "dtype": "float64"
+  },
+  {
+    "index": 108,
+    "name": "wind_speed_10m_max_roll7_mean",
+    "dtype": "float64"
+  },
+  {
+    "index": 109,
+    "name": "wind_speed_10m_max_roll7_min",
+    "dtype": "float64"
+  }
+]

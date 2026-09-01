@@ -1,0 +1,7 @@
+Model,Feature_Set,N_Features,Val_Precision,Val_Recall,Val_F1,Val_PR_AUC,Val_ROC_AUC,Val_Predicted_Pos,Val_Actual_Pos,Val_TP,Val_FP,Val_TN,Val_FN
+Logistic_Regression,with_qd,29,0.1689,0.9744,0.2879,0.6356,0.9942,225,39,38,187,5254,1
+Logistic_Regression,without_qd,28,0.1625,1.0,0.2796,0.6216,0.9936,240,39,39,201,5240,0
+Random_Forest,with_qd,29,0.3505,0.8718,0.5,0.5535,0.9948,97,39,34,63,5378,5
+Random_Forest,without_qd,28,0.3301,0.8718,0.4789,0.5325,0.9944,103,39,34,69,5372,5
+XGBoost,with_qd,29,0.3974,0.7949,0.5299,0.5668,0.9943,78,39,31,47,5394,8
+XGBoost,without_qd,28,0.4051,0.8205,0.5424,0.5433,0.994,79,39,32,47,5394,7

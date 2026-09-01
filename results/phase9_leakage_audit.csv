@@ -1,0 +1,11 @@
+dataset,city,train_end,val_start,val_end,test_start,test_end,train_max_lt_val_min,val_max_lt_test_min,status
+baseline,delhi,2019-12-31,2020-01-01,2022-12-31,2023-01-01,2025-08-30,True,True,PASS
+baseline,lucknow,2019-12-31,2020-01-01,2022-12-31,2023-01-01,2025-08-30,True,True,PASS
+baseline,nagpur,2019-12-31,2020-01-01,2022-12-31,2023-01-01,2025-08-30,True,True,PASS
+baseline,ahmedabad,2019-12-31,2020-01-01,2022-12-31,2023-01-01,2025-08-30,True,True,PASS
+baseline,mumbai,2019-12-31,2020-01-01,2022-12-31,2023-01-01,2025-08-30,True,True,PASS
+temporal,delhi,2019-12-31,2020-01-01,2022-12-31,2023-01-01,2025-08-30,True,True,PASS
+temporal,lucknow,2019-12-31,2020-01-01,2022-12-31,2023-01-01,2025-08-30,True,True,PASS
+temporal,nagpur,2019-12-31,2020-01-01,2022-12-31,2023-01-01,2025-08-30,True,True,PASS
+temporal,ahmedabad,2019-12-31,2020-01-01,2022-12-31,2023-01-01,2025-08-30,True,True,PASS
+temporal,mumbai,2019-12-31,2020-01-01,2022-12-31,2023-01-01,2025-08-30,True,True,PASS

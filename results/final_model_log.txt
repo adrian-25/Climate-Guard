@@ -1,0 +1,155 @@
+2026-09-02 00:28:17  INFO      ======================================================================
+2026-09-02 00:28:17  INFO      Phase 14 -- Final Model Selection
+2026-09-02 00:28:17  INFO      Started: 2026-09-02T00:28:17.391506
+2026-09-02 00:28:17  INFO      ======================================================================
+2026-09-02 00:28:17  INFO      
+Loading feature registry ...
+2026-09-02 00:28:17  INFO        Feature set  : temporal_wqd
+2026-09-02 00:28:17  INFO        Feature count: 110
+2026-09-02 00:28:17  INFO        Target       : heatwave_next_day
+2026-09-02 00:28:17  INFO        qualifying_day present: YES (retained by design)
+2026-09-02 00:28:17  INFO      
+Loading temporal splits ...
+2026-09-02 00:28:18  INFO        Train : (54735, 110)  pos=428  neg=54307  (1990-01-11 -- 2019-12-31)
+2026-09-02 00:28:18  INFO        Val   : (5480, 110)   pos=39   neg=5441   (2020-01-01 -- 2022-12-31)
+2026-09-02 00:28:18  INFO        Test  : (4865, 110)  pos=38  [HELD OUT]   (2023-01-01 -- 2025-08-30)
+2026-09-02 00:28:18  INFO      
+Combining train + validation for final training ...
+2026-09-02 00:28:18  INFO        Combined dev : (60215, 110)  pos=467  neg=59748  ratio=1:127.9
+2026-09-02 00:28:18  INFO        Dev date range: 1990-01-11 -- 2022-12-31
+2026-09-02 00:28:18  INFO        TEST is completely untouched at this point.
+2026-09-02 00:28:18  INFO        After undersampling: (5137, 110)  pos=467  neg=4670
+2026-09-02 00:28:18  INFO      
+Training final Random Forest ...
+2026-09-02 00:28:18  INFO        Params: {'n_estimators': 300, 'max_depth': 10, 'min_samples_leaf': 10, 'class_weight': None, 'random_state': 42, 'n_jobs': -1}
+2026-09-02 00:28:20  INFO        Training complete in 2.3s
+2026-09-02 00:28:20  INFO        n_features_in_: 110
+2026-09-02 00:28:20  INFO      
+Validation set sanity check (reference only -- config already fixed here) ...
+2026-09-02 00:28:20  INFO        Val (sanity): F1=0.6593  P=0.5769  R=0.7692  PR-AUC=0.6204  FP=22  FN=9
+2026-09-02 00:28:20  INFO        [Phase 13 val reference: F1=0.6154  P=0.5385  R=0.7179  PR-AUC=0.5298]
+2026-09-02 00:28:20  INFO        NOTE: Val metrics will differ -- model now also trained on val data.
+2026-09-02 00:28:20  INFO      
+============================================================
+2026-09-02 00:28:20  INFO      FINAL TEST EVALUATION (2023-01-01 -- 2025-08-30)
+2026-09-02 00:28:20  INFO      This is the ONLY test evaluation. Threshold is pre-fixed at 0.70.
+2026-09-02 00:28:20  INFO      ============================================================
+2026-09-02 00:28:20  INFO      
+  F1        : 0.6947
+2026-09-02 00:28:20  INFO        Precision : 0.5789
+2026-09-02 00:28:20  INFO        Recall    : 0.8684
+2026-09-02 00:28:20  INFO        PR-AUC    : 0.8339
+2026-09-02 00:28:20  INFO        ROC-AUC   : 0.9979
+2026-09-02 00:28:20  INFO        Accuracy  : 0.9940
+2026-09-02 00:28:20  INFO        TP=33  FP=24  TN=4803  FN=5
+2026-09-02 00:28:20  INFO        Predicted positives: 57
+2026-09-02 00:28:20  INFO        Actual positives   : 38
+2026-09-02 00:28:20  INFO      
+  Per-city breakdown:
+2026-09-02 00:28:21  INFO          delhi         F1=0.7805  P=0.6957  R=0.8889  TP=16  FP=7  FN=2
+2026-09-02 00:28:21  INFO          lucknow       F1=0.6829  P=0.5600  R=0.8750  TP=14  FP=11  FN=2
+2026-09-02 00:28:21  INFO          nagpur        F1=0.5000  P=0.3750  R=0.7500  TP=3  FP=5  FN=1
+2026-09-02 00:28:21  INFO          ahmedabad     N/A -- no positive ground-truth examples in this split
+2026-09-02 00:28:21  INFO          mumbai        N/A -- no positive ground-truth examples in this split
+2026-09-02 00:28:21  INFO      
+------------------------------------------------------------
+2026-09-02 00:28:21  INFO      Comparison: Phase 13 test confirmation vs final model test
+2026-09-02 00:28:21  INFO      ------------------------------------------------------------
+2026-09-02 00:28:21  INFO        Config                                                F1       P       R   PR-AUC   TP   FP   FN
+2026-09-02 00:28:21  INFO        ------------------------------------------------ ------- ------- ------- -------- ---- ---- ----
+2026-09-02 00:28:21  INFO        RF/temporal_wqd/undersample (train only)          0.7586  0.6735  0.8684   0.7885   33   16    5
+2026-09-02 00:28:21  INFO        RF/temporal_wqd/undersample (train+val -- FINAL)  0.6947  0.5789  0.8684   0.8339   33   24    5
+2026-09-02 00:28:21  INFO      
+------------------------------------------------------------
+2026-09-02 00:28:21  INFO      Saving final model artifacts ...
+2026-09-02 00:28:21  INFO        Saved: models/final/climateguard_final_model.joblib
+2026-09-02 00:28:21  INFO        Saved: models/final/feature_list.json  (110 features)
+2026-09-02 00:28:21  INFO        Saved: models/final/metadata.json
+2026-09-02 00:28:21  INFO      
+------------------------------------------------------------
+2026-09-02 00:28:21  INFO      VALIDATION CHECKS
+2026-09-02 00:28:21  INFO      ------------------------------------------------------------
+2026-09-02 00:28:21  INFO        [PASS]  Final model loads successfully
+2026-09-02 00:28:21  INFO        [PASS]  Exactly 110 features expected by model
+2026-09-02 00:28:21  INFO        [PASS]  Feature ordering recorded in feature_list.json
+2026-09-02 00:28:21  INFO        [PASS]  Target 'heatwave_next_day' NOT in feature list
+2026-09-02 00:28:21  INFO        [PASS]  No T+1 weather feature present (no '_tomorrow' or '_next' suffix)
+2026-09-02 00:28:21  INFO        [PASS]  Test data was NOT used for training (train ends at val_end)
+2026-09-02 00:28:21  INFO        [PASS]  Threshold = 0.70 fixed before final test evaluation
+2026-09-02 00:28:21  INFO        [PASS]  Test set not used for tuning (threshold fixed from Phase 11 val)
+2026-09-02 00:28:21  INFO        [PASS]  Random undersampling applied only to train+val (dev set)
+2026-09-02 00:28:21  INFO        [PASS]  Model produces probability in [0,1]
+2026-09-02 00:28:21  INFO        [PASS]  Reloaded model produces identical F1 to original
+2026-09-02 00:28:21  INFO        [PASS]  Phase 1-13 artifacts untouched (temporal splits unchanged)
+2026-09-02 00:28:21  INFO      
+  Validation checks: ALL PASSED (12/12)
+2026-09-02 00:28:21  INFO      
+------------------------------------------------------------
+2026-09-02 00:28:21  INFO      LEAKAGE AUDIT
+2026-09-02 00:28:21  INFO      ------------------------------------------------------------
+2026-09-02 00:28:21  INFO        [PASS]  Lag features: shift(N>=1) -- T-1 or earlier only (Phase 7 verified)
+2026-09-02 00:28:21  INFO        [PASS]  Rolling features: shift(1).rolling(N) -- window [T-N,..,T-1] (Phase 7 verified)
+2026-09-02 00:28:21  INFO        [PASS]  tmax_departure_zscore: 30-day trailing window excluding T (Phase 7 verified)
+2026-09-02 00:28:21  INFO        [PASS]  heatwave_lag1 = heatwave(T-1) -- safe historical label, not same-day label
+2026-09-02 00:28:21  INFO        [PASS]  qualifying_day = derived from T weather data -- leakage-safe current-day feature
+2026-09-02 00:28:21  INFO        [PASS]  No T+1 weather variables in any feature
+2026-09-02 00:28:21  INFO        [PASS]  Target heatwave_next_day = heatwave(T+1) -- target only, absent from features
+2026-09-02 00:28:21  INFO        [PASS]  Phase 9 split boundaries: train<=2019, val=2020-2022, test>=2023 -- unchanged
+2026-09-02 00:28:21  INFO        [PASS]  Final training uses train+val only (ends 2022-12-31, test starts 2023-01-01)
+2026-09-02 00:28:21  INFO        [PASS]  Undersampling applied to train+val combined set only
+2026-09-02 00:28:21  INFO        [PASS]  Threshold = 0.70 fixed from Phase 11 val -- not tuned on test
+2026-09-02 00:28:21  INFO        [PASS]  Test set used once for final evaluation, never for configuration decisions
+2026-09-02 00:28:21  INFO      
+  Overall leakage audit: PASSED (12/12)
+2026-09-02 00:28:21  INFO        Saved: final_model_leakage_audit.csv
+2026-09-02 00:28:21  INFO      
+------------------------------------------------------------
+2026-09-02 00:28:21  INFO      Generating plots ...
+2026-09-02 00:28:22  INFO        Saved: results/plots/final_confusion_matrix.png
+2026-09-02 00:28:22  INFO        Saved: results/plots/final_precision_recall.png
+2026-09-02 00:28:22  INFO      
+------------------------------------------------------------
+2026-09-02 00:28:22  INFO      Saving result files ...
+2026-09-02 00:28:22  INFO        Saved: final_model_metrics.json
+2026-09-02 00:28:22  INFO        Saved: final_model_comparison.csv
+2026-09-02 00:28:22  INFO      
+======================================================================
+2026-09-02 00:28:22  INFO      PHASE 14 SUMMARY -- FINAL MODEL SELECTION
+2026-09-02 00:28:22  INFO      ======================================================================
+2026-09-02 00:28:22  INFO      
+  Model type         : RandomForestClassifier
+2026-09-02 00:28:22  INFO        Feature set        : temporal_wqd (110 features, with qualifying_day)
+2026-09-02 00:28:22  INFO        Imbalance strategy : random_undersampling (1:10 neg:pos on train+val)
+2026-09-02 00:28:22  INFO        Threshold          : 0.7
+2026-09-02 00:28:22  INFO        Random seed        : 42
+2026-09-02 00:28:22  INFO        Training data      : train + val (1990-01-11 -- 2022-12-31)
+2026-09-02 00:28:22  INFO        Test data          : test (2023-01-01 -- 2025-08-30)
+2026-09-02 00:28:22  INFO      
+  FINAL TEST RESULTS:
+2026-09-02 00:28:22  INFO          F1        = 0.6947
+2026-09-02 00:28:22  INFO          Precision = 0.5789
+2026-09-02 00:28:22  INFO          Recall    = 0.8684
+2026-09-02 00:28:22  INFO          PR-AUC    = 0.8339
+2026-09-02 00:28:22  INFO          ROC-AUC   = 0.9979
+2026-09-02 00:28:22  INFO          Accuracy  = 0.9940
+2026-09-02 00:28:22  INFO          TP=33  FP=24  TN=4803  FN=5
+2026-09-02 00:28:22  INFO          Predicted positives: 57
+2026-09-02 00:28:22  INFO          Actual positives   : 38
+2026-09-02 00:28:22  INFO      
+  ARTIFACTS:
+2026-09-02 00:28:22  INFO          models/final/climateguard_final_model.joblib
+2026-09-02 00:28:22  INFO          models/final/feature_list.json
+2026-09-02 00:28:22  INFO          models/final/metadata.json
+2026-09-02 00:28:22  INFO          results/final_model_metrics.json
+2026-09-02 00:28:22  INFO          results/final_model_comparison.csv
+2026-09-02 00:28:22  INFO          results/final_model_leakage_audit.csv
+2026-09-02 00:28:22  INFO          results/plots/final_confusion_matrix.png
+2026-09-02 00:28:22  INFO          results/plots/final_precision_recall.png
+2026-09-02 00:28:22  INFO      
+  Validation checks : 12/12 PASS
+2026-09-02 00:28:22  INFO        Leakage audit     : 12/12 PASS
+2026-09-02 00:28:22  INFO      
+Finished: 2026-09-02T00:28:22.986366
+2026-09-02 00:28:22  INFO      ======================================================================
+2026-09-02 00:28:22  INFO      Phase 14 complete. DO NOT start Phase 15 automatically.
+2026-09-02 00:28:22  INFO      ======================================================================

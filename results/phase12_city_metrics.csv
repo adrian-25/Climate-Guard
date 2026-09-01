@@ -1,0 +1,21 @@
+Candidate,City,Total,Actual_Pos,Note,Predicted_Pos,TP,FP,TN,FN,Precision,Recall,F1
+RF_with_qd_random_undersample,delhi,973,18,,26,15,11,944,3,0.5769,0.8333,0.6818
+RF_with_qd_random_undersample,lucknow,973,16,,23,15,8,949,1,0.6522,0.9375,0.7692
+RF_with_qd_random_undersample,nagpur,973,4,,5,2,3,966,2,0.4,0.5,0.4444
+RF_with_qd_random_undersample,ahmedabad,973,0,N/A -- no positive ground-truth examples,0,N/A,0,N/A,N/A,N/A,N/A,N/A
+RF_with_qd_random_undersample,mumbai,973,0,N/A -- no positive ground-truth examples,0,N/A,0,N/A,N/A,N/A,N/A,N/A
+XGB_without_qd_baseline_weight,delhi,973,18,,21,15,6,949,3,0.7143,0.8333,0.7692
+XGB_without_qd_baseline_weight,lucknow,973,16,,23,14,9,948,2,0.6087,0.875,0.7179
+XGB_without_qd_baseline_weight,nagpur,973,4,,7,3,4,965,1,0.4286,0.75,0.5455
+XGB_without_qd_baseline_weight,ahmedabad,973,0,N/A -- no positive ground-truth examples,0,N/A,0,N/A,N/A,N/A,N/A,N/A
+XGB_without_qd_baseline_weight,mumbai,973,0,N/A -- no positive ground-truth examples,0,N/A,0,N/A,N/A,N/A,N/A,N/A
+RF_with_qd_smote_skipped,delhi,973,18,,22,15,7,948,3,0.6818,0.8333,0.75
+RF_with_qd_smote_skipped,lucknow,973,16,,19,14,5,952,2,0.7368,0.875,0.8
+RF_with_qd_smote_skipped,nagpur,973,4,,5,2,3,966,2,0.4,0.5,0.4444
+RF_with_qd_smote_skipped,ahmedabad,973,0,N/A -- no positive ground-truth examples,0,N/A,0,N/A,N/A,N/A,N/A,N/A
+RF_with_qd_smote_skipped,mumbai,973,0,N/A -- no positive ground-truth examples,0,N/A,0,N/A,N/A,N/A,N/A,N/A
+RF_without_qd_smote_skipped,delhi,973,18,,28,15,13,942,3,0.5357,0.8333,0.6522
+RF_without_qd_smote_skipped,lucknow,973,16,,24,16,8,949,0,0.6667,1.0,0.8
+RF_without_qd_smote_skipped,nagpur,973,4,,7,4,3,966,0,0.5714,1.0,0.7273
+RF_without_qd_smote_skipped,ahmedabad,973,0,N/A -- no positive ground-truth examples,1,N/A,1,N/A,N/A,N/A,N/A,N/A
+RF_without_qd_smote_skipped,mumbai,973,0,N/A -- no positive ground-truth examples,0,N/A,0,N/A,N/A,N/A,N/A,N/A

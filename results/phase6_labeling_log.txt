@@ -1,0 +1,259 @@
+
+====================================================================
+  PHASE 6 — HEATWAVE LABEL GENERATION
+====================================================================
+  Input : data\processed\weather_cleaned.csv
+  Output: data\processed\weather_labelled.csv
+
+  Loaded: 65,135 rows × 25 cols
+
+====================================================================
+  STEP 1 — STRATEGY COMPARISON
+====================================================================
+
+  Three candidate strategies were considered:
+
+  ┌─────┬──────────────────────────────────────────────────────────────────┐
+  │ A   │ Fixed Absolute Threshold                                         │
+  │     │ Plains: Tmax >= 40°C   Coastal: Tmax >= 37°C                    │
+  │     │ PRO : Simple, fully transparent, zero data-leakage risk.         │
+  │     │ CON : Ignores anomaly — same temperature may be extreme in one   │
+  │     │       season but not another. EDA showed Mumbai gets only 8 days │
+  │     │       above 37°C over 35 years — near-useless for ML.           │
+  │     │ CON : Climatologically different cities get identical thresholds.│
+  └─────┴──────────────────────────────────────────────────────────────────┘
+
+  ┌─────┬──────────────────────────────────────────────────────────────────┐
+  │ B   │ Percentile-Based (e.g., city-specific 90th/95th pct of Tmax)    │
+  │     │ PRO : Equal positive-class frequency across cities by design.    │
+  │     │ PRO : Adapts to each city's climate.                             │
+  │     │ CON : Not scientifically grounded in any official criteria.      │
+  │     │ CON : A "hot day for Mumbai" is not the same risk as a "hot day  │
+  │     │       for Delhi". Cross-city comparability is lost.              │
+  │     │ CON : Forces class balance — may over-label mild days as         │
+  │     │       heatwaves simply to match a quota.                         │
+  └─────┴──────────────────────────────────────────────────────────────────┘
+
+  ┌─────┬──────────────────────────────────────────────────────────────────┐
+  │ C   │ IMD-Inspired Operational Rule (SELECTED)                         │
+  │     │ Combines absolute threshold AND anomaly from city-specific        │
+  │     │ 30-year climatological normal.                                   │
+  │     │ Plains: (Tmax>=40°C AND departure>=4.5°C) OR Tmax>=45°C         │
+  │     │ Coastal: Tmax>=37°C AND departure>=4.5°C                        │
+  │     │ Minimum duration: 2 consecutive qualifying days.                 │
+  │     │                                                                  │
+  │     │ PRO : Based on official IMD heatwave declaration criteria.       │
+  │     │ PRO : Scientifically defensible, grounded in operational met.    │
+  │     │ PRO : Anomaly criterion adapts to seasonal variation.            │
+  │     │ PRO : Duration criterion aligns with how real heatwave events     │
+  │     │       are declared — not isolated single hot days.               │
+  │     │ PRO : Handles Mumbai correctly via coastal threshold + anomaly.  │
+  │     │ CON : Cannot perfectly replicate IMD's station-level data (ERA5  │
+  │     │       is 0.25° gridded reanalysis, not ground station).          │
+  │     │ CON : We use ERA5 data for both the normal and the observation.  │
+  │     │       IMD uses gridded normals from station archives.            │
+  │     │ CON : Normal calculated from 1990-2020 baseline (31 years, close │
+  │     │       to WMO 30-year standard) rather than IMD's official        │
+  │     │       station normals.                                            │
+  └─────┴──────────────────────────────────────────────────────────────────┘
+
+  DECISION: Strategy C — IMD-Inspired Operational Heatwave Label
+  This is explicitly NOT labelled "official IMD". It is an ERA5-based
+  operational implementation of the IMD criteria.
+
+
+====================================================================
+  STEP 2 — COMPUTE CITY-SPECIFIC CLIMATOLOGICAL NORMALS (1990–2020)
+====================================================================
+  Baseline period    : 1990-01-01 → 2020-12-31
+  Baseline rows      : 56,615
+
+  City-specific normals (31-day centred smooth, 1990-2020 baseline):
+  City             Mean normal Tmax   Min normal   Max normal
+  ------------------------------------------------------------
+  New Delhi                   30.97°C       19.72°C       39.99°C
+  Lucknow                     31.19°C       20.88°C       39.53°C
+  Nagpur                      32.85°C       27.26°C       41.87°C
+  Ahmedabad                   33.27°C       26.97°C       40.26°C
+  Mumbai                      30.32°C       27.85°C       32.19°C
+
+====================================================================
+  STEP 3 — COMPUTE DEPARTURES AND QUALIFYING DAYS
+====================================================================
+
+  Departure column added. Summary (all cities):
+  Mean departure : 0.012°C
+  Std  departure : 2.265°C
+  Max  departure : 8.84°C
+  Min  departure : -13.92°C
+
+====================================================================
+  STEP 4 — APPLY DURATION CRITERION (>=2 CONSECUTIVE DAYS)
+====================================================================
+
+====================================================================
+  STEP 5 — CLASS BALANCE ANALYSIS
+====================================================================
+
+  City             Total    HW=1    HW=0      HW%   Events   Avg dur   Max dur   Single-day
+  --------------------------------------------------------------------------------------------
+  New Delhi       13,027     213  12,814    1.64%       54       3.9        11           39
+  Lucknow         13,027     141  12,886    1.08%       32       4.4        12           37
+  Nagpur          13,027     119  12,908    0.91%       34       3.5        10           23
+  Ahmedabad       13,027      32  12,995    0.25%       12       2.7         5           16
+  Mumbai          13,027       0  13,027    0.00%        0       0.0         0            8
+
+  Yearly heatwave days per city:
+  Year       New Delhi       Lucknow        Nagpur     Ahmedabad        Mumbai
+  ----------------------------------------------------------------------------
+  1990               0             0             0             0             0
+  1991              11            11             0             2             0
+  1992               2             4            11             0             0
+  1993               6             0             6             0             0
+  1994               7             5             4             3             0
+  1995              21            12            12             3             0
+  1996               0             0             0             0             0
+  1997               0             2             0             0             0
+  1998               8             8             4             5             0
+  1999               6             7             0             0             0
+  2000               0             0             0             0             0
+  2001               0             2             0             0             0
+  2002              20             3             0             3             0
+  2003               3             0             4             0             0
+  2004               2             0             0             0             0
+  2005               7            12            16             0             0
+  2006               0             0             0             2             0
+  2007               3             5             0             0             0
+  2008               0             0             0             0             0
+  2009              10             7             8             2             0
+  2010              22             2             8             8             0
+  2011               0             0             0             0             0
+  2012              10            13             7             0             0
+  2013               2             0             7             0             0
+  2014              11             9             6             0             0
+  2015               0             3             7             0             0
+  2016               0             0             0             2             0
+  2017               3             2             2             2             0
+  2018               2             6             0             0             0
+  2019              11             5             9             0             0
+  2020               0             0             2             0             0
+  2021               8             0             0             0             0
+  2022              20             7             2             0             0
+  2023               0             0             4             0             0
+  2024              18            16             0             0             0
+  2025               0             0             0             0             0
+
+====================================================================
+  STEP 6 — SAVE weather_labelled.csv
+====================================================================
+  Saved : data\processed\weather_labelled.csv
+  Size  : 11.66 MB
+  Rows  : 65,135
+  Cols  : 30
+
+====================================================================
+  STEP 7 — VALIDATION
+====================================================================
+
+  7a. Basic structural checks
+    [PASS] 65,135 rows
+    [PASS] Correct column count
+    [PASS] heatwave column: 0 missing, only 0/1 values
+    [PASS] 0 duplicate city+date records
+    [PASS] 5 cities present
+
+  7b. Date range check
+    [PASS] Date range 1990-01-01 → 2025-08-31
+
+  7c. No future-data leakage check
+    The label for date T uses:
+      - temperature_2m_max on date T  (observation from T)
+      - tmax_normal for that calendar day-of-year (computed from
+        1990-2020 baseline using ONLY historical averages, no T+1 data)
+      - qualifying_day depends only on T's own observation vs normal
+      - Duration criterion: a run of consecutive qualifying days is
+        identified retrospectively, but the labeling is for the
+        entire run — future ML features will use only T-aligned data.
+    [PASS] No future-data leakage in label methodology
+
+  7d. City-specific label correctness
+    [PASS] delhi: all heatwave=1 days are qualifying and have event IDs
+    [PASS] lucknow: all heatwave=1 days are qualifying and have event IDs
+    [PASS] nagpur: all heatwave=1 days are qualifying and have event IDs
+    [PASS] ahmedabad: all heatwave=1 days are qualifying and have event IDs
+    [PASS] mumbai: all heatwave=1 days are qualifying and have event IDs
+
+  7e. Consecutive-day integrity
+    [PASS] delhi: all events are consecutive and >= 2 days
+    [PASS] lucknow: all events are consecutive and >= 2 days
+    [PASS] nagpur: all events are consecutive and >= 2 days
+    [PASS] ahmedabad: all events are consecutive and >= 2 days
+    [PASS] mumbai: all events are consecutive and >= 2 days
+
+  7f. weather_cleaned.csv untouched
+    [PASS] weather_cleaned.csv: 65,135 rows, no heatwave column, rain_sum absent
+
+====================================================================
+  STEP 8 — REPRESENTATIVE EXAMPLES (per city)
+====================================================================
+
+  New Delhi:
+  Date            Tmax   Normal     Dep   Qual   HW   EvID   EvLen
+  -----------------------------------------------------------------
+  1990-01-01      16.7     20.1   -3.42      0    0      0       0  ← normal day (Jan)
+  1992-06-07      44.4     39.4    5.01      1    0      0       0  ← isolated qualifying (not labeled HW)
+  1995-05-30      44.8     40.0    4.82      1    1      9      11  ← event start
+  1995-06-04      45.1     39.7    5.44      1    1      9      11  ← event middle
+  1995-06-09      44.9     39.3    5.62      1    1      9      11  ← event end
+
+  Lucknow:
+  Date            Tmax   Normal     Dep   Qual   HW   EvID   EvLen
+  -----------------------------------------------------------------
+  1990-01-01      17.8     21.2   -3.37      0    0      0       0  ← normal day (Jan)
+  1990-06-05      43.7     39.0    4.73      1    0      0       0  ← isolated qualifying (not labeled HW)
+  2005-06-10      43.1     38.4    4.74      1    1     15      12  ← event start
+  2005-06-16      43.8     37.5    6.34      1    1     15      12  ← event middle
+  2005-06-21      41.9     36.6    5.27      1    1     15      12  ← event end
+
+  Nagpur:
+  Date            Tmax   Normal     Dep   Qual   HW   EvID   EvLen
+  -----------------------------------------------------------------
+  1990-01-01      25.3     27.3   -1.99      0    0      0       0  ← normal day (Jan)
+  1994-05-21      45.0     41.8    3.23      1    0      0       0  ← isolated qualifying (not labeled HW)
+  1995-05-30      45.1     40.9    4.17      1    1      7      10  ← event start
+  1995-06-04      45.7     39.8    5.87      1    1      7      10  ← event middle
+  1995-06-08      44.0     38.8    5.20      1    1      7      10  ← event end
+
+  Ahmedabad:
+  Date            Tmax   Normal     Dep   Qual   HW   EvID   EvLen
+  -----------------------------------------------------------------
+  1990-01-01      26.7     27.2   -0.54      0    0      0       0  ← normal day (Jan)
+  1991-06-02      44.2     39.6    4.60      1    0      0       0  ← isolated qualifying (not labeled HW)
+  1998-06-17      42.9     37.5    5.38      1    1      4       5  ← event start
+  1998-06-19      42.5     37.2    5.33      1    1      4       5  ← event middle
+  1998-06-21      41.3     36.8    4.52      1    1      4       5  ← event end
+
+  Mumbai:
+  Date            Tmax   Normal     Dep   Qual   HW   EvID   EvLen
+  -----------------------------------------------------------------
+  1990-01-01      28.6     29.5   -0.93      0    0      0       0  ← normal day (Jan)
+  1999-03-30      37.2     32.1    5.12      1    0      0       0  ← isolated qualifying (not labeled HW)
+  (No heatwave events in Mumbai)
+
+====================================================================
+  STEP 9 — PLOTS
+====================================================================
+  [PLOT] results\plots\heatwave_labels\01_annual_heatwave_days_per_city.png
+  [PLOT] results\plots\heatwave_labels\02_monthly_heatwave_distribution.png
+  [PLOT] results\plots\heatwave_labels\03_tmax_heatwave_overlay_delhi.png
+  [PLOT] results\plots\heatwave_labels\03_tmax_heatwave_overlay_lucknow.png
+  [PLOT] results\plots\heatwave_labels\03_tmax_heatwave_overlay_nagpur.png
+  [PLOT] results\plots\heatwave_labels\03_tmax_heatwave_overlay_ahmedabad.png
+  [PLOT] results\plots\heatwave_labels\03_tmax_heatwave_overlay_mumbai.png
+  [PLOT] results\plots\heatwave_labels\08_class_balance.png
+  [PLOT] results\plots\heatwave_labels\09_departure_distribution_hw_vs_nonhw.png
+  [PLOT] results\plots\heatwave_labels\10_event_duration_distribution.png
+
+====================================================================
+  STEP 10 — SAVE LOG
+====================================================================

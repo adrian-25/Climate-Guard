@@ -1,0 +1,13 @@
+Check,Result
+Lag features: shift(N>=1) -- T-1 or earlier only (Phase 7 verified),PASS
+"Rolling features: shift(1).rolling(N) -- window [T-N,..,T-1] (Phase 7 verified)",PASS
+tmax_departure_zscore: 30-day trailing window excluding T (Phase 7 verified),PASS
+"heatwave_lag1 = heatwave(T-1) -- safe historical label, not same-day label",PASS
+qualifying_day = derived from T weather data -- leakage-safe current-day feature,PASS
+No T+1 weather variables in any feature,PASS
+"Target heatwave_next_day = heatwave(T+1) -- target only, absent from features",PASS
+"Phase 9 split boundaries: train<=2019, val=2020-2022, test>=2023 -- unchanged",PASS
+"Final training uses train+val only (ends 2022-12-31, test starts 2023-01-01)",PASS
+Undersampling applied to train+val combined set only,PASS
+Threshold = 0.70 fixed from Phase 11 val -- not tuned on test,PASS
+"Test set used once for final evaluation, never for configuration decisions",PASS

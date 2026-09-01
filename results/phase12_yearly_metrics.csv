@@ -1,0 +1,13 @@
+Candidate,Year,Total,Actual_Pos,Note,Predicted_Pos,TP,FP,FN,Precision,Recall,F1
+RF_with_qd_random_undersample,2023,1825,4,,7,2,5,2,0.2857,0.5,0.3636
+RF_with_qd_random_undersample,2024,1830,34,,43,30,13,4,0.6977,0.8824,0.7792
+RF_with_qd_random_undersample,2025,1210,0,N/A -- no positive ground-truth examples,4,N/A,4,N/A,N/A,N/A,N/A
+XGB_without_qd_baseline_weight,2023,1825,4,,9,3,6,1,0.3333,0.75,0.4615
+XGB_without_qd_baseline_weight,2024,1830,34,,38,29,9,5,0.7632,0.8529,0.8056
+XGB_without_qd_baseline_weight,2025,1210,0,N/A -- no positive ground-truth examples,4,N/A,4,N/A,N/A,N/A,N/A
+RF_with_qd_smote_skipped,2023,1825,4,,6,2,4,2,0.3333,0.5,0.4
+RF_with_qd_smote_skipped,2024,1830,34,,36,29,7,5,0.8056,0.8529,0.8286
+RF_with_qd_smote_skipped,2025,1210,0,N/A -- no positive ground-truth examples,4,N/A,4,N/A,N/A,N/A,N/A
+RF_without_qd_smote_skipped,2023,1825,4,,11,4,7,0,0.3636,1.0,0.5333
+RF_without_qd_smote_skipped,2024,1830,34,,43,31,12,3,0.7209,0.9118,0.8052
+RF_without_qd_smote_skipped,2025,1210,0,N/A -- no positive ground-truth examples,6,N/A,6,N/A,N/A,N/A,N/A

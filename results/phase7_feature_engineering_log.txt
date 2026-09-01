@@ -1,0 +1,78 @@
+2026-09-01 22:29:30  INFO      ClimateGuard — Phase 7: Feature Engineering
+2026-09-01 22:29:30  INFO      Input : C:\Users\Adrian\Documents\climate guard\data\processed\weather_labelled.csv
+2026-09-01 22:29:30  INFO      Output: C:\Users\Adrian\Documents\climate guard\data\features\climateguard_features.csv
+2026-09-01 22:29:30  INFO      
+2026-09-01 22:29:30  INFO      Loading weather_labelled.csv …
+2026-09-01 22:29:30  INFO        Loaded 65,135 rows × 30 columns
+2026-09-01 22:29:30  INFO        Shape assertion passed (65135 × 30)
+2026-09-01 22:29:30  INFO      
+2026-09-01 22:29:30  INFO      Building features (grouped by city_key) …
+2026-09-01 22:29:30  DEBUG       Building features for ahmedabad     (13027 rows)
+2026-09-01 22:29:35  DEBUG       Building features for delhi         (13027 rows)
+2026-09-01 22:29:40  DEBUG       Building features for lucknow       (13027 rows)
+2026-09-01 22:29:45  DEBUG       Building features for mumbai        (13027 rows)
+2026-09-01 22:29:50  DEBUG       Building features for nagpur        (13027 rows)
+2026-09-01 22:29:55  INFO        After feature construction: 65,135 rows × 122 columns
+2026-09-01 22:29:55  INFO      
+2026-09-01 22:29:55  INFO      Dropping incomplete rows …
+2026-09-01 22:29:55  INFO        Dropped 40 rows (7 head + 1 tail per city × 5 cities = 40)
+2026-09-01 22:29:55  INFO        Remaining: 65,095 rows
+2026-09-01 22:29:55  INFO      
+2026-09-01 22:29:55  INFO      Checking for unexpected NaNs in core lag/rolling columns …
+2026-09-01 22:29:55  INFO        No unexpected NaNs found in lag/rolling/target columns. ✓
+2026-09-01 22:29:55  INFO      
+2026-09-01 22:29:55  INFO      ══════════════════════════════════════════════════════════════════════
+2026-09-01 22:29:55  INFO      LEAKAGE AUDIT
+2026-09-01 22:29:55  INFO      ══════════════════════════════════════════════════════════════════════
+2026-09-01 22:29:55  INFO      LEAKAGE AUDIT PASSED — 110 features checked, 0 issues.
+2026-09-01 22:29:55  INFO        All lag features have lag >= 1 (past data only)
+2026-09-01 22:29:55  INFO        All rolling features use shift(1).rolling(N) pattern
+2026-09-01 22:29:55  INFO        Delta features compare T vs T-N (T itself is current-day weather, allowed)
+2026-09-01 22:29:55  INFO        No _lead / _next suffixes detected
+2026-09-01 22:29:55  INFO        Target (heatwave_next_day) is excluded from feature list
+2026-09-01 22:29:55  INFO      ══════════════════════════════════════════════════════════════════════
+2026-09-01 22:29:55  INFO      
+2026-09-01 22:29:55  INFO      Feature group summary
+2026-09-01 22:29:55  INFO      ────────────────────────────────────────────────────────────
+2026-09-01 22:29:55  INFO        group1_current_weather           18 features
+2026-09-01 22:29:55  INFO        group2_lag                       33 features
+2026-09-01 22:29:55  INFO        group3_rolling                   42 features
+2026-09-01 22:29:55  INFO        group4_trend                      5 features
+2026-09-01 22:29:55  INFO        group5_anomaly                    1 features
+2026-09-01 22:29:55  INFO        group6_calendar                   7 features
+2026-09-01 22:29:55  INFO        group7_city                       4 features
+2026-09-01 22:29:55  INFO      ────────────────────────────────────────────────────────────
+2026-09-01 22:29:55  INFO        baseline_features                29 features
+2026-09-01 22:29:55  INFO        temporal_features               110 features
+2026-09-01 22:29:55  INFO      
+2026-09-01 22:29:55  INFO      Class balance — heatwave_next_day
+2026-09-01 22:29:55  INFO      ────────────────────────────────────────────────────────────
+2026-09-01 22:29:55  INFO        normal     (0)  64,590  (99.22%)
+2026-09-01 22:29:55  INFO        heatwave   (1)     505  (0.78%)
+2026-09-01 22:29:55  INFO      
+2026-09-01 22:29:55  INFO      Per-city class balance:
+2026-09-01 22:29:55  INFO        ahmedabad     hw=  32  total=13,019  hw%=0.25%
+2026-09-01 22:29:55  INFO        delhi         hw= 213  total=13,019  hw%=1.64%
+2026-09-01 22:29:55  INFO        lucknow       hw= 141  total=13,019  hw%=1.08%
+2026-09-01 22:29:55  INFO        mumbai        hw=   0  total=13,019  hw%=0.00%
+2026-09-01 22:29:55  INFO        nagpur        hw= 119  total=13,019  hw%=0.91%
+2026-09-01 22:29:55  INFO      
+2026-09-01 22:29:55  INFO      Feature group registry saved → C:\Users\Adrian\Documents\climate guard\results\phase7_feature_groups.json
+2026-09-01 22:30:00  INFO      Output saved  → C:\Users\Adrian\Documents\climate guard\data\features\climateguard_features.csv
+2026-09-01 22:30:00  INFO        Shape  : 65,095 rows × 121 columns
+2026-09-01 22:30:00  INFO        Size   : 59.91 MB
+2026-09-01 22:30:00  INFO      
+2026-09-01 22:30:00  INFO      ══════════════════════════════════════════════════════════════════════
+2026-09-01 22:30:00  INFO      PHASE 7 COMPLETE
+2026-09-01 22:30:00  INFO      ══════════════════════════════════════════════════════════════════════
+2026-09-01 22:30:00  INFO        Input rows       : 65,135  (5 cities × 13,027 days)
+2026-09-01 22:30:00  INFO        Output rows      : 65,095  (dropped 40 incomplete rows)
+2026-09-01 22:30:00  INFO        Total columns    : 121
+2026-09-01 22:30:00  INFO        Feature cols     : 106
+2026-09-01 22:30:00  INFO        Baseline set     : 29 features
+2026-09-01 22:30:00  INFO        Temporal set     : 110 features
+2026-09-01 22:30:00  INFO        Target column    : heatwave_next_day
+2026-09-01 22:30:00  INFO        Leakage audit    : PASSED
+2026-09-01 22:30:00  INFO        Output file      : C:\Users\Adrian\Documents\climate guard\data\features\climateguard_features.csv
+2026-09-01 22:30:00  INFO        Feature registry : C:\Users\Adrian\Documents\climate guard\results\phase7_feature_groups.json
+2026-09-01 22:30:00  INFO      ══════════════════════════════════════════════════════════════════════

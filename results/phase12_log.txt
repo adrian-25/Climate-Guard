@@ -1,0 +1,151 @@
+2026-09-01 23:53:57  INFO      ======================================================================
+2026-09-01 23:53:57  INFO      Phase 12 -- Final Model Evaluation on Held-Out Test Set
+2026-09-01 23:53:57  INFO      Started: 2026-09-01T23:53:57.035659
+2026-09-01 23:53:57  INFO      ======================================================================
+2026-09-01 23:53:57  INFO      
+Loading test splits ...
+2026-09-01 23:53:57  INFO        X_test : (4865, 29)
+2026-09-01 23:53:57  INFO        Positives: 38  (0.78%)
+2026-09-01 23:53:57  INFO        Negatives: 4827  (99.22%)
+2026-09-01 23:53:57  INFO        Test period: 2023-01-01 to 2025-08-30
+2026-09-01 23:53:57  INFO      
+  IMPORTANT: test data not modified, not resampled, not rebalanced.
+2026-09-01 23:53:57  INFO        Thresholds are FIXED from Phase 11 validation -- no test-set tuning.
+2026-09-01 23:53:57  INFO      
+============================================================
+2026-09-01 23:53:57  INFO      Evaluating: Random Forest / with_qd / random_undersample
+2026-09-01 23:53:57  INFO        Threshold (fixed from Phase 11): 0.7
+2026-09-01 23:53:57  INFO        Feature set: with_qd
+2026-09-01 23:53:59  INFO        Model loaded: model.joblib
+2026-09-01 23:53:59  INFO        TEST  -> F1=0.6957  P=0.5926  R=0.8421  PR-AUC=0.7705  ROC-AUC=0.9978
+2026-09-01 23:53:59  INFO                 TP=32  FP=22  TN=4805  FN=6  Pred+=54
+2026-09-01 23:53:59  INFO        Generalization: val-F1=0.6122  test-F1=0.6957  delta=+0.0835  [IMPROVED]
+2026-09-01 23:54:00  INFO        City-level test results:
+2026-09-01 23:54:00  INFO          delhi: F1=0.6818  P=0.5769  R=0.8333  TP=15  FP=11  FN=3
+2026-09-01 23:54:00  INFO          lucknow: F1=0.7692  P=0.6522  R=0.9375  TP=15  FP=8  FN=1
+2026-09-01 23:54:00  INFO          nagpur: F1=0.4444  P=0.4000  R=0.5000  TP=2  FP=3  FN=2
+2026-09-01 23:54:00  INFO          ahmedabad: N/A -- no positive ground-truth examples  (total=973, pred+=0)
+2026-09-01 23:54:00  INFO          mumbai: N/A -- no positive ground-truth examples  (total=973, pred+=0)
+2026-09-01 23:54:00  INFO        Year-level test results:
+2026-09-01 23:54:00  INFO          2023: F1=0.3636  P=0.2857  R=0.5000  TP=2  FP=5  FN=2
+2026-09-01 23:54:00  INFO          2024: F1=0.7792  P=0.6977  R=0.8824  TP=30  FP=13  FN=4
+2026-09-01 23:54:00  INFO          2025: N/A -- no positive ground-truth examples
+2026-09-01 23:54:00  INFO      
+============================================================
+2026-09-01 23:54:00  INFO      Evaluating: XGBoost / without_qd / baseline_weight
+2026-09-01 23:54:00  INFO        Threshold (fixed from Phase 11): 0.8
+2026-09-01 23:54:00  INFO        Feature set: without_qd
+2026-09-01 23:54:04  INFO        Model loaded: model.joblib
+2026-09-01 23:54:04  INFO        TEST  -> F1=0.7191  P=0.6275  R=0.8421  PR-AUC=0.8440  ROC-AUC=0.9982
+2026-09-01 23:54:04  INFO                 TP=32  FP=19  TN=4808  FN=6  Pred+=51
+2026-09-01 23:54:04  INFO        Generalization: val-F1=0.6105  test-F1=0.7191  delta=+0.1086  [IMPROVED]
+2026-09-01 23:54:04  INFO        City-level test results:
+2026-09-01 23:54:04  INFO          delhi: F1=0.7692  P=0.7143  R=0.8333  TP=15  FP=6  FN=3
+2026-09-01 23:54:04  INFO          lucknow: F1=0.7179  P=0.6087  R=0.8750  TP=14  FP=9  FN=2
+2026-09-01 23:54:04  INFO          nagpur: F1=0.5455  P=0.4286  R=0.7500  TP=3  FP=4  FN=1
+2026-09-01 23:54:04  INFO          ahmedabad: N/A -- no positive ground-truth examples  (total=973, pred+=0)
+2026-09-01 23:54:04  INFO          mumbai: N/A -- no positive ground-truth examples  (total=973, pred+=0)
+2026-09-01 23:54:04  INFO        Year-level test results:
+2026-09-01 23:54:04  INFO          2023: F1=0.4615  P=0.3333  R=0.7500  TP=3  FP=6  FN=1
+2026-09-01 23:54:04  INFO          2024: F1=0.8056  P=0.7632  R=0.8529  TP=29  FP=9  FN=5
+2026-09-01 23:54:04  INFO          2025: N/A -- no positive ground-truth examples
+2026-09-01 23:54:04  INFO      
+============================================================
+2026-09-01 23:54:04  INFO      Evaluating: Random Forest / with_qd / smote_skipped
+2026-09-01 23:54:04  INFO        Threshold (fixed from Phase 11): 0.2
+2026-09-01 23:54:04  INFO        Feature set: with_qd
+2026-09-01 23:54:05  INFO        Model loaded: model.joblib
+2026-09-01 23:54:05  INFO        TEST  -> F1=0.7381  P=0.6739  R=0.8158  PR-AUC=0.8307  ROC-AUC=0.9971
+2026-09-01 23:54:05  INFO                 TP=31  FP=15  TN=4812  FN=7  Pred+=46
+2026-09-01 23:54:05  INFO        Generalization: val-F1=0.6105  test-F1=0.7381  delta=+0.1276  [IMPROVED]
+2026-09-01 23:54:05  INFO        City-level test results:
+2026-09-01 23:54:05  INFO          delhi: F1=0.7500  P=0.6818  R=0.8333  TP=15  FP=7  FN=3
+2026-09-01 23:54:05  INFO          lucknow: F1=0.8000  P=0.7368  R=0.8750  TP=14  FP=5  FN=2
+2026-09-01 23:54:05  INFO          nagpur: F1=0.4444  P=0.4000  R=0.5000  TP=2  FP=3  FN=2
+2026-09-01 23:54:05  INFO          ahmedabad: N/A -- no positive ground-truth examples  (total=973, pred+=0)
+2026-09-01 23:54:05  INFO          mumbai: N/A -- no positive ground-truth examples  (total=973, pred+=0)
+2026-09-01 23:54:05  INFO        Year-level test results:
+2026-09-01 23:54:05  INFO          2023: F1=0.4000  P=0.3333  R=0.5000  TP=2  FP=4  FN=2
+2026-09-01 23:54:05  INFO          2024: F1=0.8286  P=0.8056  R=0.8529  TP=29  FP=7  FN=5
+2026-09-01 23:54:05  INFO          2025: N/A -- no positive ground-truth examples
+2026-09-01 23:54:05  INFO      
+============================================================
+2026-09-01 23:54:05  INFO      Evaluating: Random Forest / without_qd / smote_skipped
+2026-09-01 23:54:05  INFO        Threshold (fixed from Phase 11): 0.15
+2026-09-01 23:54:05  INFO        Feature set: without_qd
+2026-09-01 23:54:06  INFO        Model loaded: model.joblib
+2026-09-01 23:54:06  INFO        TEST  -> F1=0.7143  P=0.5833  R=0.9211  PR-AUC=0.8397  ROC-AUC=0.9978
+2026-09-01 23:54:06  INFO                 TP=35  FP=25  TN=4802  FN=3  Pred+=60
+2026-09-01 23:54:06  INFO        Generalization: val-F1=0.6095  test-F1=0.7143  delta=+0.1048  [IMPROVED]
+2026-09-01 23:54:06  INFO        City-level test results:
+2026-09-01 23:54:06  INFO          delhi: F1=0.6522  P=0.5357  R=0.8333  TP=15  FP=13  FN=3
+2026-09-01 23:54:06  INFO          lucknow: F1=0.8000  P=0.6667  R=1.0000  TP=16  FP=8  FN=0
+2026-09-01 23:54:06  INFO          nagpur: F1=0.7273  P=0.5714  R=1.0000  TP=4  FP=3  FN=0
+2026-09-01 23:54:06  INFO          ahmedabad: N/A -- no positive ground-truth examples  (total=973, pred+=1)
+2026-09-01 23:54:06  INFO          mumbai: N/A -- no positive ground-truth examples  (total=973, pred+=0)
+2026-09-01 23:54:06  INFO        Year-level test results:
+2026-09-01 23:54:06  INFO          2023: F1=0.5333  P=0.3636  R=1.0000  TP=4  FP=7  FN=0
+2026-09-01 23:54:06  INFO          2024: F1=0.8052  P=0.7209  R=0.9118  TP=31  FP=12  FN=3
+2026-09-01 23:54:06  INFO          2025: N/A -- no positive ground-truth examples
+2026-09-01 23:54:06  INFO      
+------------------------------------------------------------
+2026-09-01 23:54:06  INFO      Generating plots ...
+2026-09-01 23:54:08  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\plots\phase12\pr_curve.png
+2026-09-01 23:54:08  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\plots\phase12\roc_curve.png
+2026-09-01 23:54:08  INFO      
+------------------------------------------------------------
+2026-09-01 23:54:08  INFO      Saving result files ...
+2026-09-01 23:54:08  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\phase12_test_metrics.csv
+2026-09-01 23:54:08  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\phase12_city_metrics.csv
+2026-09-01 23:54:08  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\phase12_yearly_metrics.csv
+2026-09-01 23:54:08  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\phase12_comparison.csv
+2026-09-01 23:54:08  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\phase12_metrics.json
+2026-09-01 23:54:08  INFO      
+------------------------------------------------------------
+2026-09-01 23:54:08  INFO      LEAKAGE AUDIT
+2026-09-01 23:54:08  INFO      ------------------------------------------------------------
+2026-09-01 23:54:08  INFO        [PASS]  Test labels never used during model training (Phase 11)
+2026-09-01 23:54:08  INFO        [PASS]  Test labels never used during threshold selection (Phase 11)
+2026-09-01 23:54:08  INFO        [PASS]  Thresholds FIXED from Phase 11 validation -- no test-set tuning
+2026-09-01 23:54:08  INFO        [PASS]  Test set NOT resampled, oversampled, or undersampled
+2026-09-01 23:54:08  INFO        [PASS]  Models loaded from Phase 11 artifacts -- no retraining
+2026-09-01 23:54:08  INFO        [PASS]  Scaler (LR models) fitted on training data only -- none needed here
+2026-09-01 23:54:08  INFO        [PASS]  Phase 9 split boundaries unchanged (train<=2019, val=2020-2022, test>=2023)
+2026-09-01 23:54:08  INFO        [PASS]  Phase 8 datasets (ml_baseline.csv, ml_temporal.csv) not modified
+2026-09-01 23:54:08  INFO        [PASS]  Phase 11 model artifacts not modified
+2026-09-01 23:54:08  INFO        [PASS]  No future weather variables (T+1) in feature sets
+2026-09-01 23:54:08  INFO        [PASS]  heatwave_next_day (target) absent from feature matrices
+2026-09-01 23:54:08  INFO        [PASS]  Candidate selection based on validation results only
+2026-09-01 23:54:08  INFO      
+  Overall leakage audit: PASSED
+2026-09-01 23:54:08  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\phase12_leakage_audit.csv
+2026-09-01 23:54:08  INFO      
+======================================================================
+2026-09-01 23:54:08  INFO      PHASE 12 SUMMARY
+2026-09-01 23:54:08  INFO      ======================================================================
+2026-09-01 23:54:08  INFO      
+Test set: 4,865 rows  |  38 positives  |  4,827 negatives
+2026-09-01 23:54:08  INFO      
+Val vs Test comparison:
+2026-09-01 23:54:08  INFO        Candidate                                   Val-F1  Test-F1   Delta Status
+2026-09-01 23:54:08  INFO        ------------------------------------------ ------- -------- ------- --------
+2026-09-01 23:54:08  INFO        RF_with_qd_random_undersample               0.6122   0.6957 +0.0835 IMPROVED
+2026-09-01 23:54:08  INFO        XGB_without_qd_baseline_weight              0.6105   0.7191 +0.1086 IMPROVED
+2026-09-01 23:54:08  INFO        RF_with_qd_smote_skipped                    0.6105   0.7381 +0.1276 IMPROVED
+2026-09-01 23:54:08  INFO        RF_without_qd_smote_skipped                 0.6095   0.7143 +0.1048 IMPROVED
+2026-09-01 23:54:08  INFO      
+Best test F1: RF_with_qd_smote_skipped
+2026-09-01 23:54:08  INFO        F1=0.7381  P=0.6739  R=0.8158  PR-AUC=0.8307
+2026-09-01 23:54:08  INFO        TP=31  FP=15  FN=7
+2026-09-01 23:54:08  INFO      
+Best test PR-AUC: XGB_without_qd_baseline_weight
+2026-09-01 23:54:08  INFO        PR-AUC=0.844  F1=0.7191
+2026-09-01 23:54:08  INFO      
+NOTE: No final production model is declared in Phase 12.
+2026-09-01 23:54:08  INFO      Phase 13 (temporal feature experiment) is next.
+2026-09-01 23:54:08  INFO      Phase 14 will make the final model selection.
+2026-09-01 23:54:08  INFO      
+Finished: 2026-09-01T23:54:08.970284
+2026-09-01 23:54:08  INFO      ======================================================================
+2026-09-01 23:54:08  INFO      Phase 12 complete. DO NOT start Phase 13 automatically.
+2026-09-01 23:54:08  INFO      ======================================================================

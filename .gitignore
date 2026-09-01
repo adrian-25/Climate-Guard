@@ -1,0 +1,87 @@
+# ============================================================
+# ClimateGuard — .gitignore
+# Selective exclusions. Important source, docs, and model
+# artifacts are NOT excluded — see comments below.
+# ============================================================
+
+# ------------------------------------------------------------
+# Python caches and compiled files
+# ------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ------------------------------------------------------------
+# Virtual environments
+# ------------------------------------------------------------
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.*
+!.env.example
+
+# ------------------------------------------------------------
+# IDE / editor config (machine-specific)
+# ------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ------------------------------------------------------------
+# Jupyter checkpoints
+# ------------------------------------------------------------
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ------------------------------------------------------------
+# Large derived feature datasets (over 50 MB — not pushable)
+# Raw pipeline can regenerate these from data/raw/
+# Local files are NOT deleted — only excluded from Git.
+# ------------------------------------------------------------
+data/features/climateguard_features.csv
+data/features/ml_temporal.csv
+
+# ------------------------------------------------------------
+# Large split training file (46.7 MB — over GitHub soft limit)
+# val/test splits are small enough and ARE committed.
+# ------------------------------------------------------------
+data/splits/temporal/X_train.csv
+
+# ------------------------------------------------------------
+# Backup and staging directories (superseded, not needed in repo)
+# ------------------------------------------------------------
+data/raw_backup/
+data/raw_staging/
+
+# ------------------------------------------------------------
+# Experimental phase model .joblib files (intermediate training
+# artifacts from phases 10, 11, 13 — large and not needed for
+# the production interface). metadata.json files in these dirs
+# ARE committed (small JSON, useful for reference).
+# models/final/ is NOT excluded — it is fully committed.
+# ------------------------------------------------------------
+models/phase10/**/*.joblib
+models/phase10/**/*.pkl
+models/phase11/**/*.joblib
+models/phase11/**/*.pkl
+models/phase13/**/*.joblib
+models/phase13/**/*.pkl
+
+# ------------------------------------------------------------
+# Scaler files from phase10 logistic regression (not needed)
+# ------------------------------------------------------------
+models/phase10/**/scaler.joblib
+
+# ------------------------------------------------------------
+# Log files and OS noise
+# ------------------------------------------------------------
+*.log
+desktop.ini

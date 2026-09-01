@@ -1,0 +1,362 @@
+{
+  "phase": 9,
+  "split_method": "chronological / year-based",
+  "random_shuffle": false,
+  "boundaries": {
+    "train_start": "1990-01-11",
+    "train_end": "2019-12-31",
+    "val_start": "2020-01-01",
+    "val_end": "2022-12-31",
+    "test_start": "2023-01-01",
+    "test_end": "2025-08-30"
+  },
+  "leakage_audit_passed": true,
+  "datasets": {
+    "baseline": {
+      "n_features": 29,
+      "phase8_md5": "7851299a3bfa3293f6f66e1870b83d41",
+      "splits": {
+        "train": {
+          "X_shape": [
+            54735,
+            29
+          ],
+          "y_shape": [
+            54735,
+            1
+          ],
+          "meta_shape": [
+            54735,
+            10
+          ],
+          "positives": 428,
+          "pos_pct": 0.7819
+        },
+        "val": {
+          "X_shape": [
+            5480,
+            29
+          ],
+          "y_shape": [
+            5480,
+            1
+          ],
+          "meta_shape": [
+            5480,
+            10
+          ],
+          "positives": 39,
+          "pos_pct": 0.7117
+        },
+        "test": {
+          "X_shape": [
+            4865,
+            29
+          ],
+          "y_shape": [
+            4865,
+            1
+          ],
+          "meta_shape": [
+            4865,
+            10
+          ],
+          "positives": 38,
+          "pos_pct": 0.7811
+        }
+      },
+      "class_distribution": {
+        "dataset": "baseline",
+        "splits": {
+          "train": {
+            "total": 54735,
+            "pos": 428,
+            "neg": 54307,
+            "pos_pct": 0.7819,
+            "by_city": {
+              "delhi": {
+                "total": 10947,
+                "pos": 167,
+                "neg": 10780,
+                "pos_pct": 1.5255
+              },
+              "lucknow": {
+                "total": 10947,
+                "pos": 118,
+                "neg": 10829,
+                "pos_pct": 1.0779
+              },
+              "nagpur": {
+                "total": 10947,
+                "pos": 111,
+                "neg": 10836,
+                "pos_pct": 1.014
+              },
+              "ahmedabad": {
+                "total": 10947,
+                "pos": 32,
+                "neg": 10915,
+                "pos_pct": 0.2923
+              },
+              "mumbai": {
+                "total": 10947,
+                "pos": 0,
+                "neg": 10947,
+                "pos_pct": 0.0
+              }
+            }
+          },
+          "val": {
+            "total": 5480,
+            "pos": 39,
+            "neg": 5441,
+            "pos_pct": 0.7117,
+            "by_city": {
+              "delhi": {
+                "total": 1096,
+                "pos": 28,
+                "neg": 1068,
+                "pos_pct": 2.5547
+              },
+              "lucknow": {
+                "total": 1096,
+                "pos": 7,
+                "neg": 1089,
+                "pos_pct": 0.6387
+              },
+              "nagpur": {
+                "total": 1096,
+                "pos": 4,
+                "neg": 1092,
+                "pos_pct": 0.365
+              },
+              "ahmedabad": {
+                "total": 1096,
+                "pos": 0,
+                "neg": 1096,
+                "pos_pct": 0.0
+              },
+              "mumbai": {
+                "total": 1096,
+                "pos": 0,
+                "neg": 1096,
+                "pos_pct": 0.0
+              }
+            }
+          },
+          "test": {
+            "total": 4865,
+            "pos": 38,
+            "neg": 4827,
+            "pos_pct": 0.7811,
+            "by_city": {
+              "delhi": {
+                "total": 973,
+                "pos": 18,
+                "neg": 955,
+                "pos_pct": 1.8499
+              },
+              "lucknow": {
+                "total": 973,
+                "pos": 16,
+                "neg": 957,
+                "pos_pct": 1.6444
+              },
+              "nagpur": {
+                "total": 973,
+                "pos": 4,
+                "neg": 969,
+                "pos_pct": 0.4111
+              },
+              "ahmedabad": {
+                "total": 973,
+                "pos": 0,
+                "neg": 973,
+                "pos_pct": 0.0
+              },
+              "mumbai": {
+                "total": 973,
+                "pos": 0,
+                "neg": 973,
+                "pos_pct": 0.0
+              }
+            }
+          }
+        }
+      }
+    },
+    "temporal": {
+      "n_features": 110,
+      "phase8_md5": "513724a7c1ab7d4fec417997a8df540b",
+      "splits": {
+        "train": {
+          "X_shape": [
+            54735,
+            110
+          ],
+          "y_shape": [
+            54735,
+            1
+          ],
+          "meta_shape": [
+            54735,
+            10
+          ],
+          "positives": 428,
+          "pos_pct": 0.7819
+        },
+        "val": {
+          "X_shape": [
+            5480,
+            110
+          ],
+          "y_shape": [
+            5480,
+            1
+          ],
+          "meta_shape": [
+            5480,
+            10
+          ],
+          "positives": 39,
+          "pos_pct": 0.7117
+        },
+        "test": {
+          "X_shape": [
+            4865,
+            110
+          ],
+          "y_shape": [
+            4865,
+            1
+          ],
+          "meta_shape": [
+            4865,
+            10
+          ],
+          "positives": 38,
+          "pos_pct": 0.7811
+        }
+      },
+      "class_distribution": {
+        "dataset": "temporal",
+        "splits": {
+          "train": {
+            "total": 54735,
+            "pos": 428,
+            "neg": 54307,
+            "pos_pct": 0.7819,
+            "by_city": {
+              "delhi": {
+                "total": 10947,
+                "pos": 167,
+                "neg": 10780,
+                "pos_pct": 1.5255
+              },
+              "lucknow": {
+                "total": 10947,
+                "pos": 118,
+                "neg": 10829,
+                "pos_pct": 1.0779
+              },
+              "nagpur": {
+                "total": 10947,
+                "pos": 111,
+                "neg": 10836,
+                "pos_pct": 1.014
+              },
+              "ahmedabad": {
+                "total": 10947,
+                "pos": 32,
+                "neg": 10915,
+                "pos_pct": 0.2923
+              },
+              "mumbai": {
+                "total": 10947,
+                "pos": 0,
+                "neg": 10947,
+                "pos_pct": 0.0
+              }
+            }
+          },
+          "val": {
+            "total": 5480,
+            "pos": 39,
+            "neg": 5441,
+            "pos_pct": 0.7117,
+            "by_city": {
+              "delhi": {
+                "total": 1096,
+                "pos": 28,
+                "neg": 1068,
+                "pos_pct": 2.5547
+              },
+              "lucknow": {
+                "total": 1096,
+                "pos": 7,
+                "neg": 1089,
+                "pos_pct": 0.6387
+              },
+              "nagpur": {
+                "total": 1096,
+                "pos": 4,
+                "neg": 1092,
+                "pos_pct": 0.365
+              },
+              "ahmedabad": {
+                "total": 1096,
+                "pos": 0,
+                "neg": 1096,
+                "pos_pct": 0.0
+              },
+              "mumbai": {
+                "total": 1096,
+                "pos": 0,
+                "neg": 1096,
+                "pos_pct": 0.0
+              }
+            }
+          },
+          "test": {
+            "total": 4865,
+            "pos": 38,
+            "neg": 4827,
+            "pos_pct": 0.7811,
+            "by_city": {
+              "delhi": {
+                "total": 973,
+                "pos": 18,
+                "neg": 955,
+                "pos_pct": 1.8499
+              },
+              "lucknow": {
+                "total": 973,
+                "pos": 16,
+                "neg": 957,
+                "pos_pct": 1.6444
+              },
+              "nagpur": {
+                "total": 973,
+                "pos": 4,
+                "neg": 969,
+                "pos_pct": 0.4111
+              },
+              "ahmedabad": {
+                "total": 973,
+                "pos": 0,
+                "neg": 973,
+                "pos_pct": 0.0
+              },
+              "mumbai": {
+                "total": 973,
+                "pos": 0,
+                "neg": 973,
+                "pos_pct": 0.0
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

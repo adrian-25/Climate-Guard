@@ -1,0 +1,412 @@
+﻿====================================================================
+ClimateGuard ù Staged Data Validation
+====================================================================
+
+[CHECK 1] Staged files exist
+    [PASS] lucknow_era5_raw.csv  (1.81 MB)
+    [PASS] nagpur_era5_raw.csv  (1.75 MB)
+    [PASS] ahmedabad_era5_raw.csv  (1.79 MB)
+    [PASS] mumbai_era5_raw.csv  (1.77 MB)
+
+====================================================================
+  CITY: LUCKNOW (13027 rows)
+====================================================================
+
+  [CHECK 2] Row count
+    [PASS] 13027 rows (expected 13020û13035)
+
+  [CHECK 3] Date range
+    [PASS] 1990-01-01 to 2025-08-31
+
+  [CHECK 4] No missing dates
+    [PASS] No missing dates
+
+  [CHECK 5] No duplicate dates
+    [PASS] No duplicate dates
+
+  [CHECK 6] All 16 weather variables present
+    [PASS] All 16 weather columns present
+
+  [CHECK 7] Previously empty columns now populated
+    [PASS] apparent_temperature_max ù populated (0.0000% missing)
+    [PASS] apparent_temperature_min ù populated (0.0000% missing)
+    [PASS] apparent_temperature_mean ù populated (0.0000% missing)
+    [PASS] precipitation_sum ù populated (0.0000% missing)
+    [PASS] rain_sum ù populated (0.0000% missing)
+    [PASS] wind_speed_10m_max ù populated (0.0000% missing)
+    [PASS] wind_gusts_10m_max ù populated (0.0000% missing)
+    [PASS] surface_pressure_mean ù populated (0.0000% missing)
+    [PASS] shortwave_radiation_sum ù populated (0.0000% missing)
+    [PASS] et0_fao_evapotranspiration ù populated (0.0000% missing)
+
+  [CHECK 8] Missing-value % ù all columns
+    Column                                    Missing      Pct
+    ------------------------------------------------------------
+    temperature_2m_max                              0  0.0000%
+    temperature_2m_min                              0  0.0000%
+    temperature_2m_mean                             0  0.0000%
+    apparent_temperature_max                        0  0.0000%
+    apparent_temperature_min                        0  0.0000%
+    apparent_temperature_mean                       0  0.0000%
+    precipitation_sum                               0  0.0000%
+    rain_sum                                        0  0.0000%
+    wind_speed_10m_max                              0  0.0000%
+    wind_gusts_10m_max                              0  0.0000%
+    relative_humidity_2m_max                        0  0.0000%
+    relative_humidity_2m_min                        0  0.0000%
+    relative_humidity_2m_mean                       0  0.0000%
+    surface_pressure_mean                           0  0.0000%
+    shortwave_radiation_sum                         0  0.0000%
+    et0_fao_evapotranspiration                      0  0.0000%
+
+  [CHECK 9] Data types
+    [PASS] temperature_2m_max: float64
+    [PASS] temperature_2m_min: float64
+    [PASS] temperature_2m_mean: float64
+    [PASS] apparent_temperature_max: float64
+    [PASS] apparent_temperature_min: float64
+    [PASS] apparent_temperature_mean: float64
+    [PASS] precipitation_sum: float64
+    [PASS] rain_sum: float64
+    [PASS] wind_speed_10m_max: float64
+    [PASS] wind_gusts_10m_max: float64
+    [PASS] relative_humidity_2m_max: int64
+    [PASS] relative_humidity_2m_min: int64
+    [PASS] relative_humidity_2m_mean: int64
+    [PASS] surface_pressure_mean: float64
+    [PASS] shortwave_radiation_sum: float64
+    [PASS] et0_fao_evapotranspiration: float64
+
+  [CHECK 10] Physical range validation
+    [PASS] temperature_2m_max: [11.30, 46.30] within [-20, 60]
+    [PASS] temperature_2m_min: [3.10, 35.00] within [-20, 50]
+    [PASS] temperature_2m_mean: [6.90, 39.30] within [-20, 55]
+    [PASS] apparent_temperature_max: [9.80, 50.90] within [-30, 70]
+    [PASS] apparent_temperature_min: [0.10, 38.20] within [-30, 60]
+    [PASS] apparent_temperature_mean: [4.90, 42.20] within [-30, 65]
+    [PASS] precipitation_sum: [0.00, 158.40] within [0, 600]
+    [PASS] rain_sum: [0.00, 158.40] within [0, 600]
+    [PASS] wind_speed_10m_max: [4.60, 41.00] within [0, 200]
+    [PASS] wind_gusts_10m_max: [11.90, 77.80] within [0, 300]
+    [PASS] relative_humidity_2m_max: [23.00, 100.00] within [0, 100]
+    [PASS] relative_humidity_2m_min: [8.00, 95.00] within [0, 100]
+    [PASS] relative_humidity_2m_mean: [17.00, 98.00] within [0, 100]
+    [PASS] surface_pressure_mean: [977.30, 1009.70] within [800, 1100]
+    [PASS] shortwave_radiation_sum: [1.36, 29.28] within [0, 50]
+    [PASS] et0_fao_evapotranspiration: [0.42, 11.72] within [0, 20]
+
+  [CHECK 11] Metadata consistency
+    [PASS] latitude: 26.8467
+    [PASS] longitude: 80.9462
+    [PASS] region_type: plains
+    [PASS] state: Uttar Pradesh
+
+====================================================================
+  CITY: NAGPUR (13027 rows)
+====================================================================
+
+  [CHECK 2] Row count
+    [PASS] 13027 rows (expected 13020û13035)
+
+  [CHECK 3] Date range
+    [PASS] 1990-01-01 to 2025-08-31
+
+  [CHECK 4] No missing dates
+    [PASS] No missing dates
+
+  [CHECK 5] No duplicate dates
+    [PASS] No duplicate dates
+
+  [CHECK 6] All 16 weather variables present
+    [PASS] All 16 weather columns present
+
+  [CHECK 7] Previously empty columns now populated
+    [PASS] apparent_temperature_max ù populated (0.0000% missing)
+    [PASS] apparent_temperature_min ù populated (0.0000% missing)
+    [PASS] apparent_temperature_mean ù populated (0.0000% missing)
+    [PASS] precipitation_sum ù populated (0.0000% missing)
+    [PASS] rain_sum ù populated (0.0000% missing)
+    [PASS] wind_speed_10m_max ù populated (0.0000% missing)
+    [PASS] wind_gusts_10m_max ù populated (0.0000% missing)
+    [PASS] surface_pressure_mean ù populated (0.0000% missing)
+    [PASS] shortwave_radiation_sum ù populated (0.0000% missing)
+    [PASS] et0_fao_evapotranspiration ù populated (0.0000% missing)
+
+  [CHECK 8] Missing-value % ù all columns
+    Column                                    Missing      Pct
+    ------------------------------------------------------------
+    temperature_2m_max                              0  0.0000%
+    temperature_2m_min                              0  0.0000%
+    temperature_2m_mean                             0  0.0000%
+    apparent_temperature_max                        0  0.0000%
+    apparent_temperature_min                        0  0.0000%
+    apparent_temperature_mean                       0  0.0000%
+    precipitation_sum                               0  0.0000%
+    rain_sum                                        0  0.0000%
+    wind_speed_10m_max                              0  0.0000%
+    wind_gusts_10m_max                              0  0.0000%
+    relative_humidity_2m_max                        0  0.0000%
+    relative_humidity_2m_min                        0  0.0000%
+    relative_humidity_2m_mean                       0  0.0000%
+    surface_pressure_mean                           0  0.0000%
+    shortwave_radiation_sum                         0  0.0000%
+    et0_fao_evapotranspiration                      0  0.0000%
+
+  [CHECK 9] Data types
+    [PASS] temperature_2m_max: float64
+    [PASS] temperature_2m_min: float64
+    [PASS] temperature_2m_mean: float64
+    [PASS] apparent_temperature_max: float64
+    [PASS] apparent_temperature_min: float64
+    [PASS] apparent_temperature_mean: float64
+    [PASS] precipitation_sum: float64
+    [PASS] rain_sum: float64
+    [PASS] wind_speed_10m_max: float64
+    [PASS] wind_gusts_10m_max: float64
+    [PASS] relative_humidity_2m_max: int64
+    [PASS] relative_humidity_2m_min: int64
+    [PASS] relative_humidity_2m_mean: int64
+    [PASS] surface_pressure_mean: float64
+    [PASS] shortwave_radiation_sum: float64
+    [PASS] et0_fao_evapotranspiration: float64
+
+  [CHECK 10] Physical range validation
+    [PASS] temperature_2m_max: [18.70, 46.90] within [-20, 60]
+    [PASS] temperature_2m_min: [7.20, 35.30] within [-20, 50]
+    [PASS] temperature_2m_mean: [13.50, 39.90] within [-20, 55]
+    [PASS] apparent_temperature_max: [17.80, 49.30] within [-30, 70]
+    [PASS] apparent_temperature_min: [4.00, 35.80] within [-30, 60]
+    [PASS] apparent_temperature_mean: [10.60, 40.80] within [-30, 65]
+    [PASS] precipitation_sum: [0.00, 171.60] within [0, 600]
+    [PASS] rain_sum: [0.00, 171.60] within [0, 600]
+    [PASS] wind_speed_10m_max: [4.70, 35.80] within [0, 200]
+    [PASS] wind_gusts_10m_max: [11.90, 81.00] within [0, 300]
+    [PASS] relative_humidity_2m_max: [20.00, 100.00] within [0, 100]
+    [PASS] relative_humidity_2m_min: [4.00, 93.00] within [0, 100]
+    [PASS] relative_humidity_2m_mean: [14.00, 96.00] within [0, 100]
+    [PASS] surface_pressure_mean: [957.90, 985.10] within [800, 1100]
+    [PASS] shortwave_radiation_sum: [1.37, 28.73] within [0, 50]
+    [PASS] et0_fao_evapotranspiration: [0.61, 12.14] within [0, 20]
+
+  [CHECK 11] Metadata consistency
+    [PASS] latitude: 21.1458
+    [PASS] longitude: 79.0882
+    [PASS] region_type: plains
+    [PASS] state: Maharashtra
+
+====================================================================
+  CITY: AHMEDABAD (13027 rows)
+====================================================================
+
+  [CHECK 2] Row count
+    [PASS] 13027 rows (expected 13020û13035)
+
+  [CHECK 3] Date range
+    [PASS] 1990-01-01 to 2025-08-31
+
+  [CHECK 4] No missing dates
+    [PASS] No missing dates
+
+  [CHECK 5] No duplicate dates
+    [PASS] No duplicate dates
+
+  [CHECK 6] All 16 weather variables present
+    [PASS] All 16 weather columns present
+
+  [CHECK 7] Previously empty columns now populated
+    [PASS] apparent_temperature_max ù populated (0.0000% missing)
+    [PASS] apparent_temperature_min ù populated (0.0000% missing)
+    [PASS] apparent_temperature_mean ù populated (0.0000% missing)
+    [PASS] precipitation_sum ù populated (0.0000% missing)
+    [PASS] rain_sum ù populated (0.0000% missing)
+    [PASS] wind_speed_10m_max ù populated (0.0000% missing)
+    [PASS] wind_gusts_10m_max ù populated (0.0000% missing)
+    [PASS] surface_pressure_mean ù populated (0.0000% missing)
+    [PASS] shortwave_radiation_sum ù populated (0.0000% missing)
+    [PASS] et0_fao_evapotranspiration ù populated (0.0000% missing)
+
+  [CHECK 8] Missing-value % ù all columns
+    Column                                    Missing      Pct
+    ------------------------------------------------------------
+    temperature_2m_max                              0  0.0000%
+    temperature_2m_min                              0  0.0000%
+    temperature_2m_mean                             0  0.0000%
+    apparent_temperature_max                        0  0.0000%
+    apparent_temperature_min                        0  0.0000%
+    apparent_temperature_mean                       0  0.0000%
+    precipitation_sum                               0  0.0000%
+    rain_sum                                        0  0.0000%
+    wind_speed_10m_max                              0  0.0000%
+    wind_gusts_10m_max                              0  0.0000%
+    relative_humidity_2m_max                        0  0.0000%
+    relative_humidity_2m_min                        0  0.0000%
+    relative_humidity_2m_mean                       0  0.0000%
+    surface_pressure_mean                           0  0.0000%
+    shortwave_radiation_sum                         0  0.0000%
+    et0_fao_evapotranspiration                      0  0.0000%
+
+  [CHECK 9] Data types
+    [PASS] temperature_2m_max: float64
+    [PASS] temperature_2m_min: float64
+    [PASS] temperature_2m_mean: float64
+    [PASS] apparent_temperature_max: float64
+    [PASS] apparent_temperature_min: float64
+    [PASS] apparent_temperature_mean: float64
+    [PASS] precipitation_sum: float64
+    [PASS] rain_sum: float64
+    [PASS] wind_speed_10m_max: float64
+    [PASS] wind_gusts_10m_max: float64
+    [PASS] relative_humidity_2m_max: int64
+    [PASS] relative_humidity_2m_min: int64
+    [PASS] relative_humidity_2m_mean: int64
+    [PASS] surface_pressure_mean: float64
+    [PASS] shortwave_radiation_sum: float64
+    [PASS] et0_fao_evapotranspiration: float64
+
+  [CHECK 10] Physical range validation
+    [PASS] temperature_2m_max: [18.90, 45.60] within [-20, 60]
+    [PASS] temperature_2m_min: [5.90, 32.70] within [-20, 50]
+    [PASS] temperature_2m_mean: [12.40, 37.70] within [-20, 55]
+    [PASS] apparent_temperature_max: [16.80, 48.80] within [-30, 70]
+    [PASS] apparent_temperature_min: [2.10, 37.30] within [-30, 60]
+    [PASS] apparent_temperature_mean: [9.20, 41.50] within [-30, 65]
+    [PASS] precipitation_sum: [0.00, 317.30] within [0, 600]
+    [PASS] rain_sum: [0.00, 317.30] within [0, 600]
+    [PASS] wind_speed_10m_max: [4.60, 44.40] within [0, 200]
+    [PASS] wind_gusts_10m_max: [12.20, 88.90] within [0, 300]
+    [PASS] relative_humidity_2m_max: [22.00, 100.00] within [0, 100]
+    [PASS] relative_humidity_2m_min: [7.00, 95.00] within [0, 100]
+    [PASS] relative_humidity_2m_mean: [16.00, 98.00] within [0, 100]
+    [PASS] surface_pressure_mean: [980.70, 1015.60] within [800, 1100]
+    [PASS] shortwave_radiation_sum: [1.14, 29.02] within [0, 50]
+    [PASS] et0_fao_evapotranspiration: [0.47, 10.49] within [0, 20]
+
+  [CHECK 11] Metadata consistency
+    [PASS] latitude: 23.0225
+    [PASS] longitude: 72.5714
+    [PASS] region_type: plains
+    [PASS] state: Gujarat
+
+====================================================================
+  CITY: MUMBAI (13027 rows)
+====================================================================
+
+  [CHECK 2] Row count
+    [PASS] 13027 rows (expected 13020û13035)
+
+  [CHECK 3] Date range
+    [PASS] 1990-01-01 to 2025-08-31
+
+  [CHECK 4] No missing dates
+    [PASS] No missing dates
+
+  [CHECK 5] No duplicate dates
+    [PASS] No duplicate dates
+
+  [CHECK 6] All 16 weather variables present
+    [PASS] All 16 weather columns present
+
+  [CHECK 7] Previously empty columns now populated
+    [PASS] apparent_temperature_max ù populated (0.0000% missing)
+    [PASS] apparent_temperature_min ù populated (0.0000% missing)
+    [PASS] apparent_temperature_mean ù populated (0.0000% missing)
+    [PASS] precipitation_sum ù populated (0.0000% missing)
+    [PASS] rain_sum ù populated (0.0000% missing)
+    [PASS] wind_speed_10m_max ù populated (0.0000% missing)
+    [PASS] wind_gusts_10m_max ù populated (0.0000% missing)
+    [PASS] surface_pressure_mean ù populated (0.0000% missing)
+    [PASS] shortwave_radiation_sum ù populated (0.0000% missing)
+    [PASS] et0_fao_evapotranspiration ù populated (0.0000% missing)
+
+  [CHECK 8] Missing-value % ù all columns
+    Column                                    Missing      Pct
+    ------------------------------------------------------------
+    temperature_2m_max                              0  0.0000%
+    temperature_2m_min                              0  0.0000%
+    temperature_2m_mean                             0  0.0000%
+    apparent_temperature_max                        0  0.0000%
+    apparent_temperature_min                        0  0.0000%
+    apparent_temperature_mean                       0  0.0000%
+    precipitation_sum                               0  0.0000%
+    rain_sum                                        0  0.0000%
+    wind_speed_10m_max                              0  0.0000%
+    wind_gusts_10m_max                              0  0.0000%
+    relative_humidity_2m_max                        0  0.0000%
+    relative_humidity_2m_min                        0  0.0000%
+    relative_humidity_2m_mean                       0  0.0000%
+    surface_pressure_mean                           0  0.0000%
+    shortwave_radiation_sum                         0  0.0000%
+    et0_fao_evapotranspiration                      0  0.0000%
+
+  [CHECK 9] Data types
+    [PASS] temperature_2m_max: float64
+    [PASS] temperature_2m_min: float64
+    [PASS] temperature_2m_mean: float64
+    [PASS] apparent_temperature_max: float64
+    [PASS] apparent_temperature_min: float64
+    [PASS] apparent_temperature_mean: float64
+    [PASS] precipitation_sum: float64
+    [PASS] rain_sum: float64
+    [PASS] wind_speed_10m_max: float64
+    [PASS] wind_gusts_10m_max: float64
+    [PASS] relative_humidity_2m_max: int64
+    [PASS] relative_humidity_2m_min: int64
+    [PASS] relative_humidity_2m_mean: int64
+    [PASS] surface_pressure_mean: float64
+    [PASS] shortwave_radiation_sum: float64
+    [PASS] et0_fao_evapotranspiration: float64
+
+  [CHECK 10] Physical range validation
+    [PASS] temperature_2m_max: [22.40, 37.60] within [-20, 60]
+    [PASS] temperature_2m_min: [13.10, 30.10] within [-20, 50]
+    [PASS] temperature_2m_mean: [18.00, 32.40] within [-20, 55]
+    [PASS] apparent_temperature_max: [20.20, 43.00] within [-30, 70]
+    [PASS] apparent_temperature_min: [9.40, 36.60] within [-30, 60]
+    [PASS] apparent_temperature_mean: [15.00, 38.30] within [-30, 65]
+    [PASS] precipitation_sum: [0.00, 301.30] within [0, 600]
+    [PASS] rain_sum: [0.00, 301.30] within [0, 600]
+    [PASS] wind_speed_10m_max: [6.50, 53.90] within [0, 200]
+    [PASS] wind_gusts_10m_max: [12.60, 99.40] within [0, 300]
+    [PASS] relative_humidity_2m_max: [41.00, 100.00] within [0, 100]
+    [PASS] relative_humidity_2m_min: [15.00, 91.00] within [0, 100]
+    [PASS] relative_humidity_2m_mean: [32.00, 94.00] within [0, 100]
+    [PASS] surface_pressure_mean: [993.00, 1018.10] within [800, 1100]
+    [PASS] shortwave_radiation_sum: [1.23, 27.78] within [0, 50]
+    [PASS] et0_fao_evapotranspiration: [0.89, 8.20] within [0, 20]
+
+  [CHECK 11] Metadata consistency
+    [PASS] latitude: 19.076
+    [PASS] longitude: 72.8777
+    [PASS] region_type: coastal
+    [PASS] state: Maharashtra
+
+====================================================================
+CROSS-CITY MISSING-VALUE SUMMARY TABLE
+====================================================================
+Variable                                     lucknow      nagpur   ahmedabad      mumbai
+----------------------------------------------------------------------------------------
+temperature_2m_max                             0.00%       0.00%       0.00%       0.00%
+temperature_2m_min                             0.00%       0.00%       0.00%       0.00%
+temperature_2m_mean                            0.00%       0.00%       0.00%       0.00%
+apparent_temperature_max                       0.00%       0.00%       0.00%       0.00%
+apparent_temperature_min                       0.00%       0.00%       0.00%       0.00%
+apparent_temperature_mean                      0.00%       0.00%       0.00%       0.00%
+precipitation_sum                              0.00%       0.00%       0.00%       0.00%
+rain_sum                                       0.00%       0.00%       0.00%       0.00%
+wind_speed_10m_max                             0.00%       0.00%       0.00%       0.00%
+wind_gusts_10m_max                             0.00%       0.00%       0.00%       0.00%
+relative_humidity_2m_max                       0.00%       0.00%       0.00%       0.00%
+relative_humidity_2m_min                       0.00%       0.00%       0.00%       0.00%
+relative_humidity_2m_mean                      0.00%       0.00%       0.00%       0.00%
+surface_pressure_mean                          0.00%       0.00%       0.00%       0.00%
+shortwave_radiation_sum                        0.00%       0.00%       0.00%       0.00%
+et0_fao_evapotranspiration                     0.00%       0.00%       0.00%       0.00%
+
+====================================================================
+VALIDATION RESULT
+====================================================================
+  Failures : 0
+  Warnings : 0
+
+  STAGED DATA INTEGRITY STATUS: PASS
+  Safe to run promote_staged.py

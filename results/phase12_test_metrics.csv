@@ -1,0 +1,5 @@
+label,precision,recall,f1,pr_auc,roc_auc,accuracy,tp,fp,tn,fn,predicted_pos,actual_pos,threshold,feature_set
+RF_with_qd_random_undersample,0.5926,0.8421,0.6957,0.7705,0.9978,0.9942,32,22,4805,6,54,38,0.7,with_qd
+XGB_without_qd_baseline_weight,0.6275,0.8421,0.7191,0.844,0.9982,0.9949,32,19,4808,6,51,38,0.8,without_qd
+RF_with_qd_smote_skipped,0.6739,0.8158,0.7381,0.8307,0.9971,0.9955,31,15,4812,7,46,38,0.2,with_qd
+RF_without_qd_smote_skipped,0.5833,0.9211,0.7143,0.8397,0.9978,0.9942,35,25,4802,3,60,38,0.15,without_qd

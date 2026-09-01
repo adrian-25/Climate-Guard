@@ -1,0 +1,71 @@
+============================================================
+ClimateGuard Phase 15 — Prediction Interface Tests
+============================================================
+  [PASS]  test_model_loads
+  [PASS]  test_feature_list_loads
+  [PASS]  test_exactly_110_features
+  [PASS]  test_valid_sample_prediction  (prob=0.0000, label=0)
+  [PASS]  test_probability_in_range  (prob=0.0000)
+  [PASS]  test_prediction_binary  (10 rows, all labels in {0,1})
+  [PASS]  test_threshold_applied  (20 rows verified)
+  [PASS]  test_missing_feature_raises
+  [PASS]  test_nan_input_raises
+  [PASS]  test_batch_prediction  (10 rows, 0 heatwave predictions)
+  [PASS]  test_input_not_modified
+  [PASS]  test_feature_ordering
+  [PASS]  test_target_not_in_features
+  [PASS]  test_wrong_type_raises
+  [PASS]  test_info_method
+  [PASS]  test_get_feature_matrix
+  [PASS]  test_predict_single_row_only
+  [PASS]  test_empty_batch_raises
+============================================================
+Result: 18/18 passed, 0 failed
+============================================================
+
+
+--- SMOKE TEST (examples/predict_example.py) ---
+
+============= ClimateGuard Prediction Example =============
+Project root : C:\Users\Adrian\Documents\climate guard
+
+Loading ClimateGuardPredictor ...
+  ClimateGuardPredictor(model=RandomForestClassifier, n_features=110, threshold=0.7)
+  Threshold    : 0.7
+  Feature count: 110
+
+Loading real test rows from data/splits/temporal/X_test.csv ...
+  Loaded 5 rows (2023-01-01 onwards)
+
+================ Single Prediction (Row 0) ================
+  City              : ahmedabad
+  Date (day T)      : 2023-01-01
+  Probability       : 0.0000
+  Prediction        : 0  (Normal tomorrow)
+  Actual next day   : 0  (Normal)
+  Threshold applied : 0.7
+  Correct           : YES
+
+================ Batch Prediction (5 Rows) ================
+  City          Date             Prob   Pred   Actual   Correct
+  ------------  ------------  -------  -----  -------  --------
+  ahmedabad     2023-01-01     0.0000      0        0        OK
+  ahmedabad     2023-01-02     0.0000      0        0        OK
+  ahmedabad     2023-01-03     0.0000      0        0        OK
+  ahmedabad     2023-01-04     0.0000      0        0        OK
+  ahmedabad     2023-01-05     0.0000      0        0        OK
+
+  Correct: 5/5
+
+========== Probability Only (predict_probability) ==========
+  Probabilities: [0.0, 0.0, 0.0, 0.0, 0.0]
+
+======== Explainability Access (for Part 2 / SHAP) ========
+  predictor.model         : RandomForestClassifier
+  predictor.feature_names : list of 110 names
+  First 5 features        : ['apparent_temperature_max', 'apparent_temperature_mean', 'apparent_temperature_min', 'city_encoded', 'day_of_year']
+  get_feature_matrix()    : DataFrame of shape (5, 110)
+
+=========================== Done ===========================
+Prediction interface is working correctly.
+No datasets were modified.

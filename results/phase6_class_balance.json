@@ -1,0 +1,57 @@
+[
+  {
+    "city": "New Delhi",
+    "total_days": 13027,
+    "hw_days": 213,
+    "non_hw": 12814,
+    "hw_pct": 1.64,
+    "n_events": 54,
+    "avg_dur": 3.9,
+    "max_dur": 11,
+    "single_day_qual": 39
+  },
+  {
+    "city": "Lucknow",
+    "total_days": 13027,
+    "hw_days": 141,
+    "non_hw": 12886,
+    "hw_pct": 1.08,
+    "n_events": 32,
+    "avg_dur": 4.4,
+    "max_dur": 12,
+    "single_day_qual": 37
+  },
+  {
+    "city": "Nagpur",
+    "total_days": 13027,
+    "hw_days": 119,
+    "non_hw": 12908,
+    "hw_pct": 0.91,
+    "n_events": 34,
+    "avg_dur": 3.5,
+    "max_dur": 10,
+    "single_day_qual": 23
+  },
+  {
+    "city": "Ahmedabad",
+    "total_days": 13027,
+    "hw_days": 32,
+    "non_hw": 12995,
+    "hw_pct": 0.25,
+    "n_events": 12,
+    "avg_dur": 2.7,
+    "max_dur": 5,
+    "single_day_qual": 16
+  },
+  {
+    "city": "Mumbai",
+    "total_days": 13027,
+    "hw_days": 0,
+    "non_hw": 13027,
+    "hw_pct": 0.0,
+    "n_events": 0,
+    "avg_dur": 0.0,
+    "max_dur": 0,
+    "single_day_qual": 8
+  }
+]

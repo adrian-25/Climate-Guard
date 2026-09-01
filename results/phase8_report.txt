@@ -1,0 +1,210 @@
+2026-09-01 22:37:30  INFO      ======================================================================
+2026-09-01 22:37:30  INFO      STEP 1 -- LOAD DATA
+2026-09-01 22:37:30  INFO      ======================================================================
+2026-09-01 22:37:30  INFO        Phase 7 file  : C:\Users\Adrian\Documents\climate guard\data\features\climateguard_features.csv
+2026-09-01 22:37:30  INFO        MD5 (before)  : fdb559545ef4a0155fbb5c8a813c9eb8
+2026-09-01 22:37:30  INFO        Size          : 59.91 MB
+2026-09-01 22:37:30  INFO        Loaded shape  : 65,095 rows x 121 columns
+2026-09-01 22:37:30  INFO        Shape assertion PASSED (65095 x 121)
+2026-09-01 22:37:30  INFO        Registry      : C:\Users\Adrian\Documents\climate guard\results\phase7_feature_groups.json
+2026-09-01 22:37:30  INFO        baseline_features count  : 29
+2026-09-01 22:37:30  INFO        temporal_features count  : 110
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO      STEP 2 -- TARGET CONSTRUCTION VERIFICATION
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO        Verifying: heatwave_next_day(T) == heatwave(T+1) per city
+2026-09-01 22:37:31  INFO        ahmedabad     rows=13,019  nan_actual=0  nan_expected=1  mismatches=0
+2026-09-01 22:37:31  INFO        delhi         rows=13,019  nan_actual=0  nan_expected=1  mismatches=0
+2026-09-01 22:37:31  INFO        lucknow       rows=13,019  nan_actual=0  nan_expected=1  mismatches=0
+2026-09-01 22:37:31  INFO        mumbai        rows=13,019  nan_actual=0  nan_expected=1  mismatches=0
+2026-09-01 22:37:31  INFO        nagpur        rows=13,019  nan_actual=0  nan_expected=1  mismatches=0
+2026-09-01 22:37:31  INFO        Target construction PASSED -- heatwave_next_day(T) == heatwave(T+1) for all cities
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO      STEP 3 -- CITY BOUNDARY VALIDATION
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO        Checking date continuity within each city ...
+2026-09-01 22:37:31  INFO          ahmedabad     13,019 rows -- date sequence OK (no gaps)
+2026-09-01 22:37:31  INFO          delhi         13,019 rows -- date sequence OK (no gaps)
+2026-09-01 22:37:31  INFO          lucknow       13,019 rows -- date sequence OK (no gaps)
+2026-09-01 22:37:31  INFO          mumbai        13,019 rows -- date sequence OK (no gaps)
+2026-09-01 22:37:31  INFO          nagpur        13,019 rows -- date sequence OK (no gaps)
+2026-09-01 22:37:31  INFO        Checking cross-city boundary: first lag row of each city ...
+2026-09-01 22:37:31  INFO          ahmedabad     first-row lag NaNs=0 -- OK
+2026-09-01 22:37:31  INFO          delhi         first-row lag NaNs=0 -- OK
+2026-09-01 22:37:31  INFO          lucknow       first-row lag NaNs=0 -- OK
+2026-09-01 22:37:31  INFO          mumbai        first-row lag NaNs=0 -- OK
+2026-09-01 22:37:31  INFO          nagpur        first-row lag NaNs=0 -- OK
+2026-09-01 22:37:31  INFO        City boundary validation PASSED
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO      STEP 4 -- CHRONOLOGICAL ORDER VALIDATION
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO        ahmedabad     date range 1990-01-08 -> 2025-08-30  OK
+2026-09-01 22:37:31  INFO        delhi         date range 1990-01-08 -> 2025-08-30  OK
+2026-09-01 22:37:31  INFO        lucknow       date range 1990-01-08 -> 2025-08-30  OK
+2026-09-01 22:37:31  INFO        mumbai        date range 1990-01-08 -> 2025-08-30  OK
+2026-09-01 22:37:31  INFO        nagpur        date range 1990-01-08 -> 2025-08-30  OK
+2026-09-01 22:37:31  INFO        Chronological ordering PASSED for all cities
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO      STEP 5 -- MISSING VALUE INSPECTION
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO        3 column(s) contain missing values:
+2026-09-01 22:37:31  INFO          hw_event_start                                           NaN=64,590  (99.224%)  -- Passthrough metadata: NaN for non-heatwave rows (99.2% of data). Not an ML feature -- no action required.
+2026-09-01 22:37:31  INFO          hw_event_end                                             NaN=64,590  (99.224%)  -- Passthrough metadata: NaN for non-heatwave rows (99.2% of data). Not an ML feature -- no action required.
+2026-09-01 22:37:31  INFO          tmax_departure_zscore                                    NaN=   15  (0.023%)  -- tmax_departure_zscore: first 3 rows per city have <10 prior observations for rolling std (min_periods=10). Resolution: drop these 3 rows per city in Phase 8.
+2026-09-01 22:37:31  INFO        Dropping first 3 rows per city (zscore NaN remediation): 65,095 -> 65,080 rows (dropped 15)
+2026-09-01 22:37:31  INFO        tmax_departure_zscore NaN resolved -- 0 remaining
+2026-09-01 22:37:31  INFO        Missing value inspection complete -- 0 feature-column NaNs remain
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO      STEP 6 -- DATA TYPE VERIFICATION
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO        Target 'heatwave_next_day': dtype=float64  unique_values=[np.float64(0.0), np.float64(1.0)]
+2026-09-01 22:37:31  INFO        'date': dtype=datetime64 -- OK
+2026-09-01 22:37:31  INFO        All 110 feature columns are numeric -- OK
+2026-09-01 22:37:31  INFO        Data type verification PASSED
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO      STEP 7 -- BUILD ML DATASETS
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO        Target 'heatwave_next_day' confirmed NOT in baseline_features -- OK
+2026-09-01 22:37:31  INFO        Target 'heatwave_next_day' confirmed NOT in temporal_features -- OK
+2026-09-01 22:37:31  INFO        X_baseline shape : (65080, 29)  (rows=65,080, features=29)
+2026-09-01 22:37:31  INFO        y_baseline shape : (65080,)  positives=505  (0.78%)
+2026-09-01 22:37:31  INFO        X_temporal shape : (65080, 110)  (rows=65,080, features=110)
+2026-09-01 22:37:31  INFO        y_temporal shape : (65080,)  positives=505  (0.78%)
+2026-09-01 22:37:31  INFO        Feature count assertions PASSED (baseline=29, temporal=110)
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO      STEP 8 -- LEAKAGE AUDIT ON FINAL DATASETS
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO        Leakage audit PASSED on both final datasets -- 0 issues
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO      STEP 9 -- CLASS DISTRIBUTION REPORT
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO        [BASELINE]
+2026-09-01 22:37:31  INFO          Total rows     : 65,080
+2026-09-01 22:37:31  INFO          Positive (hw=1): 505  (0.78%)
+2026-09-01 22:37:31  INFO          Negative (hw=0): 64,575  (99.22%)
+2026-09-01 22:37:31  INFO          Imbalance ratio: 1 : 128  (negatives per positive)
+2026-09-01 22:37:31  INFO          Per-city breakdown:
+2026-09-01 22:37:31  INFO          City            Total   Positive   Negative    Pos%
+2026-09-01 22:37:31  INFO          ------------  -------  ---------  ---------  ------
+2026-09-01 22:37:31  INFO          delhi          13,016        213     12,803    1.64%
+2026-09-01 22:37:31  INFO          lucknow        13,016        141     12,875    1.08%
+2026-09-01 22:37:31  INFO          nagpur         13,016        119     12,897    0.91%
+2026-09-01 22:37:31  INFO          ahmedabad      13,016         32     12,984    0.25%
+2026-09-01 22:37:31  INFO          mumbai         13,016          0     13,016    0.00%
+2026-09-01 22:37:31  INFO      
+2026-09-01 22:37:31  INFO        [TEMPORAL]
+2026-09-01 22:37:31  INFO          Total rows     : 65,080
+2026-09-01 22:37:31  INFO          Positive (hw=1): 505  (0.78%)
+2026-09-01 22:37:31  INFO          Negative (hw=0): 64,575  (99.22%)
+2026-09-01 22:37:31  INFO          Imbalance ratio: 1 : 128  (negatives per positive)
+2026-09-01 22:37:31  INFO          Per-city breakdown:
+2026-09-01 22:37:31  INFO          City            Total   Positive   Negative    Pos%
+2026-09-01 22:37:31  INFO          ------------  -------  ---------  ---------  ------
+2026-09-01 22:37:31  INFO          delhi          13,016        213     12,803    1.64%
+2026-09-01 22:37:31  INFO          lucknow        13,016        141     12,875    1.08%
+2026-09-01 22:37:31  INFO          nagpur         13,016        119     12,897    0.91%
+2026-09-01 22:37:31  INFO          ahmedabad      13,016         32     12,984    0.25%
+2026-09-01 22:37:31  INFO          mumbai         13,016          0     13,016    0.00%
+2026-09-01 22:37:31  INFO      
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO      STEP 10 -- FEATURE AUDIT TABLE
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO        Feature audit table saved: C:\Users\Adrian\Documents\climate guard\results\phase8_feature_audit.csv
+2026-09-01 22:37:31  INFO        Rows in audit table: 121
+2026-09-01 22:37:31  INFO        Leakage status summary:
+2026-09-01 22:37:31  INFO          SAFE (shift(1).rolling)                         42
+2026-09-01 22:37:31  INFO          SAFE (past data)                                33
+2026-09-01 22:37:31  INFO          SAFE (current-day observation)                  29
+2026-09-01 22:37:31  INFO          N/A (identifier)                                10
+2026-09-01 22:37:31  INFO          SAFE (T is current-day; T-N is past)             3
+2026-09-01 22:37:31  INFO          SAFE (shift(1).rolling slope)                    2
+2026-09-01 22:37:31  INFO          SAFE (trailing window)                           1
+2026-09-01 22:37:31  INFO          N/A (target)                                     1
+2026-09-01 22:37:31  INFO        Feature audit PASSED -- no unsafe features detected
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO      STEP 11 -- SAVE OUTPUT FILES
+2026-09-01 22:37:31  INFO      ======================================================================
+2026-09-01 22:37:31  INFO        Phase 7 source integrity VERIFIED (MD5 unchanged: fdb559545ef4a0155fbb5c8a813c9eb8)
+2026-09-01 22:37:32  INFO        Saved: C:\Users\Adrian\Documents\climate guard\data\features\ml_baseline.csv
+2026-09-01 22:37:32  INFO          Shape : 65,080 x 40  (16.66 MB)
+2026-09-01 22:37:36  INFO        Saved: C:\Users\Adrian\Documents\climate guard\data\features\ml_temporal.csv
+2026-09-01 22:37:36  INFO          Shape : 65,080 x 121  (59.22 MB)
+2026-09-01 22:37:36  INFO      ======================================================================
+2026-09-01 22:37:36  INFO      STEP 12 -- FINAL VALIDATION CHECKLIST
+2026-09-01 22:37:36  INFO      ======================================================================
+2026-09-01 22:37:36  INFO        [PASS]  Baseline dataset exists
+2026-09-01 22:37:36  INFO        [PASS]  Temporal dataset exists
+2026-09-01 22:37:36  INFO        [PASS]  Baseline contains heatwave_next_day
+2026-09-01 22:37:36  INFO        [PASS]  Temporal contains heatwave_next_day
+2026-09-01 22:37:36  INFO        [PASS]  Target NOT in baseline feature set
+2026-09-01 22:37:36  INFO        [PASS]  Target NOT in temporal feature set
+2026-09-01 22:37:36  INFO        [PASS]  Baseline has exactly 29 features
+2026-09-01 22:37:36  INFO        [PASS]  Temporal has exactly 110 features
+2026-09-01 22:37:36  INFO        [PASS]  Identifier 'city' present in baseline
+2026-09-01 22:37:36  INFO        [PASS]  Identifier 'city' present in temporal
+2026-09-01 22:37:36  INFO        [PASS]  Identifier 'city_key' present in baseline
+2026-09-01 22:37:36  INFO        [PASS]  Identifier 'city_key' present in temporal
+2026-09-01 22:37:36  INFO        [PASS]  Identifier 'date' present in baseline
+2026-09-01 22:37:36  INFO        [PASS]  Identifier 'date' present in temporal
+2026-09-01 22:37:36  INFO        [PASS]  No NaN in baseline feature matrix
+2026-09-01 22:37:36  INFO        [PASS]  No NaN in temporal feature matrix
+2026-09-01 22:37:36  INFO        [PASS]  No NaN in baseline target
+2026-09-01 22:37:36  INFO        [PASS]  No NaN in temporal target
+2026-09-01 22:37:36  INFO        [PASS]  Baseline target is binary {0,1}
+2026-09-01 22:37:36  INFO        [PASS]  Temporal target is binary {0,1}
+2026-09-01 22:37:36  INFO        [PASS]  Phase 8 working df rows are 65080 (65095 - 15 zscore drops)
+2026-09-01 22:37:36  INFO        [PASS]  Baseline features match registry exactly
+2026-09-01 22:37:36  INFO        [PASS]  Temporal features match registry exactly
+2026-09-01 22:37:36  INFO        All 23 validation checks PASSED
+2026-09-01 22:37:36  INFO      ======================================================================
+2026-09-01 22:37:36  INFO      PHASE 8 COMPLETE -- FINAL SUMMARY
+2026-09-01 22:37:36  INFO      ======================================================================
+2026-09-01 22:37:36  INFO        INPUT
+2026-09-01 22:37:36  INFO          Phase 7 file           : climateguard_features.csv
+2026-09-01 22:37:36  INFO          Phase 7 MD5 (untouched): fdb559545ef4a0155fbb5c8a813c9eb8
+2026-09-01 22:37:36  INFO          Input shape            : 65,080 x 121  (65,095 from Phase 7 minus 15 zscore-NaN rows = 65,080)
+2026-09-01 22:37:36  INFO      
+2026-09-01 22:37:36  INFO        OUTPUT DATASETS
+2026-09-01 22:37:36  INFO          ml_baseline.csv        : 65,080 rows x 40 cols  (16.66 MB)
+2026-09-01 22:37:36  INFO          ml_temporal.csv        : 65,080 rows x 121 cols  (59.22 MB)
+2026-09-01 22:37:36  INFO      
+2026-09-01 22:37:36  INFO        FEATURES
+2026-09-01 22:37:36  INFO          Baseline feature count : 29
+2026-09-01 22:37:36  INFO          Temporal feature count : 110
+2026-09-01 22:37:36  INFO          Target column          : heatwave_next_day
+2026-09-01 22:37:36  INFO      
+2026-09-01 22:37:36  INFO        CLASS DISTRIBUTION (overall, both datasets identical)
+2026-09-01 22:37:36  INFO          Total rows   : 65,080
+2026-09-01 22:37:36  INFO          Positives    : 505  (0.78%)
+2026-09-01 22:37:36  INFO          Negatives    : 64,575  (99.22%)
+2026-09-01 22:37:36  INFO          Imbalance    : 1:127
+2026-09-01 22:37:36  INFO      
+2026-09-01 22:37:36  INFO        MISSING VALUES
+2026-09-01 22:37:36  INFO          Feature matrices : 0 NaN  (confirmed)
+2026-09-01 22:37:36  INFO          Target column    : 0 NaN  (confirmed)
+2026-09-01 22:37:36  INFO      
+2026-09-01 22:37:36  INFO        LEAKAGE AUDIT
+2026-09-01 22:37:36  INFO          Phase 7 audit : PASSED (110 features, 0 issues)
+2026-09-01 22:37:36  INFO          Phase 8 audit : PASSED (0 issues on final column sets)
+2026-09-01 22:37:36  INFO      
+2026-09-01 22:37:36  INFO        FILES CREATED
+2026-09-01 22:37:36  INFO          C:\Users\Adrian\Documents\climate guard\data\features\ml_baseline.csv
+2026-09-01 22:37:36  INFO          C:\Users\Adrian\Documents\climate guard\data\features\ml_temporal.csv
+2026-09-01 22:37:36  INFO          C:\Users\Adrian\Documents\climate guard\results\phase8_report.txt
+2026-09-01 22:37:36  INFO          C:\Users\Adrian\Documents\climate guard\results\phase8_feature_audit.csv
+2026-09-01 22:37:36  INFO      
+2026-09-01 22:37:36  INFO        PHASE 7 SOURCE
+2026-09-01 22:37:36  INFO          climateguard_features.csv UNTOUCHED (MD5 verified)
+2026-09-01 22:37:36  INFO      
+2026-09-01 22:37:36  INFO        DECISIONS REQUIRING REVIEW
+2026-09-01 22:37:36  INFO          - Mumbai has 0 positive heatwave events (scientifically correct).
+2026-09-01 22:37:36  INFO            It is included in both ML datasets. The decision of whether to
+2026-09-01 22:37:36  INFO            exclude Mumbai from supervised training or treat it as a purely
+2026-09-01 22:37:36  INFO            negative class should be made in Phase 10 (Baseline Models).
+2026-09-01 22:37:36  INFO          - qualifying_day is included in the feature set. It is derived from
+2026-09-01 22:37:36  INFO            threshold + departure at T (not T+1) and is therefore leakage-safe.
+2026-09-01 22:37:36  INFO            However it is strongly correlated with the target. A reviewer
+2026-09-01 22:37:36  INFO            should decide whether to include it in the final feature set.
+2026-09-01 22:37:36  INFO          - heatwave_lag1 uses heatwave(T-1) as a feature. This is safe.
+2026-09-01 22:37:36  INFO            It means the model can learn from yesterday's heatwave status.
+2026-09-01 22:37:36  INFO      ======================================================================

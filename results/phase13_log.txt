@@ -1,0 +1,125 @@
+2026-09-02 00:13:41  INFO      ======================================================================
+2026-09-02 00:13:41  INFO      Phase 13 -- Temporal Feature Experiment
+2026-09-02 00:13:41  INFO      Started: 2026-09-02T00:13:41.486031
+2026-09-02 00:13:41  INFO      ======================================================================
+2026-09-02 00:13:41  INFO      
+Feature set sizes:
+2026-09-02 00:13:41  INFO        baseline_only              29 features
+2026-09-02 00:13:41  INFO        baseline_lag               62 features
+2026-09-02 00:13:41  INFO        baseline_rolling           71 features
+2026-09-02 00:13:41  INFO        baseline_trend             34 features
+2026-09-02 00:13:41  INFO        baseline_anomaly           30 features
+2026-09-02 00:13:41  INFO        full_temporal             110 features
+2026-09-02 00:13:41  INFO        baseline_nqd               28 features
+2026-09-02 00:13:41  INFO        temporal_nqd              109 features
+2026-09-02 00:13:41  INFO      
+Loading splits ...
+2026-09-02 00:13:42  INFO        Train: (54735, 110)  pos=428  neg=54307  ratio=1:126.9
+2026-09-02 00:13:42  INFO        Val  : (5480, 110)   pos=39
+2026-09-02 00:13:42  INFO        Test : (4865, 110)  pos=38  [locked until val config fixed]
+2026-09-02 00:13:42  INFO      
+------------------------------------------------------------
+2026-09-02 00:13:42  INFO      PART A -- Primary comparison: Baseline vs Temporal
+2026-09-02 00:13:42  INFO      ------------------------------------------------------------
+2026-09-02 00:13:42  INFO      
+[RF / random_undersample / thresh=0.70]
+2026-09-02 00:13:44  INFO        [RF/baseline_wqd/undersample] F1=0.6122  P=0.5085  R=0.7692  PR-AUC=0.5497  FP=29  FN=9  t=1.7s
+2026-09-02 00:13:47  INFO        [RF/baseline_nqd/undersample] F1=0.5843  P=0.5200  R=0.6667  PR-AUC=0.5767  FP=24  FN=13  t=1.6s
+2026-09-02 00:13:50  INFO        [RF/temporal_wqd/undersample] F1=0.6154  P=0.5385  R=0.7179  PR-AUC=0.5298  FP=24  FN=11  t=2.5s
+2026-09-02 00:13:53  INFO        [RF/temporal_nqd/undersample] F1=0.5393  P=0.4800  R=0.6154  PR-AUC=0.5527  FP=26  FN=15  t=2.5s
+2026-09-02 00:13:54  INFO      
+[XGBoost / baseline_weight / thresh=0.80]
+2026-09-02 00:13:56  INFO        [XGB/baseline_wqd/baseline_weight] F1=0.5979  P=0.5000  R=0.7436  PR-AUC=0.5668  FP=29  FN=10  t=2.7s
+2026-09-02 00:13:59  INFO        [XGB/baseline_nqd/baseline_weight] F1=0.6105  P=0.5179  R=0.7436  PR-AUC=0.5433  FP=27  FN=10  t=2.5s
+2026-09-02 00:14:10  INFO        [XGB/temporal_wqd/baseline_weight] F1=0.5185  P=0.5000  R=0.5385  PR-AUC=0.5452  FP=21  FN=18  t=11.0s
+2026-09-02 00:14:18  INFO        [XGB/temporal_nqd/baseline_weight] F1=0.5128  P=0.5128  R=0.5128  PR-AUC=0.5711  FP=19  FN=19  t=7.8s
+2026-09-02 00:14:18  INFO      
+------------------------------------------------------------
+2026-09-02 00:14:18  INFO      PART B -- Ablation study (RF / random_undersample / thresh=0.70)
+2026-09-02 00:14:18  INFO      ------------------------------------------------------------
+2026-09-02 00:14:19  INFO        [ablation/baseline_only] F1=0.6122  P=0.5085  R=0.7692  PR-AUC=0.5497  FP=29  FN=9  t=0.5s
+2026-09-02 00:14:19  INFO        [ablation/baseline_lag] F1=0.5957  P=0.5091  R=0.7179  PR-AUC=0.5538  FP=27  FN=11  t=0.5s
+2026-09-02 00:14:20  INFO        [ablation/baseline_rolling] F1=0.6024  P=0.5682  R=0.6410  PR-AUC=0.5822  FP=19  FN=14  t=0.5s
+2026-09-02 00:14:21  INFO        [ablation/baseline_trend] F1=0.6105  P=0.5179  R=0.7436  PR-AUC=0.5247  FP=27  FN=10  t=0.5s
+2026-09-02 00:14:21  INFO        [ablation/baseline_anomaly] F1=0.6263  P=0.5167  R=0.7949  PR-AUC=0.5037  FP=29  FN=8  t=0.5s
+2026-09-02 00:14:22  INFO        [ablation/full_temporal] F1=0.6154  P=0.5385  R=0.7179  PR-AUC=0.5298  FP=24  FN=11  t=0.5s
+2026-09-02 00:14:23  INFO        [ablation/full_temporal_nqd] F1=0.5393  P=0.4800  R=0.6154  PR-AUC=0.5527  FP=26  FN=15  t=0.6s
+2026-09-02 00:14:23  INFO      
+------------------------------------------------------------
+2026-09-02 00:14:23  INFO      PART C -- Test confirmation (val-selected config only)
+2026-09-02 00:14:23  INFO      ------------------------------------------------------------
+2026-09-02 00:14:23  INFO        Best val config: Random_Forest / temporal_wqd / random_undersample (val-F1=0.6154)
+2026-09-02 00:14:23  INFO        Running test confirmation on this config only ...
+2026-09-02 00:14:23  INFO        TEST: F1=0.7586  P=0.6735  R=0.8684  PR-AUC=0.7885  FP=16  FN=5
+2026-09-02 00:14:24  INFO        TEST baseline equiv: F1=0.6957  P=0.5926  R=0.8421  PR-AUC=0.7705  FP=22  FN=6
+2026-09-02 00:14:24  INFO      
+------------------------------------------------------------
+2026-09-02 00:14:24  INFO      Generating plots ...
+2026-09-02 00:14:24  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\plots\phase13\baseline_vs_temporal_f1.png
+2026-09-02 00:14:24  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\plots\phase13\baseline_vs_temporal_prauc.png
+2026-09-02 00:14:24  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\plots\phase13\precision_recall_comparison.png
+2026-09-02 00:14:25  INFO        Saved: C:\Users\Adrian\Documents\climate guard\results\plots\phase13\ablation_comparison.png
+2026-09-02 00:14:25  INFO      
+------------------------------------------------------------
+2026-09-02 00:14:25  INFO      Saving result files ...
+2026-09-02 00:14:25  INFO        Saved: phase13_temporal_comparison.csv  (8 rows)
+2026-09-02 00:14:25  INFO        Saved: phase13_ablation.csv  (7 rows)
+2026-09-02 00:14:25  INFO        Saved: phase13_metrics.json
+2026-09-02 00:14:25  INFO      
+------------------------------------------------------------
+2026-09-02 00:14:25  INFO      LEAKAGE AUDIT
+2026-09-02 00:14:25  INFO      ------------------------------------------------------------
+2026-09-02 00:14:25  INFO        [PASS]  All lag features use shift(N>=1) -- only T-1 or earlier (Phase 7 verified)
+2026-09-02 00:14:25  INFO        [PASS]  All rolling features use shift(1).rolling(N) -- excludes T (Phase 7 verified)
+2026-09-02 00:14:25  INFO        [PASS]  tmax_departure_zscore uses 30-day trailing window -- excludes T (Phase 7 verified)
+2026-09-02 00:14:25  INFO        [PASS]  heatwave_lag1 = heatwave(T-1) -- not heatwave(T) or heatwave(T+1)
+2026-09-02 00:14:25  INFO        [PASS]  No T+1 weather variable present in any feature set
+2026-09-02 00:14:25  INFO        [PASS]  Target = heatwave_next_day(T) = heatwave(T+1) -- target only, not a feature
+2026-09-02 00:14:25  INFO        [PASS]  Phase 9 split boundaries unchanged (train<=2019, val=2020-2022, test>=2023)
+2026-09-02 00:14:25  INFO        [PASS]  No StandardScaler used (RF/XGBoost are scale-invariant)
+2026-09-02 00:14:25  INFO        [PASS]  Undersampling applied only to X_train/y_train
+2026-09-02 00:14:25  INFO        [PASS]  Validation set not modified or resampled
+2026-09-02 00:14:25  INFO        [PASS]  Test set locked until Part C -- not used for config selection
+2026-09-02 00:14:25  INFO        [PASS]  Thresholds carried from Phase 11 validation -- not tuned on test
+2026-09-02 00:14:25  INFO        [PASS]  Phase 7 feature group registry used for ablation column selection
+2026-09-02 00:14:25  INFO        [PASS]  Phase 8 and Phase 9 datasets not modified
+2026-09-02 00:14:25  INFO      
+  Overall leakage audit: PASSED (14/14)
+2026-09-02 00:14:25  INFO        Saved: phase13_leakage_audit.csv
+2026-09-02 00:14:25  INFO      
+======================================================================
+2026-09-02 00:14:25  INFO      PHASE 13 SUMMARY
+2026-09-02 00:14:25  INFO      ======================================================================
+2026-09-02 00:14:25  INFO      
+--- Primary comparison (validation) ---
+2026-09-02 00:14:25  INFO        Model                FeatureSet           #F Strategy                  F1       P       R   PR-AUC    FP    FN
+2026-09-02 00:14:25  INFO        -------------------- ------------------ ---- -------------------- ------- ------- ------- -------- ----- -----
+2026-09-02 00:14:25  INFO        Random_Forest        baseline_wqd         29 random_undersample    0.6122  0.5085  0.7692   0.5497    29     9
+2026-09-02 00:14:25  INFO        Random_Forest        baseline_nqd         28 random_undersample    0.5843  0.5200  0.6667   0.5767    24    13
+2026-09-02 00:14:25  INFO        Random_Forest        temporal_wqd        110 random_undersample    0.6154  0.5385  0.7179   0.5298    24    11
+2026-09-02 00:14:25  INFO        Random_Forest        temporal_nqd        109 random_undersample    0.5393  0.4800  0.6154   0.5527    26    15
+2026-09-02 00:14:25  INFO        XGBoost              baseline_wqd         29 baseline_weight       0.5979  0.5000  0.7436   0.5668    29    10
+2026-09-02 00:14:25  INFO        XGBoost              baseline_nqd         28 baseline_weight       0.6105  0.5179  0.7436   0.5433    27    10
+2026-09-02 00:14:25  INFO        XGBoost              temporal_wqd        110 baseline_weight       0.5185  0.5000  0.5385   0.5452    21    18
+2026-09-02 00:14:25  INFO        XGBoost              temporal_nqd        109 baseline_weight       0.5128  0.5128  0.5128   0.5711    19    19
+2026-09-02 00:14:25  INFO      
+--- Ablation study (validation, RF/undersample/0.70) ---
+2026-09-02 00:14:25  INFO        Ablation_Set                   #F      F1   PR-AUC    FP    FN
+2026-09-02 00:14:25  INFO        ---------------------------- ---- ------- -------- ----- -----
+2026-09-02 00:14:25  INFO        baseline_only                  29  0.6122   0.5497    29     9
+2026-09-02 00:14:25  INFO        baseline_lag                   62  0.5957   0.5538    27    11
+2026-09-02 00:14:25  INFO        baseline_rolling               71  0.6024   0.5822    19    14
+2026-09-02 00:14:25  INFO        baseline_trend                 34  0.6105   0.5247    27    10
+2026-09-02 00:14:25  INFO        baseline_anomaly               30  0.6263   0.5037    29     8
+2026-09-02 00:14:25  INFO        full_temporal                 110  0.6154   0.5298    24    11
+2026-09-02 00:14:25  INFO        full_temporal_nqd             109  0.5393   0.5527    26    15
+2026-09-02 00:14:25  INFO      
+--- Test confirmation ---
+2026-09-02 00:14:25  INFO        Best val config: Random_Forest / temporal_wqd
+2026-09-02 00:14:25  INFO        Temporal test:  F1=0.7586  P=0.6735  R=0.8684  PR-AUC=0.7885  FP=16  FN=5
+2026-09-02 00:14:25  INFO        Baseline test:  F1=0.6957  P=0.5926  R=0.8421  PR-AUC=0.7705  FP=22  FN=6
+2026-09-02 00:14:25  INFO      
+Finished: 2026-09-02T00:14:25.203039
+2026-09-02 00:14:25  INFO      ======================================================================
+2026-09-02 00:14:25  INFO      Phase 13 complete. DO NOT start Phase 14 automatically.
+2026-09-02 00:14:25  INFO      ======================================================================
