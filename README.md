@@ -1,4 +1,4 @@
-# ClimateGuard — Indian Heatwave Prediction
+﻿# ClimateGuard ΓÇö Indian Heatwave Prediction
 
 **Explainable & Drift-Aware Heatwave Risk Prediction for Indian Cities**
 
@@ -6,12 +6,12 @@
 
 ## Overview
 
-ClimateGuard is a machine learning project that predicts **1-day-ahead heatwave risk** for five major Indian cities using ERA5 reanalysis weather data. The model is trained on 35 years of daily climate observations (1990–2025) and predicts whether tomorrow will be a heatwave day given today's weather conditions.
+ClimateGuard is a machine learning project that predicts **1-day-ahead heatwave risk** for five major Indian cities using ERA5 reanalysis weather data. The model is trained on 35 years of daily climate observations (1990ΓÇô2025) and predicts whether tomorrow will be a heatwave day given today's weather conditions.
 
 This repository covers **Part 1 of a three-part student project**:
-- **Part 1 (Adrian):** Dataset acquisition, preprocessing, feature engineering, ML modelling, and prediction interface. ← This repository
-- **Part 2 (Kshitij):** Risk scoring, adaptation recommendations, and SHAP explainability. ← Consumes Part 1 output
-- **Part 3 (Pradnesh):** Expert module, ETL pipeline, and backend integration. ← Consumes Part 1 output
+- **Part 1 (Adrian):** Dataset acquisition, preprocessing, feature engineering, ML modelling, and prediction interface. ΓåÉ This repository
+- **Part 2 (Kshitij):** Risk scoring, adaptation recommendations, and SHAP explainability. ΓåÉ Consumes Part 1 output
+- **Part 3 (Pradnesh):** Expert module, ETL pipeline, and backend integration. ΓåÉ Consumes Part 1 output
 
 ---
 
@@ -42,7 +42,7 @@ This repository covers **Part 1 of a three-part student project**:
 | Test Recall | 0.8684 |
 | Test PR-AUC | 0.8339 |
 
-The model prioritises **recall** (catch as many real heatwave days as possible) at the cost of precision — appropriate for an early-warning system where missed events carry higher public-health risk than false alarms.
+The model prioritises **recall** (catch as many real heatwave days as possible) at the cost of precision ΓÇö appropriate for an early-warning system where missed events carry higher public-health risk than false alarms.
 
 ---
 
@@ -64,7 +64,7 @@ from src.prediction import ClimateGuardPredictor
 # Load once per session
 predictor = ClimateGuardPredictor()
 
-# Single prediction — pass a dict with all 110 features
+# Single prediction ΓÇö pass a dict with all 110 features
 result = predictor.predict(features_dict)
 print(result.prediction_probability)   # e.g. 0.8342
 print(result.prediction_label)         # 1 = heatwave tomorrow, 0 = normal
@@ -96,58 +96,58 @@ python tests/test_prediction_interface.py
 
 ```
 climate guard/
-├── README.md                        ← This file
-├── PROJECT_MEMORY.md                ← Complete project state record
-│
-├── data/
-│   ├── raw/                         ← ERA5 raw data (READ-ONLY)
-│   ├── processed/                   ← Cleaned and labelled data (READ-ONLY)
-│   ├── features/                    ← Engineered feature datasets (READ-ONLY)
-│   └── splits/                      ← Train/val/test splits (READ-ONLY)
-│       ├── baseline/                ← 29-feature splits
-│       └── temporal/                ← 110-feature splits
-│
-├── models/
-│   └── final/                       ← Phase 14 final model artifacts
-│       ├── climateguard_final_model.joblib
-│       ├── feature_list.json
-│       └── metadata.json
-│
-├── src/
-│   └── prediction/                  ← Phase 15 prediction interface
-│       ├── __init__.py
-│       └── predictor.py
-│
-├── tests/
-│   └── test_prediction_interface.py ← 18 tests (all pass)
-│
-├── examples/
-│   └── predict_example.py           ← Working example with real data
-│
-├── docs/                            ← All project documentation
-│   ├── setup.md
-│   ├── project_structure.md
-│   ├── limitations.md
-│   ├── testing.md
-│   ├── data_dictionary.md
-│   ├── eda_findings.md
-│   ├── preprocessing_decisions.md
-│   ├── heatwave_labeling_methodology.md
-│   ├── final_ml_dataset.md
-│   ├── train_validation_test_split.md
-│   ├── baseline_models.md
-│   ├── class_imbalance.md
-│   ├── model_evaluation.md
-│   ├── temporal_feature_experiment.md
-│   ├── final_model_selection.md
-│   ├── final_model_contract.md
-│   ├── prediction_interface.md
-│   ├── part2_integration_contract.md
-│   └── part3_integration_contract.md
-│
-├── results/                         ← All metrics, logs, and plots
-├── notebooks/                       ← EDA notebook
-└── (pipeline scripts)               ← build_ml_dataset.py, etc.
+Γö£ΓöÇΓöÇ README.md                        ΓåÉ This file
+Γö£ΓöÇΓöÇ PROJECT_MEMORY.md                ΓåÉ Complete project state record
+Γöé
+Γö£ΓöÇΓöÇ data/
+Γöé   Γö£ΓöÇΓöÇ raw/                         ΓåÉ ERA5 raw data (READ-ONLY)
+Γöé   Γö£ΓöÇΓöÇ processed/                   ΓåÉ Cleaned and labelled data (READ-ONLY)
+Γöé   Γö£ΓöÇΓöÇ features/                    ΓåÉ Engineered feature datasets (READ-ONLY)
+Γöé   ΓööΓöÇΓöÇ splits/                      ΓåÉ Train/val/test splits (READ-ONLY)
+Γöé       Γö£ΓöÇΓöÇ baseline/                ΓåÉ 29-feature splits
+Γöé       ΓööΓöÇΓöÇ temporal/                ΓåÉ 110-feature splits
+Γöé
+Γö£ΓöÇΓöÇ models/
+Γöé   ΓööΓöÇΓöÇ final/                       ΓåÉ Phase 14 final model artifacts
+Γöé       Γö£ΓöÇΓöÇ climateguard_final_model.joblib
+Γöé       Γö£ΓöÇΓöÇ feature_list.json
+Γöé       ΓööΓöÇΓöÇ metadata.json
+Γöé
+Γö£ΓöÇΓöÇ src/
+Γöé   ΓööΓöÇΓöÇ prediction/                  ΓåÉ Phase 15 prediction interface
+Γöé       Γö£ΓöÇΓöÇ __init__.py
+Γöé       ΓööΓöÇΓöÇ predictor.py
+Γöé
+Γö£ΓöÇΓöÇ tests/
+Γöé   ΓööΓöÇΓöÇ test_prediction_interface.py ΓåÉ 18 tests (all pass)
+Γöé
+Γö£ΓöÇΓöÇ examples/
+Γöé   ΓööΓöÇΓöÇ predict_example.py           ΓåÉ Working example with real data
+Γöé
+Γö£ΓöÇΓöÇ docs/                            ΓåÉ All project documentation
+Γöé   Γö£ΓöÇΓöÇ setup.md
+Γöé   Γö£ΓöÇΓöÇ project_structure.md
+Γöé   Γö£ΓöÇΓöÇ limitations.md
+Γöé   Γö£ΓöÇΓöÇ testing.md
+Γöé   Γö£ΓöÇΓöÇ data_dictionary.md
+Γöé   Γö£ΓöÇΓöÇ eda_findings.md
+Γöé   Γö£ΓöÇΓöÇ preprocessing_decisions.md
+Γöé   Γö£ΓöÇΓöÇ heatwave_labeling_methodology.md
+Γöé   Γö£ΓöÇΓöÇ final_ml_dataset.md
+Γöé   Γö£ΓöÇΓöÇ train_validation_test_split.md
+Γöé   Γö£ΓöÇΓöÇ baseline_models.md
+Γöé   Γö£ΓöÇΓöÇ class_imbalance.md
+Γöé   Γö£ΓöÇΓöÇ model_evaluation.md
+Γöé   Γö£ΓöÇΓöÇ temporal_feature_experiment.md
+Γöé   Γö£ΓöÇΓöÇ final_model_selection.md
+Γöé   Γö£ΓöÇΓöÇ final_model_contract.md
+Γöé   Γö£ΓöÇΓöÇ prediction_interface.md
+Γöé   Γö£ΓöÇΓöÇ part2_integration_contract.md
+Γöé   ΓööΓöÇΓöÇ part3_integration_contract.md
+Γöé
+Γö£ΓöÇΓöÇ results/                         ΓåÉ All metrics, logs, and plots
+Γö£ΓöÇΓöÇ notebooks/                       ΓåÉ EDA notebook
+ΓööΓöÇΓöÇ (pipeline scripts)               ΓåÉ build_ml_dataset.py, etc.
 ```
 
 See `docs/project_structure.md` for a full annotated inventory.
@@ -156,7 +156,7 @@ See `docs/project_structure.md` for a full annotated inventory.
 
 ## Data
 
-**Source:** [Open-Meteo Historical Weather API](https://open-meteo.com/) — ERA5 reanalysis model at 0.25° resolution.
+**Source:** [Open-Meteo Historical Weather API](https://open-meteo.com/) ΓÇö ERA5 reanalysis model at 0.25┬░ resolution.
 
 | Property | Value |
 |---|---|
@@ -175,14 +175,14 @@ See `docs/project_structure.md` for a full annotated inventory.
 The project uses an **IMD-Inspired Operational Heatwave Label (ERA5-based)**:
 
 **Plains cities** (Delhi, Lucknow, Nagpur, Ahmedabad):
-- Heatwave event = ≥ 2 consecutive qualifying days
-- Qualifying day = Tmax ≥ 40°C AND departure ≥ 4.5°C, OR Tmax ≥ 45°C (absolute override)
+- Heatwave event = ΓëÑ 2 consecutive qualifying days
+- Qualifying day = Tmax ΓëÑ 40┬░C AND departure ΓëÑ 4.5┬░C, OR Tmax ΓëÑ 45┬░C (absolute override)
 
 **Coastal city** (Mumbai):
-- Qualifying day = Tmax ≥ 37°C AND departure ≥ 4.5°C
+- Qualifying day = Tmax ΓëÑ 37┬░C AND departure ΓëÑ 4.5┬░C
 - Mumbai has **zero** heatwave events in 35 years under this definition
 
-Departure = daily Tmax minus the city-specific 31-day centred smoothed climatological normal, computed from the 1990–2020 baseline.
+Departure = daily Tmax minus the city-specific 31-day centred smoothed climatological normal, computed from the 1990ΓÇô2020 baseline.
 
 See `docs/heatwave_labeling_methodology.md` for the full methodology.
 
@@ -202,7 +202,7 @@ The model uses 110 features across 7 groups:
 | Calendar features | 7 | Month, day-of-year, season, cyclic encodings |
 | City features | 4 | City encoding, coastal flag, lat/lon |
 
-All lag and rolling features use `shift(1)` to exclude day T from rolling windows — no data leakage.
+All lag and rolling features use `shift(1)` to exclude day T from rolling windows ΓÇö no data leakage.
 
 ---
 
@@ -210,16 +210,16 @@ All lag and rolling features use `shift(1)` to exclude day T from rolling window
 
 | Phase | Description | Key Output |
 |---|---|---|
-| 1–3 | Data research, problem definition, acquisition | `data/raw/all_cities_era5_raw.csv` |
+| 1ΓÇô3 | Data research, problem definition, acquisition | `data/raw/all_cities_era5_raw.csv` |
 | 4 | Exploratory data analysis | `docs/eda_findings.md`, 30 EDA plots |
 | 5 | Data cleaning | `data/processed/weather_cleaned.csv` |
 | 6 | Heatwave label generation | `data/processed/weather_labelled.csv` |
 | 7 | Feature engineering | `data/features/climateguard_features.csv` |
 | 8 | Final ML dataset | `data/features/ml_baseline.csv`, `ml_temporal.csv` |
 | 9 | Train/val/test split | `data/splits/baseline/`, `data/splits/temporal/` |
-| 10 | Baseline ML models | 6 models (LR, RF, XGBoost × 2 feature sets) |
+| 10 | Baseline ML models | 6 models (LR, RF, XGBoost ├ù 2 feature sets) |
 | 11 | Class imbalance handling | 30 strategy experiments, threshold analysis |
-| 12 | Held-out test evaluation | 4 candidates evaluated on 2023–2025 data |
+| 12 | Held-out test evaluation | 4 candidates evaluated on 2023ΓÇô2025 data |
 | 13 | Temporal feature experiment | Baseline vs 110-feature comparison + ablation |
 | 14 | Final model selection | `models/final/climateguard_final_model.joblib` |
 | 15 | Prediction interface | `src/prediction/predictor.py`, 18/18 tests pass |
@@ -231,7 +231,7 @@ All lag and rolling features use `shift(1)` to exclude day T from rolling window
 
 | Metric | Value | Notes |
 |---|---|---|
-| F1 score | 0.6947 | Test set 2023–2025 |
+| F1 score | 0.6947 | Test set 2023ΓÇô2025 |
 | Precision | 0.5789 | ~42% false alarm rate |
 | Recall | 0.8684 | Misses 16% of real heatwave days |
 | PR-AUC | 0.8339 | Area under precision-recall curve |
@@ -246,26 +246,26 @@ All lag and rolling features use `shift(1)` to exclude day T from rolling window
 | Delhi | 0.7805 | 0.6957 | 0.8889 |
 | Lucknow | 0.6829 | 0.5600 | 0.8750 |
 | Nagpur | 0.5000 | 0.3750 | 0.7500 |
-| Ahmedabad | N/A | — | — (0 test positives) |
-| Mumbai | N/A | — | — (0 positives ever) |
+| Ahmedabad | N/A | ΓÇö | ΓÇö (0 test positives) |
+| Mumbai | N/A | ΓÇö | ΓÇö (0 positives ever) |
 
 ---
 
 ## Integration Contracts
 
-- **Part 2 (Kshitij):** See `docs/part2_integration_contract.md` — SHAP access, probability interface, limitations to document
-- **Part 3 (Pradnesh):** See `docs/part3_integration_contract.md` — ETL requirements, feature construction, error handling
+- **Part 2 (Kshitij):** See `docs/part2_integration_contract.md` ΓÇö SHAP access, probability interface, limitations to document
+- **Part 3 (Pradnesh):** See `docs/part3_integration_contract.md` ΓÇö ETL requirements, feature construction, error handling
 
 ---
 
 ## Limitations
 
-1. ERA5 reanalysis data — not official IMD station observations
-2. IMD-inspired label — not certified IMD ground truth
+1. ERA5 reanalysis data ΓÇö not official IMD station observations
+2. IMD-inspired label ΓÇö not certified IMD ground truth
 3. Mumbai: zero heatwave positives in 35 years under this definition; predictions are unreliable
-4. Ahmedabad: zero test-set positives (all 32 events fall in 1990–2019 training window)
+4. Ahmedabad: zero test-set positives (all 32 events fall in 1990ΓÇô2019 training window)
 5. `qualifying_day` feature is correlated with the target by construction (same IMD threshold family)
-6. Model precision 0.58 — ~42% false alarm rate
+6. Model precision 0.58 ΓÇö ~42% false alarm rate
 7. No drift detection; retraining recommended for deployment beyond 2025
 8. Feature engineering requires 30+ days of weather history per city
 
@@ -316,7 +316,7 @@ python -m pytest tests/test_prediction_interface.py -v
 ## Important Notes
 
 - **Do NOT retrain** the model. `models/final/climateguard_final_model.joblib` is a locked artifact.
-- **Do NOT modify** any file in `data/` — all datasets are validated, read-only artifacts.
+- **Do NOT modify** any file in `data/` ΓÇö all datasets are validated, read-only artifacts.
 - **Do NOT change** the threshold (0.70). It was fixed on the validation split before test evaluation.
 - **Do NOT implement** Part 2 or Part 3 functionality in this repository.
 
@@ -324,6 +324,6 @@ python -m pytest tests/test_prediction_interface.py -v
 
 ## Author
 
-**Adrian** — Part 1: Dataset & ML  
+**Adrian** ΓÇö Part 1: Dataset & ML  
 ClimateGuard Indian Heatwave Prediction Project  
 Date: September 2026
