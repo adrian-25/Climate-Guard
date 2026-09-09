@@ -1,7 +1,7 @@
 # PROJECT_MEMORY.md
 ## ClimateGuard — Indian Heatwave Analysis & Prediction
 
-**Last updated:** 2026-09-02 (Phase 16 complete)  
+**Last updated:** 2026-09-10 (Part 3 complete)  
 **Purpose:** Complete, self-contained project state record. This file allows the project to be resumed on any account, session, or assistant without dependency on any prior conversation.
 
 ---
@@ -48,6 +48,14 @@
 | **Phase 15** | **Prediction Interface** | **✅ COMPLETE** |
 | **Phase 16** | **Documentation** | **✅ COMPLETE** |
 | **Final Integration Audit** | **Final Integration Audit** | **❌ NOT STARTED — NEXT TASK** |
+
+### Part 2 / Part 3 Status
+
+| Part | Owner | Status |
+|---|---|---|
+| **Part 2** | **Kshitij** | **✅ COMPLETE (2026-09-10)** |
+| **Part 3** | **Pradnesh** | **✅ COMPLETE (2026-09-10)** |
+| Final Integration Audit | All | ❌ NOT STARTED |
 
 ---
 
@@ -1164,3 +1172,475 @@ and that all integration contracts are ready for handoff to Part 2 and Part 3.
 ## RECOMMENDED RESUME PROMPT
 
 > Read PROJECT_MEMORY.md completely. Inspect the current project files and verify the recorded state. Do not repeat completed phases. Phases 1-16 are complete. The Final Integration Audit is the next task and has not yet started. Continue from the Final Integration Audit only after verifying the project state.
+
+
+---
+
+## PART 2 — RISK ASSESSMENT + ADAPTATION + EXPLAINABILITY (COMPLETE)
+
+**Owner:** Kshitij  
+**Completed:** 2026-09-10  
+**Status:** COMPLETE  
+
+### Summary
+
+Part 2 implements three components that consume the Part 1 ClimateGuardPredictor output and produce structured risk assessments, adaptation recommendations, and model explanations.
+
+Part 1 artifacts are unchanged:
+- `models/final/climateguard_final_model.joblib` — NOT modified
+- `models/final/feature_list.json` — NOT modified
+- Threshold remains 0.70 — NOT changed
+- No retraining performed
+
+---
+
+### Component 1: Risk Assessment
+
+**Module:** `src/risk/risk_assessment.py`  
+**Status:** COMPLETE
+
+Maps the ML probability to an operational risk level using project-defined thresholds.
+
+| Risk Level | Lower Bound (inclusive) | Upper Bound (exclusive) |
+|---|---|---|
+| LOW      | 0.00 | 0.30 |
+| MODERATE | 0.30 | 0.60 |
+| HIGH     | 0.60 | 0.80 |
+| EXTREME  | 0.80 | 1.00 (inclusive) |
+
+**IMPORTANT:** These are project-defined operational categories for ClimateGuard. They are NOT official IMD risk categories.
+
+Key design:
+- Original ML probability preserved verbatim
+- Original prediction label (threshold=0.70) preserved verbatim
+- Deterministic: identical probability → identical risk level
+- Stateless — no model file, no I/O per call
+
+---
+
+### Component 2: Adaptation Recommendation Engine
+
+**Module:** `src/adaptation/recommendations.py`  
+**Status:** COMPLETE
+
+Generates risk-level-appropriate heatwave preparedness guidance.
+
+Categories: Hydration, Outdoor Exposure, Cooling, Vulnerable Populations, Workplace, Public Awareness, Emergency Preparedness
+
+Recommendations are project-defined operational guidance. They are NOT official government heat action plan instructions, official IMD advisories, or medical advice.
+
+| Risk Level | Recommendation count |
+|---|---|
+| LOW      | 3 |
+| MODERATE | 5 |
+| HIGH     | 6 |
+| EXTREME  | 7 |
+
+Full disclaimer included in all dict outputs.
+
+---
+
+### Component 3: Model Explainability
+
+**Module:** `src/explainability/explainer.py`  
+**Status:** COMPLETE
+
+Provides per-prediction SHAP explanations (or clearly-labelled global RF importance fallback).
+
+| Mode | Condition | Direction |
+|---|---|---|
+| SHAP (preferred) | `shap` package installed | `increases_risk` / `decreases_risk` per feature per prediction |
+| Global RF importance (fallback) | `shap` not installed | `global_importance` — same for all inputs, NOT per-prediction |
+
+Mandatory disclaimers embedded in all outputs:
+- Causality note: "Explanation reflects model behaviour only."
+- qualifying_day note: documents the structural correlation between qualifying_day and the label.
+
+At run time: SHAP not installed → fallback used (method = `"global_rf_importance"`).
+
+---
+
+### Main Interface: ClimateGuardRiskEngine
+
+**Module:** `src/risk_engine/engine.py`  
+**Status:** COMPLETE
+
+Unified interface combining all three Part 2 components plus Part 1 predictor.
+
+```python
+from src.risk_engine import ClimateGuardRiskEngine
+
+engine = ClimateGuardRiskEngine()
+result = engine.analyze(features_df)
+
+result.heatwave_probability   # float [0,1]
+result.prediction             # 0 or 1
+result.risk_level             # LOW / MODERATE / HIGH / EXTREME
+result.recommendations        # dict with disclaimer + recommendation list
+result.explanation            # dict with top features, method, notes
+result.to_dict()              # full structured output
+result.to_json()              # JSON string
+```
+
+---
+
+### Tests
+
+**File:** `tests/test_part2.py`  
+**Result:** 89/89 PASS
+
+| Group | Name | Tests |
+|---|---|---|
+| A | Risk probability validation | 10 |
+| B | Risk threshold boundaries | 10 |
+| C | Risk level generation | 6 |
+| D | Adaptation recommendation generation | 10 |
+| E | Adaptation recommendation categories | 7 |
+| F | Model access | 6 |
+| G | Feature-name consistency | 5 |
+| H | Explainability execution | 11 |
+| I | Invalid input handling | 9 |
+| J | Part 1 → Part 2 integration | 11 |
+| K | Real-data smoke test | 4 |
+
+---
+
+### Real-Data Smoke Test
+
+Data source: `data/splits/temporal/X_test.csv` (real held-out test split, unmodified)
+
+| Property | Value |
+|---|---|
+| City | ahmedabad |
+| Date (day T) | 2023-01-01 |
+| Actual next day | 0 (Normal) |
+| Probability | 0.0000 |
+| Prediction | 0 (Normal) |
+| Risk Level | LOW |
+| Explanation method | global_rf_importance |
+| Top features returned | 10 |
+| Recommendations | 3 (LOW level) |
+| All assertions | PASSED |
+
+Full pipeline chain confirmed working: real data → ClimateGuardPredictor → RiskAssessor → AdaptationEngine → ClimateGuardExplainer → RiskEngineResult.
+
+---
+
+### Part 2 Files
+
+| File | Description |
+|---|---|
+| `src/risk/__init__.py` | Risk package init |
+| `src/risk/risk_assessment.py` | RiskAssessor, RiskLevel, RiskAssessmentResult (326 lines) |
+| `src/adaptation/__init__.py` | Adaptation package init |
+| `src/adaptation/recommendations.py` | AdaptationEngine, Recommendation (415 lines) |
+| `src/explainability/__init__.py` | Explainability package init |
+| `src/explainability/explainer.py` | ClimateGuardExplainer, ExplainabilityResult (489 lines) |
+| `src/risk_engine/__init__.py` | Engine package init |
+| `src/risk_engine/engine.py` | ClimateGuardRiskEngine, RiskEngineResult (402 lines) |
+| `tests/test_part2.py` | Full test suite, 89 tests (931 lines) |
+| `docs/risk_assessment.md` | Risk assessment documentation |
+| `docs/adaptation_recommendations.md` | Adaptation recommendations documentation |
+| `docs/explainability.md` | Explainability documentation |
+| `docs/part2_integration.md` | Part 2 integration architecture and API |
+
+---
+
+### Part 1 Integration Status
+
+| Constraint | Status |
+|---|---|
+| ClimateGuardPredictor reused | PASS — no duplicate predictor |
+| Final model unchanged | PASS — not loaded twice, not modified |
+| Feature list unchanged | PASS — feature_names from predictor.feature_names |
+| Threshold remains 0.70 | PASS — not changed |
+| No retraining | PASS — no training code in Part 2 |
+| 110-feature contract preserved | PASS — 110 features, exact order, no renaming |
+
+---
+
+### SHAP Status
+
+SHAP package is not installed in the current environment.  
+The explainer falls back to global RF feature importance automatically.  
+To enable SHAP per-prediction explanations: `pip install shap`
+
+---
+
+### Remaining Work
+
+| Component | Status |
+|---|---|
+| Part 3 (Expert + ETL + Integration) | ✅ COMPLETE (2026-09-10) |
+| Final Integration Audit | ❌ NOT STARTED |
+
+---
+
+## PART 3 — EXPERT RULES + ETL + INTEGRATION (COMPLETE)
+
+**Owner:** Pradnesh  
+**Completed:** 2026-09-10  
+**Status:** ✅ COMPLETE
+
+### Summary
+
+Part 3 implements three components that form the end-to-end ClimateGuard pipeline, connecting ETL input validation, the Part 1 ML predictor, Part 2 risk assessment, and a new deterministic expert rule engine into a single callable interface.
+
+Part 1 and Part 2 artifacts are unchanged:
+- `models/final/climateguard_final_model.joblib` — NOT modified (MD5: `24da8b976561761467b2f9cc563d4d4a`)
+- `models/final/feature_list.json` — NOT modified (MD5: `fe6264e057c0e444010b00db8d11a468`)
+- Threshold remains 0.70 — NOT changed
+- 110-feature contract — NOT changed
+- No retraining performed
+
+---
+
+### Component 1: ETL / Input Validation
+
+**Module:** `src/etl/`  
+**Status:** COMPLETE
+
+Three-stage pipeline that validates and transforms incoming climate data into the 110-feature format required by `ClimateGuardPredictor`.
+
+**Stages:**
+
+| Stage | Class | Responsibility |
+|---|---|---|
+| 1 | `InputValidator` | City, date, type, NaN, range checks |
+| 2 | `FeatureContractValidator` | 110-feature contract, order, NaN, dtype |
+| 3 | `FeatureTransformer` | Select, reorder, cast to float64 |
+
+Orchestrated by `ETLPipeline` which runs `.run()` (single row) or `.run_batch()` (DataFrame).
+
+**Validation checks:**
+
+| Check | Blocking? |
+|---|---|
+| Required fields (city_key, date, temperature_2m_max) | ERROR |
+| City validity (5 supported cities only) | ERROR |
+| Date format (YYYY-MM-DD) | ERROR |
+| Numeric coercibility | ERROR |
+| NaN/None values | ERROR |
+| Physical range sanity bounds | WARNING (non-blocking) |
+| 110 features present | ERROR |
+| Feature order correct | ERROR |
+| Duplicate (city, date) in batch | WARNING |
+
+All thresholds are project-defined sanity guards. NOT official IMD/WMO standards.
+
+---
+
+### Component 2: Expert Rule Engine
+
+**Module:** `src/expert_rules/`  
+**Status:** COMPLETE
+
+Seven deterministic, explainable rules that add domain-context overlays on top of the ML prediction and risk assessment.
+
+| Rule | ID | Severity | Trigger |
+|---|---|---|---|
+| Extreme Temperature | RULE_01 | CRITICAL | Tmax ≥ 45°C (plains) / 40°C (coastal) |
+| Persistent Heat | RULE_02 | WARNING | Tmax ≥ 40°C AND 7-day rolling mean ≥ 37°C |
+| High Nighttime Temperature | RULE_03 | WARNING | Tmin ≥ 28°C |
+| Compounded Heat Stress | RULE_04 | WARNING | Tmax ≥ 40°C AND departure ≥ 4.5°C AND z-score ≥ 1.5 |
+| Vulnerable Population Alert | RULE_05 | CRIT/WARN | risk_level ∈ {HIGH, EXTREME} |
+| Outdoor Exposure Warning | RULE_06 | CRIT/WARN | risk_level ∈ {HIGH, EXTREME} |
+| Hydration and Cooling Reminder | RULE_07 | INFO | prob ≥ 0.30 OR Tmax ≥ 35°C |
+
+**IMPORTANT DISCLAIMER:** All thresholds are project-defined operational thresholds. NOT official IMD warnings, NOT official government heat action plan outputs, NOT certified medical advice.
+
+Each `RuleResult` exposes: `rule_id`, `name`, `triggered`, `severity`, `message`, `description`, `threshold_note`.
+
+`ExpertRuleEngine` provides: `evaluate()`, `get_triggered()`, `triggered_count()`, `highest_severity()`, `get_by_severity()`, `to_dict_list()`, `summarise()`.
+
+---
+
+### Component 3: Integration Pipeline
+
+**Module:** `src/integration/`  
+**Status:** COMPLETE
+
+`ClimateGuardPipeline` is the unified Part 3 orchestrator connecting all stages:
+
+```
+Input (dict / pd.Series / pd.DataFrame)
+    ↓  ETLPipeline          → validates + transforms to 110-feature DataFrame
+    ↓  ClimateGuardRiskEngine  → Part 1 prediction + Part 2 risk + recommendations + explainability
+    ↓  ExpertRuleEngine     → 7 deterministic expert rule results
+    ↓  ClimateGuardResult   → final structured output
+```
+
+`ClimateGuardResult` fields:
+
+| Field | Type | Present when |
+|---|---|---|
+| `valid` | bool | always |
+| `input_metadata` | dict | always |
+| `validation` | dict | always |
+| `prediction` | dict (probability, prediction) | valid=True |
+| `risk` | dict (level, score) | valid=True |
+| `recommendations` | list | valid=True |
+| `explanation` | dict or None | valid=True, if enabled |
+| `expert_rules` | list[dict] (7 items) | valid=True; else [] |
+| `warnings` | list[str] | always |
+| `metadata` | dict | always |
+
+Fully JSON-serialisable via `.to_dict()` and `.to_json()`.
+
+Handles both explanation methods (SHAP and `global_rf_importance`) without crashing.
+
+---
+
+### Tests
+
+**File:** `tests/test_part3.py`  
+**Runner:** `unittest` (matching project's `test_part2.py` pattern)  
+**Result:** **145/145 PASS**
+
+| Group | Coverage | Tests |
+|---|---|---|
+| A | InputValidator | 16 |
+| B | FeatureContractValidator | 8 |
+| C | FeatureTransformer | 9 |
+| D | ETLPipeline (single record) | 10 |
+| E | ETLPipeline (batch) | 6 |
+| F | Expert Rules (individual functions) | 35 |
+| G | ExpertRuleEngine | 14 |
+| H | ClimateGuardPipeline (full pipeline) | 18 |
+| I | Error handling | 11 |
+| J | JSON serialisation | 7 |
+| K | Real-data smoke tests (X_test.csv) | 7 |
+| **Total** | | **141 unit + 7 real-data = 145** |
+
+Run with: `python tests/test_part3.py`
+
+---
+
+### Regression Tests
+
+| Suite | Result |
+|---|---|
+| `python tests/test_prediction_interface.py` (Part 1) | **18/18 PASS** |
+| `python tests/test_part2.py` (Part 2) | **89/89 PASS** |
+| `python tests/test_part3.py` (Part 3) | **145/145 PASS** |
+| `python -m unittest discover -s tests` (full suite) | **234/234 PASS** |
+
+Full suite confirmed with `subprocess.returncode = 0`.
+
+---
+
+### Real-Data End-to-End Smoke Test
+
+**Data:** `data/splits/temporal/X_test.csv` (4,865 rows × 110 features, real held-out test split)  
+**Script:** `run_part3_smoke_test.py`  
+**Evidence:** `results/part3_smoke_test.json` (23,669 bytes)
+
+| Test | City | Date | Probability | Prediction | Risk Level | Rules Triggered | Status |
+|---|---|---|---|---|---|---|---|
+| Individual (cold) | ahmedabad | 2023-01-01 | 0.000000 | 0 (Normal) | LOW | 0/7 | PASS |
+| Individual (hot) | delhi | 2024-05-17 | 0.804045 | 1 (Heatwave) | EXTREME | 5/7 | PASS |
+| Batch (10 rows) | mixed | 2023-01-01 to 2023-01-10 | 0.0–0.007 | 0 | LOW | 0/7 | 10/10 PASS |
+
+Hot row triggered rules: `RULE_02` (Persistent Heat), `RULE_04` (Compounded Stress), `RULE_05` (Vulnerable Population), `RULE_06` (Outdoor Exposure), `RULE_07` (Hydration Reminder). Highest severity: CRITICAL.
+
+All results verified to contain: probability ∈ [0,1], valid prediction label, valid risk level, >0 recommendations, explanation method present, 7 expert rule results per row.
+
+---
+
+### Model Integrity Verification
+
+Verified before and after all Part 3 pipeline runs. MD5 hashes are identical — no modification occurred.
+
+| Artifact | Size | MD5 | SHA-256 | Status |
+|---|---|---|---|---|
+| `climateguard_final_model.joblib` | 1,864,473 bytes | `24da8b976561761467b2f9cc563d4d4a` | `1597d2d4ce97782f8c5ce060def7599eaa4821fbce580860735fd8960ad7c1aa` | UNCHANGED |
+| `feature_list.json` | 10,255 bytes | `fe6264e057c0e444010b00db8d11a468` | `44bb4e52655d91071265379f4ad27982cfb843047b61b68a608dec210096c071` | UNCHANGED |
+| `metadata.json` | 6,149 bytes | `72fa822ee58d84846c438a3dace9419e` | `db0c17c89fdcaf8b864c3a5fe337b6bdcbe2bc4d3d2c84dbe293531bddb2d6cd` | UNCHANGED |
+
+Runtime checks (confirmed after E2E run):
+- `predictor.threshold == 0.70` ✅
+- `predictor.n_features == 110` ✅
+- Feature names: first = `apparent_temperature_max`, last = `wind_speed_10m_max_roll7_min` ✅
+
+---
+
+### Documentation
+
+| File | Description |
+|---|---|
+| `docs/part3_etl.md` | ETL architecture, all validators, pipeline, feature contract, error messages, limitations (12 sections) |
+| `docs/expert_rules.md` | All 7 rules with thresholds, rationale, API, example output, disclaimer (11 sections) |
+| `docs/part3_integration.md` | Full pipeline flow, result structure, SHAP handling, error handling, model integrity (12 sections) |
+
+---
+
+### Part 3 Files
+
+| File | Description |
+|---|---|
+| `src/etl/__init__.py` | ETL package exports |
+| `src/etl/validator.py` | `InputValidator`, `FeatureContractValidator`, `ValidationResult` |
+| `src/etl/transformer.py` | `FeatureTransformer` |
+| `src/etl/pipeline.py` | `ETLPipeline`, `ETLResult` |
+| `src/expert_rules/__init__.py` | Expert rules package exports + threshold constants |
+| `src/expert_rules/rules.py` | `RuleResult`, 7 rule evaluation functions |
+| `src/expert_rules/engine.py` | `ExpertRuleEngine` |
+| `src/integration/__init__.py` | Integration package exports |
+| `src/integration/pipeline.py` | `ClimateGuardPipeline`, `ClimateGuardResult` |
+| `tests/test_part3.py` | 145-test unittest suite (Groups A–K) |
+| `docs/part3_etl.md` | ETL documentation |
+| `docs/expert_rules.md` | Expert rules documentation |
+| `docs/part3_integration.md` | Integration pipeline documentation |
+| `examples/part3_pipeline_example.py` | Working end-to-end example (7 sections) |
+| `run_part3_smoke_test.py` | E2E smoke test runner |
+| `results/part3_smoke_test.json` | E2E smoke test evidence (23,669 bytes) |
+
+---
+
+### Known Limitations (Part 3)
+
+1. **Pre-built features required.** The ETL module accepts records with all 110 pre-engineered features. It does not compute lag/rolling features from raw observations.
+2. **Five cities only.** Inputs for any city outside {Delhi, Lucknow, Nagpur, Ahmedabad, Mumbai} are rejected.
+3. **SHAP not installed.** Explanation falls back to global RF importance (same for all inputs, not per-prediction). Install `shap` for per-prediction SHAP explanations.
+4. **Rules 05 and 06 require Part 2 context.** Without `risk_level` from Part 2, these rules cannot fire.
+5. **Test runner is `unittest`, not `pytest`.** `pytest` is not installed in the environment. All tests run via `python tests/test_part3.py` or `python -m unittest discover`.
+6. **Expert rules are project-defined.** NOT official IMD warnings, NOT government heat action plan outputs, NOT certified medical advice.
+
+---
+
+### Part 2 Integration Constraints (respected)
+
+| Constraint | Status |
+|---|---|
+| `ClimateGuardPredictor` reused (not duplicated) | ✅ PASS |
+| `ClimateGuardRiskEngine` used as-is (not modified) | ✅ PASS |
+| Final model unchanged | ✅ PASS |
+| Feature list unchanged | ✅ PASS |
+| Threshold 0.70 unchanged | ✅ PASS |
+| No retraining | ✅ PASS |
+| 110-feature contract enforced | ✅ PASS |
+| Both explanation methods handled | ✅ PASS |
+
+---
+
+## HOW TO RESUME (Updated for Part 3)
+
+1. Open: `C:\Users\Adrian\Documents\climate guard\`
+2. Read `PROJECT_MEMORY.md` completely.
+3. Confirm Parts 1, 2, and 3 are complete.
+4. The **Final Integration Audit** has not started.
+5. Do not repeat completed phases or modify validated artifacts.
+
+### Quick verification
+
+```bash
+python tests/test_prediction_interface.py   # should print 18/18 passed
+python tests/test_part2.py                  # should print Ran 89 tests ... OK
+python tests/test_part3.py                  # should print Ran 145 tests ... OK
+python -m unittest discover -s tests        # should print Ran 234 tests ... OK
+python run_part3_smoke_test.py              # should print SMOKE TEST RESULT: PASS
+```
+
+### Next task: Final Integration Audit
+
+Verify that all Parts 1, 2, and 3 are internally consistent, that integration contracts are honoured end-to-end, and that the full system is ready for handoff.

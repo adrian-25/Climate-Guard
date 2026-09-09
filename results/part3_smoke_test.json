@@ -1,0 +1,744 @@
+{
+  "smoke_test": "part3_e2e",
+  "timestamp": "2026-09-10T02:34:22.766674",
+  "pipeline_info": {
+    "threshold": 0.7,
+    "n_features": 110,
+    "shap_available": false
+  },
+  "model_integrity": {
+    "model_file": "climateguard_final_model.joblib",
+    "model_size_bytes": 1864473,
+    "model_md5_before": "24da8b976561761467b2f9cc563d4d4a",
+    "model_md5_after": "24da8b976561761467b2f9cc563d4d4a",
+    "model_md5_unchanged": true,
+    "feature_list_file": "feature_list.json",
+    "feature_list_size": 10255,
+    "feature_list_md5_before": "fe6264e057c0e444010b00db8d11a468",
+    "feature_list_md5_after": "fe6264e057c0e444010b00db8d11a468",
+    "feature_list_md5_unchanged": true,
+    "threshold_unchanged": true,
+    "n_features_unchanged": true,
+    "integrity_status": "PASS"
+  },
+  "test_data": {
+    "X_test_shape": [
+      4865,
+      110
+    ],
+    "meta_test_shape": [
+      4865,
+      10
+    ],
+    "cities": [
+      "ahmedabad",
+      "delhi",
+      "lucknow",
+      "mumbai",
+      "nagpur"
+    ]
+  },
+  "individual_results": [
+    {
+      "label": "individual_cold_ahmedabad_2023-01-01",
+      "valid": true,
+      "city_key": "ahmedabad",
+      "date": "2023-01-01",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": []
+      },
+      "prediction": {
+        "probability": 0.0,
+        "prediction": 0
+      },
+      "risk_level": "LOW",
+      "risk_score": 0.0,
+      "recommendation_count": 3,
+      "explanation_method": "global_rf_importance",
+      "explanation_top_features": [
+        {
+          "feature": "tmax_departure",
+          "value": -0.4387747138397522,
+          "contribution": 0.1260149959843641,
+          "direction": "global_importance"
+        },
+        {
+          "feature": "qualifying_day",
+          "value": 0.0,
+          "contribution": 0.11174736584551544,
+          "direction": "global_importance"
+        },
+        {
+          "feature": "temperature_2m_mean",
+          "value": 18.6,
+          "contribution": 0.07573670986972388,
+          "direction": "global_importance"
+        },
+        {
+          "feature": "temperature_2m_max",
+          "value": 26.8,
+          "contribution": 0.0732441590195198,
+          "direction": "global_importance"
+        },
+        {
+          "feature": "temperature_2m_mean_lag1",
+          "value": 19.7,
+          "contribution": 0.049612992320815445,
+          "direction": "global_importance"
+        }
+      ],
+      "expert_rules_total": 7,
+      "expert_rules_triggered_count": 0,
+      "expert_rules_triggered_ids": [],
+      "expert_rules_highest_severity": null,
+      "warnings": []
+    },
+    {
+      "label": "individual_hot_delhi_2024-05-17",
+      "valid": true,
+      "city_key": "delhi",
+      "date": "2024-05-17",
+      "validation": {
+        "valid": true,
+        "errors": [],
+        "warnings": []
+      },
+      "prediction": {
+        "probability": 0.8040445655777451,
+        "prediction": 1
+      },
+      "risk_level": "EXTREME",
+      "risk_score": 0.8040445655777451,
+      "recommendation_count": 7,
+      "explanation_method": "global_rf_importance",
+      "explanation_top_features": [
+        {
+          "feature": "tmax_departure",
+          "value": 4.784911550468266,
+          "contribution": 0.1260149959843641,
+          "direction": "global_importance"
+        },
+        {
+          "feature": "qualifying_day",
+          "value": 1.0,
+          "contribution": 0.11174736584551544,
+          "direction": "global_importance"
+        },
+        {
+          "feature": "temperature_2m_mean",
+          "value": 36.5,
+          "contribution": 0.07573670986972388,
+          "direction": "global_importance"
+        },
+        {
+          "feature": "temperature_2m_max",
+          "value": 44.5,
+          "contribution": 0.0732441590195198,
+          "direction": "global_importance"
+        },
+        {
+          "feature": "temperature_2m_mean_lag1",
+          "value": 35.1,
+          "contribution": 0.049612992320815445,
+          "direction": "global_importance"
+        }
+      ],
+      "expert_rules_total": 7,
+      "expert_rules_triggered_count": 5,
+      "expert_rules_triggered_ids": [
+        "RULE_02",
+        "RULE_04",
+        "RULE_05",
+        "RULE_06",
+        "RULE_07"
+      ],
+      "expert_rules_highest_severity": "CRITICAL",
+      "warnings": [
+        "[RULE_02] Persistent Heat: Persistent heat detected: today's Tmax=44.5°C, 7-day rolling mean Tmax=40.2°C. Multiple consecutive hot days compound physiological heat stress. Vulnerable individuals should take extra precautions.",
+        "[RULE_04] Compounded Heat Stress: Compounded heat stress detected: Tmax=44.5°C, departure=4.78°C, z-score=2.95. Multiple heat indicators are simultaneously elevated, suggesting an unusually severe heat episode relative to historical norms. Take all recommended precautions.",
+        "[RULE_05] Vulnerable Population Alert: Risk level is EXTREME (Tmax=44.5°C). Elderly individuals, infants, pregnant women, and people with pre-existing health conditions (cardiovascular, respiratory, renal) face significantly elevated risk. Actively check on vulnerable people and ensure they have access to cool environments and adequate hydration.",
+        "[RULE_06] Outdoor Exposure Warning: Risk level is EXTREME (Tmax=44.5°C). Avoid unnecessary outdoor exposure during peak heat hours (11:00–17:00 IST). If outdoor activity is unavoidable, seek shade regularly, drink water before feeling thirsty, and reduce physical exertion to a minimum."
+      ]
+    }
+  ],
+  "batch_results": {
+    "n_rows": 10,
+    "n_valid": 10,
+    "rows": [
+      {
+        "label": "batch_row_0",
+        "valid": true,
+        "city_key": "ahmedabad",
+        "date": "2023-01-01",
+        "validation": {
+          "valid": true,
+          "errors": [],
+          "warnings": []
+        },
+        "prediction": {
+          "probability": 0.0,
+          "prediction": 0
+        },
+        "risk_level": "LOW",
+        "risk_score": 0.0,
+        "recommendation_count": 3,
+        "explanation_method": "global_rf_importance",
+        "explanation_top_features": [
+          {
+            "feature": "tmax_departure",
+            "value": -0.4387747138397522,
+            "contribution": 0.1260149959843641,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "qualifying_day",
+            "value": 0.0,
+            "contribution": 0.11174736584551544,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 18.6,
+            "contribution": 0.07573670986972388,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_max",
+            "value": 26.8,
+            "contribution": 0.0732441590195198,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean_lag1",
+            "value": 19.7,
+            "contribution": 0.049612992320815445,
+            "direction": "global_importance"
+          }
+        ],
+        "expert_rules_total": 7,
+        "expert_rules_triggered_count": 0,
+        "expert_rules_triggered_ids": [],
+        "expert_rules_highest_severity": null,
+        "warnings": []
+      },
+      {
+        "label": "batch_row_1",
+        "valid": true,
+        "city_key": "ahmedabad",
+        "date": "2023-01-02",
+        "validation": {
+          "valid": true,
+          "errors": [],
+          "warnings": []
+        },
+        "prediction": {
+          "probability": 0.0,
+          "prediction": 0
+        },
+        "risk_level": "LOW",
+        "risk_score": 0.0,
+        "recommendation_count": 3,
+        "explanation_method": "global_rf_importance",
+        "explanation_top_features": [
+          {
+            "feature": "tmax_departure",
+            "value": -0.7774843912591081,
+            "contribution": 0.1260149959843641,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "qualifying_day",
+            "value": 0.0,
+            "contribution": 0.11174736584551544,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 18.4,
+            "contribution": 0.07573670986972388,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_max",
+            "value": 26.4,
+            "contribution": 0.0732441590195198,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean_lag1",
+            "value": 18.6,
+            "contribution": 0.049612992320815445,
+            "direction": "global_importance"
+          }
+        ],
+        "expert_rules_total": 7,
+        "expert_rules_triggered_count": 0,
+        "expert_rules_triggered_ids": [],
+        "expert_rules_highest_severity": null,
+        "warnings": []
+      },
+      {
+        "label": "batch_row_2",
+        "valid": true,
+        "city_key": "ahmedabad",
+        "date": "2023-01-03",
+        "validation": {
+          "valid": true,
+          "errors": [],
+          "warnings": []
+        },
+        "prediction": {
+          "probability": 0.0,
+          "prediction": 0
+        },
+        "risk_level": "LOW",
+        "risk_score": 0.0,
+        "recommendation_count": 3,
+        "explanation_method": "global_rf_importance",
+        "explanation_top_features": [
+          {
+            "feature": "tmax_departure",
+            "value": -1.1211888657648252,
+            "contribution": 0.1260149959843641,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "qualifying_day",
+            "value": 0.0,
+            "contribution": 0.11174736584551544,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 18.5,
+            "contribution": 0.07573670986972388,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_max",
+            "value": 26.0,
+            "contribution": 0.0732441590195198,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean_lag1",
+            "value": 18.4,
+            "contribution": 0.049612992320815445,
+            "direction": "global_importance"
+          }
+        ],
+        "expert_rules_total": 7,
+        "expert_rules_triggered_count": 0,
+        "expert_rules_triggered_ids": [],
+        "expert_rules_highest_severity": null,
+        "warnings": []
+      },
+      {
+        "label": "batch_row_3",
+        "valid": true,
+        "city_key": "ahmedabad",
+        "date": "2023-01-04",
+        "validation": {
+          "valid": true,
+          "errors": [],
+          "warnings": []
+        },
+        "prediction": {
+          "probability": 0.0,
+          "prediction": 0
+        },
+        "risk_level": "LOW",
+        "risk_score": 0.0,
+        "recommendation_count": 3,
+        "explanation_method": "global_rf_importance",
+        "explanation_top_features": [
+          {
+            "feature": "tmax_departure",
+            "value": -3.9844562955254936,
+            "contribution": 0.1260149959843641,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "qualifying_day",
+            "value": 0.0,
+            "contribution": 0.11174736584551544,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 17.5,
+            "contribution": 0.07573670986972388,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_max",
+            "value": 23.1,
+            "contribution": 0.0732441590195198,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean_lag1",
+            "value": 18.5,
+            "contribution": 0.049612992320815445,
+            "direction": "global_importance"
+          }
+        ],
+        "expert_rules_total": 7,
+        "expert_rules_triggered_count": 0,
+        "expert_rules_triggered_ids": [],
+        "expert_rules_highest_severity": null,
+        "warnings": []
+      },
+      {
+        "label": "batch_row_4",
+        "valid": true,
+        "city_key": "ahmedabad",
+        "date": "2023-01-05",
+        "validation": {
+          "valid": true,
+          "errors": [],
+          "warnings": []
+        },
+        "prediction": {
+          "probability": 0.0,
+          "prediction": 0
+        },
+        "risk_level": "LOW",
+        "risk_score": 0.0,
+        "recommendation_count": 3,
+        "explanation_method": "global_rf_importance",
+        "explanation_top_features": [
+          {
+            "feature": "tmax_departure",
+            "value": -4.051157648283038,
+            "contribution": 0.1260149959843641,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "qualifying_day",
+            "value": 0.0,
+            "contribution": 0.11174736584551544,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 17.2,
+            "contribution": 0.07573670986972388,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_max",
+            "value": 23.0,
+            "contribution": 0.0732441590195198,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean_lag1",
+            "value": 17.5,
+            "contribution": 0.049612992320815445,
+            "direction": "global_importance"
+          }
+        ],
+        "expert_rules_total": 7,
+        "expert_rules_triggered_count": 0,
+        "expert_rules_triggered_ids": [],
+        "expert_rules_highest_severity": null,
+        "warnings": []
+      },
+      {
+        "label": "batch_row_5",
+        "valid": true,
+        "city_key": "ahmedabad",
+        "date": "2023-01-06",
+        "validation": {
+          "valid": true,
+          "errors": [],
+          "warnings": []
+        },
+        "prediction": {
+          "probability": 0.0,
+          "prediction": 0
+        },
+        "risk_level": "LOW",
+        "risk_score": 0.0,
+        "recommendation_count": 3,
+        "explanation_method": "global_rf_importance",
+        "explanation_top_features": [
+          {
+            "feature": "tmax_departure",
+            "value": -1.6192117585848074,
+            "contribution": 0.1260149959843641,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "qualifying_day",
+            "value": 0.0,
+            "contribution": 0.11174736584551544,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 19.6,
+            "contribution": 0.07573670986972388,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_max",
+            "value": 25.4,
+            "contribution": 0.0732441590195198,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean_lag1",
+            "value": 17.2,
+            "contribution": 0.049612992320815445,
+            "direction": "global_importance"
+          }
+        ],
+        "expert_rules_total": 7,
+        "expert_rules_triggered_count": 0,
+        "expert_rules_triggered_ids": [],
+        "expert_rules_highest_severity": null,
+        "warnings": []
+      },
+      {
+        "label": "batch_row_6",
+        "valid": true,
+        "city_key": "ahmedabad",
+        "date": "2023-01-07",
+        "validation": {
+          "valid": true,
+          "errors": [],
+          "warnings": []
+        },
+        "prediction": {
+          "probability": 0.0,
+          "prediction": 0
+        },
+        "risk_level": "LOW",
+        "risk_score": 0.0,
+        "recommendation_count": 3,
+        "explanation_method": "global_rf_importance",
+        "explanation_top_features": [
+          {
+            "feature": "tmax_departure",
+            "value": 1.2093002081165452,
+            "contribution": 0.1260149959843641,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "qualifying_day",
+            "value": 0.0,
+            "contribution": 0.11174736584551544,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 22.0,
+            "contribution": 0.07573670986972388,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_max",
+            "value": 28.2,
+            "contribution": 0.0732441590195198,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean_lag1",
+            "value": 19.6,
+            "contribution": 0.049612992320815445,
+            "direction": "global_importance"
+          }
+        ],
+        "expert_rules_total": 7,
+        "expert_rules_triggered_count": 0,
+        "expert_rules_triggered_ids": [],
+        "expert_rules_highest_severity": null,
+        "warnings": []
+      },
+      {
+        "label": "batch_row_7",
+        "valid": true,
+        "city_key": "ahmedabad",
+        "date": "2023-01-08",
+        "validation": {
+          "valid": true,
+          "errors": [],
+          "warnings": []
+        },
+        "prediction": {
+          "probability": 0.007165150920736131,
+          "prediction": 0
+        },
+        "risk_level": "LOW",
+        "risk_score": 0.007165150920736131,
+        "recommendation_count": 3,
+        "explanation_method": "global_rf_importance",
+        "explanation_top_features": [
+          {
+            "feature": "tmax_departure",
+            "value": 2.5257414151925097,
+            "contribution": 0.1260149959843641,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "qualifying_day",
+            "value": 0.0,
+            "contribution": 0.11174736584551544,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 22.1,
+            "contribution": 0.07573670986972388,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_max",
+            "value": 29.5,
+            "contribution": 0.0732441590195198,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean_lag1",
+            "value": 22.0,
+            "contribution": 0.049612992320815445,
+            "direction": "global_importance"
+          }
+        ],
+        "expert_rules_total": 7,
+        "expert_rules_triggered_count": 0,
+        "expert_rules_triggered_ids": [],
+        "expert_rules_highest_severity": null,
+        "warnings": []
+      },
+      {
+        "label": "batch_row_8",
+        "valid": true,
+        "city_key": "ahmedabad",
+        "date": "2023-01-09",
+        "validation": {
+          "valid": true,
+          "errors": [],
+          "warnings": []
+        },
+        "prediction": {
+          "probability": 0.0008608058608058607,
+          "prediction": 0
+        },
+        "risk_level": "LOW",
+        "risk_score": 0.0008608058608058607,
+        "recommendation_count": 3,
+        "explanation_method": "global_rf_importance",
+        "explanation_top_features": [
+          {
+            "feature": "tmax_departure",
+            "value": 2.527198231009365,
+            "contribution": 0.1260149959843641,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "qualifying_day",
+            "value": 0.0,
+            "contribution": 0.11174736584551544,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 21.8,
+            "contribution": 0.07573670986972388,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_max",
+            "value": 29.5,
+            "contribution": 0.0732441590195198,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean_lag1",
+            "value": 22.1,
+            "contribution": 0.049612992320815445,
+            "direction": "global_importance"
+          }
+        ],
+        "expert_rules_total": 7,
+        "expert_rules_triggered_count": 0,
+        "expert_rules_triggered_ids": [],
+        "expert_rules_highest_severity": null,
+        "warnings": []
+      },
+      {
+        "label": "batch_row_9",
+        "valid": true,
+        "city_key": "ahmedabad",
+        "date": "2023-01-10",
+        "validation": {
+          "valid": true,
+          "errors": [],
+          "warnings": []
+        },
+        "prediction": {
+          "probability": 1.4619883040935671e-05,
+          "prediction": 0
+        },
+        "risk_level": "LOW",
+        "risk_score": 1.4619883040935671e-05,
+        "recommendation_count": 3,
+        "explanation_method": "global_rf_importance",
+        "explanation_top_features": [
+          {
+            "feature": "tmax_departure",
+            "value": 2.1266779396462034,
+            "contribution": 0.1260149959843641,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "qualifying_day",
+            "value": 0.0,
+            "contribution": 0.11174736584551544,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 21.3,
+            "contribution": 0.07573670986972388,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_max",
+            "value": 29.1,
+            "contribution": 0.0732441590195198,
+            "direction": "global_importance"
+          },
+          {
+            "feature": "temperature_2m_mean_lag1",
+            "value": 21.8,
+            "contribution": 0.049612992320815445,
+            "direction": "global_importance"
+          }
+        ],
+        "expert_rules_total": 7,
+        "expert_rules_triggered_count": 0,
+        "expert_rules_triggered_ids": [],
+        "expert_rules_highest_severity": null,
+        "warnings": []
+      }
+    ]
+  },
+  "verification": {
+    "all_valid": true,
+    "probability_bounded": true,
+    "prediction_binary": true,
+    "risk_level_valid": true,
+    "recommendations_present": true,
+    "explanation_present": true,
+    "expert_rules_7_per_row": true,
+    "hot_row_triggered_rules": true,
+    "model_integrity_pass": true,
+    "overall_status": "PASS"
+  }
+}

@@ -1,0 +1,388 @@
+{
+  "audit_metadata": {
+    "title": "ClimateGuard Part 2 Independent Verification Audit",
+    "audited_component": "Part 2 — Risk Assessment, Adaptation Recommendations, Explainability",
+    "audit_date": "2026-09-10",
+    "auditor": "Independent verification (Kiro CLI)",
+    "part1_author": "Adrian",
+    "part2_author": "Kshitij",
+    "audit_method": "Static source inspection + live test execution"
+  },
+
+  "overall_status": "PASS",
+  "overall_summary": "All 89 tests in tests/test_part2.py passed. The full Part 1 → Part 2 pipeline executed successfully on real held-out test data. Part 2 is structurally complete, correctly integrated with Part 1, and all verifiable contracts are satisfied. One non-blocking condition: SHAP is not installed; the system correctly falls back to global RF importance with appropriate labelling.",
+
+  "risk_assessment": {
+    "status": "PASS",
+    "module": "src/risk/risk_assessment.py",
+    "init": "src/risk/__init__.py",
+    "classes_verified": ["RiskAssessor", "RiskAssessmentResult", "RiskLevel"],
+    "thresholds": {
+      "LOW": "[0.00, 0.30)",
+      "MODERATE": "[0.30, 0.60)",
+      "HIGH": "[0.60, 0.80)",
+      "EXTREME": "[0.80, 1.00]",
+      "note": "Project-defined thresholds — NOT official IMD risk categories"
+    },
+    "boundary_tests_pass": true,
+    "boundaries_tested": [0.0, 0.29, 0.30, 0.59, 0.60, 0.79, 0.80, 1.0],
+    "probability_validation": "ValueError on <0, >1, NaN; TypeError on string/None",
+    "deterministic": true,
+    "preserves_part1_probability": true,
+    "preserves_part1_prediction": true,
+    "to_dict_complete": true,
+    "tests_group_A_pass": "10/10",
+    "tests_group_B_pass": "10/10",
+    "tests_group_C_pass": "6/6"
+  },
+
+  "adaptation": {
+    "status": "PASS",
+    "module": "src/adaptation/recommendations.py",
+    "init": "src/adaptation/__init__.py",
+    "classes_verified": ["AdaptationEngine", "Recommendation"],
+    "disclaimer_present": true,
+    "disclaimer_note": "DISCLAIMER constant present and included in all recommend_as_dict() outputs",
+    "recommendation_counts": {
+      "LOW": 3,
+      "MODERATE": 5,
+      "HIGH": 6,
+      "EXTREME": 7
+    },
+    "categories_extreme": ["Hydration", "Outdoor Exposure", "Cooling", "Vulnerable Populations", "Workplace", "Emergency Preparedness", "Public Awareness"],
+    "all_levels_include_hydration": true,
+    "extreme_includes_emergency_preparedness": true,
+    "case_insensitive_input": true,
+    "invalid_level_raises_ValueError": true,
+    "deterministic": true,
+    "tests_group_D_pass": "10/10",
+    "tests_group_E_pass": "7/7"
+  },
+
+  "explainability": {
+    "status": "PASS (with SHAP fallback active)",
+    "module": "src/explainability/explainer.py",
+    "init": "src/explainability/__init__.py",
+    "classes_verified": ["ClimateGuardExplainer", "ExplainabilityResult"],
+    "shap_installed": false,
+    "shap_explainer_initialised": null,
+    "active_method": "global_rf_importance",
+    "shap_code_path_implemented": true,
+    "fallback_method": "global_rf_importance",
+    "fallback_correctly_labelled": true,
+    "global_importance_warning_in_output": true,
+    "fallback_direction_value": "global_importance",
+    "causality_note_in_output": true,
+    "qualifying_day_note_in_output": true,
+    "top_n_validated": "ValueError on top_n=0 or top_n>110",
+    "feature_names_from_110_contract": true,
+    "explain_global_implemented": true,
+    "shap_install_command": "pip install shap",
+    "tests_group_H_pass": "11/11"
+  },
+
+  "risk_engine": {
+    "status": "PASS",
+    "module": "src/risk_engine/engine.py",
+    "init": "src/risk_engine/__init__.py",
+    "classes_verified": ["ClimateGuardRiskEngine", "RiskEngineResult"],
+    "analyze_method": true,
+    "analyze_batch_method": true,
+    "predictor_property": true,
+    "explainer_property": true,
+    "shap_available_property": true,
+    "info_method": true,
+    "to_dict_complete": true,
+    "to_json_valid": true,
+    "pipeline_order": ["ClimateGuardPredictor (Step 1)", "RiskAssessor (Step 2)", "AdaptationEngine (Step 3)", "ClimateGuardExplainer (Step 4, optional)"],
+    "info_output_verified": {
+      "shap_available": false,
+      "default_include_explanation": true,
+      "default_top_n": 10,
+      "risk_levels": ["LOW", "MODERATE", "HIGH", "EXTREME"]
+    }
+  },
+
+  "part1_integration": {
+    "status": "PASS",
+    "part1_predictor_used": "ClimateGuardPredictor from src.prediction",
+    "model_not_retrained": true,
+    "model_artifact_unchanged": true,
+    "model_artifact_size_bytes": 1864473,
+    "model_artifact_date": "Sep 01",
+    "probability_passed_through_verbatim": true,
+    "prediction_label_passed_through_verbatim": true,
+    "threshold_not_changed_by_part2": true,
+    "prediction_consistent_with_threshold_0_70": true,
+    "missing_features_raise_error": true,
+    "nan_input_raises_error": true,
+    "batch_analysis_works": true,
+    "tests_group_J_pass": "11/11"
+  },
+
+  "feature_contract": {
+    "status": "PASS",
+    "expected_feature_count": 110,
+    "model_n_features_in": 110,
+    "predictor_feature_names_count": 110,
+    "feature_names_match_feature_list_json": true,
+    "target_not_in_feature_names": true,
+    "heatwave_next_day_in_features": false,
+    "get_feature_matrix_returns_110_columns": true,
+    "column_order_matches_feature_names": true,
+    "explainer_uses_predictor_feature_names": true,
+    "real_test_row_has_110_features": true,
+    "real_test_row_zero_nans": true,
+    "tests_group_F_pass": "6/6",
+    "tests_group_G_pass": "5/5"
+  },
+
+  "model_integrity": {
+    "status": "PASS",
+    "model_file": "models/final/climateguard_final_model.joblib",
+    "model_file_size_bytes": 1864473,
+    "model_file_date": "Sep 01 2026",
+    "model_type": "RandomForestClassifier",
+    "sklearn_class": "sklearn.ensemble.RandomForestClassifier",
+    "n_estimators": 300,
+    "max_depth": 10,
+    "min_samples_leaf": 10,
+    "random_state": 42,
+    "model_loads_successfully": true,
+    "predict_proba_available": true,
+    "test_metrics_from_metadata": {
+      "f1": 0.6947,
+      "precision": 0.5789,
+      "recall": 0.8684,
+      "pr_auc": 0.8339,
+      "roc_auc": 0.9979,
+      "accuracy": 0.994,
+      "tp": 33,
+      "fp": 24,
+      "tn": 4803,
+      "fn": 5,
+      "threshold": 0.7,
+      "test_period": "2023-01-01 to 2025-08-30"
+    },
+    "not_retrained_by_part2": true,
+    "qualifying_day_retained": true,
+    "qualifying_day_note": "qualifying_day encodes the same IMD-inspired threshold criteria used to construct the heatwave label. High contribution reflects feature engineering choice, not independently discovered physical signal."
+  },
+
+  "shap_status": {
+    "shap_installed": false,
+    "shap_available_check_result": false,
+    "shap_install_command": "pip install shap",
+    "current_explanation_mode": "global_rf_importance",
+    "global_importance_correctly_labelled": true,
+    "global_importance_warning_present": true,
+    "direction_in_fallback": "global_importance",
+    "shap_per_prediction_available": false,
+    "shap_code_implemented": true,
+    "shap_code_path": "src/explainability/explainer.py method _explain_shap()",
+    "shap_initialisation_code": "shap.TreeExplainer(self._model)",
+    "fallback_status": "Active — all explanations are global training-time importance, not per-prediction SHAP values",
+    "action_required": "pip install shap to activate per-prediction SHAP explanations"
+  },
+
+  "tests": {
+    "test_file": "tests/test_part2.py",
+    "run_command": "python tests/test_part2.py",
+    "exit_code": 0,
+    "total_tests": 89,
+    "passed": 89,
+    "failed": 0,
+    "errors": 0,
+    "runtime_seconds": 10.91,
+    "status": "OK",
+    "groups": {
+      "A_risk_probability_validation": {"tests": 10, "passed": 10, "status": "PASS"},
+      "B_risk_threshold_boundaries": {"tests": 10, "passed": 10, "status": "PASS"},
+      "C_risk_level_generation": {"tests": 6, "passed": 6, "status": "PASS"},
+      "D_adaptation_recommendation_generation": {"tests": 10, "passed": 10, "status": "PASS"},
+      "E_adaptation_recommendation_categories": {"tests": 7, "passed": 7, "status": "PASS"},
+      "F_model_access": {"tests": 6, "passed": 6, "status": "PASS"},
+      "G_feature_name_consistency": {"tests": 5, "passed": 5, "status": "PASS"},
+      "H_explainability_execution": {"tests": 11, "passed": 11, "status": "PASS"},
+      "I_invalid_input_handling": {"tests": 9, "passed": 9, "status": "PASS"},
+      "J_part1_to_part2_integration": {"tests": 11, "passed": 11, "status": "PASS"},
+      "K_real_data_smoke_test": {"tests": 4, "passed": 4, "status": "PASS"}
+    }
+  },
+
+  "smoke_test": {
+    "status": "PASS",
+    "data_sources": [
+      "data/splits/temporal/X_test.csv",
+      "data/splits/temporal/meta_test.csv",
+      "data/splits/temporal/y_test.csv"
+    ],
+    "first_row_result": {
+      "city": "ahmedabad",
+      "date_day_T": "2023-01-01",
+      "actual_next_day": 0,
+      "actual_next_day_label": "Normal",
+      "predicted_probability": 0.0,
+      "predicted_label": 0,
+      "prediction_correct": true,
+      "risk_level": "LOW",
+      "explanation_method": "global_rf_importance",
+      "top_features_returned": 10,
+      "recommendations_returned": 3
+    },
+    "batch_5_rows_result": {
+      "rows_processed": 5,
+      "all_valid_predictions": true,
+      "all_valid_risk_levels": true,
+      "all_non_empty_recommendations": true
+    },
+    "assertions_passed": [
+      "probability in [0, 1]",
+      "prediction in {0, 1}",
+      "threshold consistency (prob=0.0 < 0.70 → pred=0)",
+      "risk_level in {LOW, MODERATE, HIGH, EXTREME}",
+      "recommendations non-empty",
+      "explanation present",
+      "causality note in explanation",
+      "qualifying_day note in explanation",
+      "disclaimer in recommendations",
+      "JSON serialisable"
+    ]
+  },
+
+  "documentation": {
+    "status": "PASS",
+    "files_verified": [
+      {
+        "path": "docs/part2_integration.md",
+        "size_bytes": 9132,
+        "date": "Sep 09",
+        "status": "Present — complete integration overview with architecture, API, compliance table, limitations"
+      },
+      {
+        "path": "docs/explainability.md",
+        "size_bytes": 7323,
+        "date": "Sep 09",
+        "status": "Present"
+      },
+      {
+        "path": "docs/adaptation_recommendations.md",
+        "size_bytes": 6546,
+        "date": "Sep 09",
+        "status": "Present"
+      },
+      {
+        "path": "docs/risk_assessment.md",
+        "size_bytes": 5253,
+        "date": "Sep 09",
+        "status": "Present"
+      },
+      {
+        "path": "docs/part2_integration_contract.md",
+        "size_bytes": 7303,
+        "date": "Sep 01",
+        "status": "Present — Part 1 integration contract from Adrian to Kshitij"
+      }
+    ],
+    "part1_limitations_documented_in_part2": true,
+    "qualifying_day_limitation_documented": true,
+    "mumbai_uncertainty_documented": true,
+    "shap_fallback_documented": true
+  },
+
+  "issues": [
+    {
+      "id": "W-01",
+      "severity": "WARNING",
+      "category": "SHAP",
+      "description": "shap package not installed; all explanations are global RF importance (training-time, not per-prediction). Install: pip install shap",
+      "blocking": false,
+      "action": "pip install shap"
+    },
+    {
+      "id": "W-02",
+      "severity": "INFO",
+      "category": "Documentation / API contract",
+      "description": "When SHAP is absent, direction field is 'global_importance' (not 'increases_risk'/'decreases_risk'). Part 3 display code must handle this case.",
+      "blocking": false,
+      "action": "Part 3 consumers should check explanation_method before interpreting direction field"
+    },
+    {
+      "id": "W-03",
+      "severity": "INFO",
+      "category": "Known limitation (inherited)",
+      "description": "qualifying_day feature is correlated with target by construction — not an independently discovered signal. Documented in output notes.",
+      "blocking": false,
+      "action": "None — already documented in all explanation outputs and metadata"
+    },
+    {
+      "id": "W-04",
+      "severity": "INFO",
+      "category": "Known limitation (inherited)",
+      "description": "Mumbai and Ahmedabad have no test-set positives. Risk assessments for these cities carry elevated uncertainty.",
+      "blocking": false,
+      "action": "Carry forward from Part 1 — documented in docs/part2_integration.md"
+    },
+    {
+      "id": "W-05",
+      "severity": "INFO",
+      "category": "Performance",
+      "description": "analyze_batch() uses row-by-row Python loop. May be slow for very large DataFrames.",
+      "blocking": false,
+      "action": "Acceptable for current use case"
+    }
+  ],
+
+  "evidence": {
+    "test_run": {
+      "command": "python tests/test_part2.py",
+      "exit_code": 0,
+      "total": 89,
+      "passed": 89,
+      "runtime_seconds": 10.91,
+      "output_summary": "Ran 89 tests in 10.910s\nOK"
+    },
+    "shap_check": {
+      "command": "python -c \"from src.explainability import ClimateGuardExplainer; from src.prediction import ClimateGuardPredictor; p = ClimateGuardPredictor(); e = ClimateGuardExplainer(p); print('SHAP available:', ClimateGuardExplainer.shap_available()); print('Explainer mode:', e._shap_explainer)\"",
+      "output": "SHAP available: False\nExplainer mode: None"
+    },
+    "engine_info_check": {
+      "command": "python -c \"from src.risk_engine import ClimateGuardRiskEngine; e = ClimateGuardRiskEngine(); import json; print(json.dumps(e.info(), indent=2))\"",
+      "output_shap_available": false,
+      "output_default_include_explanation": true,
+      "output_default_top_n": 10,
+      "output_risk_levels_count": 4
+    },
+    "smoke_test_stdout": {
+      "city": "ahmedabad",
+      "date": "2023-01-01",
+      "probability": 0.0,
+      "prediction": 0,
+      "risk_level": "LOW",
+      "explanation_method": "global_rf_importance",
+      "top_features": 10,
+      "recommendations": 3,
+      "assertion_status": "PASS"
+    },
+    "source_files_inspected": [
+      "src/risk/risk_assessment.py",
+      "src/risk/__init__.py",
+      "src/adaptation/recommendations.py",
+      "src/adaptation/__init__.py",
+      "src/explainability/explainer.py",
+      "src/explainability/__init__.py",
+      "src/risk_engine/engine.py",
+      "src/risk_engine/__init__.py",
+      "tests/test_part2.py",
+      "models/final/metadata.json",
+      "docs/part2_integration.md",
+      "docs/part2_integration_contract.md"
+    ],
+    "model_artifact": {
+      "path": "models/final/climateguard_final_model.joblib",
+      "size_bytes": 1864473,
+      "date": "Sep 01 2026",
+      "modified_by_part2": false
+    }
+  }
+}
