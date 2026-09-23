@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ClimateGuard — About the AI-powered heatwave prediction system for Indian cities">
+  <title>ClimateGuard — About & Methodology</title>
+  <link rel="stylesheet" href="/web/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav-bar">
+    <a href="/" class="nav-brand">🌡️ ClimateGuard</a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Dashboard</a>
+      <a href="/performance" class="nav-link">Model Performance</a>
+      <a href="/about" class="nav-link active">About</a>
+    </div>
+  </nav>
+
+  <div class="container page-container">
+
+    <header class="page-header">
+      <h1 class="page-header__title">ℹ️ About ClimateGuard</h1>
+      <p class="page-header__subtitle">AI-Powered Heatwave Prediction System for Indian Cities</p>
+    </header>
+
+    <!-- Overview -->
+    <section class="about-card">
+      <h2 class="about-card__title">🎯 Project Overview</h2>
+      <p>ClimateGuard is a machine learning system that predicts heatwave events <strong>one day in advance</strong> for 5 major Indian cities. It combines a Random Forest classifier trained on 35 years of ERA5 climate data with a deterministic expert rule engine inspired by India Meteorological Department (IMD) heatwave definitions.</p>
+      <p>The system provides not just binary predictions, but also <strong>risk levels</strong>, <strong>expert rule assessments</strong>, and <strong>actionable adaptation recommendations</strong> to help communities prepare for extreme heat events.</p>
+    </section>
+
+    <!-- Architecture -->
+    <section class="about-card">
+      <h2 class="about-card__title">🏗️ System Architecture</h2>
+      <div class="arch-pipeline">
+        <div class="arch-step">
+          <div class="arch-step__number">1</div>
+          <div class="arch-step__content">
+            <h3>Data Ingestion</h3>
+            <p>ERA5 Reanalysis data from ECMWF covering 1990–2025. Includes temperature, humidity, wind, pressure, geopotential, and radiation variables across surface and pressure levels.</p>
+          </div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step">
+          <div class="arch-step__number">2</div>
+          <div class="arch-step__content">
+            <h3>Feature Engineering</h3>
+            <p><strong>110 features</strong> including rolling means (3, 5, 7, 14-day), rate of change, z-scores, departures from climatological normals, cross-variable interactions, and seasonal indicators.</p>
+          </div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step">
+          <div class="arch-step__number">3</div>
+          <div class="arch-step__content">
+            <h3>ML Prediction</h3>
+            <p><strong>Random Forest Classifier</strong> with random undersampling for class imbalance. Threshold tuned to 0.70 for optimal F1 balance. Temporal train/test split avoids data leakage.</p>
+          </div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step">
+          <div class="arch-step__number">4</div>
+          <div class="arch-step__content">
+            <h3>Risk Engine</h3>
+            <p>Converts probability to risk levels (LOW / MODERATE / HIGH / EXTREME) with adaptation recommendations tailored to each level.</p>
+          </div>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-step">
+          <div class="arch-step__number">5</div>
+          <div class="arch-step__content">
+            <h3>Expert Rules</h3>
+            <p><strong>7 IMD-inspired deterministic rules</strong> that overlay on ML predictions: Extreme Temperature, Persistent Heat, High Nighttime Temperature, Compounded Heat Stress, Vulnerable Population Alert, Outdoor Exposure Warning, Hydration Reminder.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Heatwave Definition -->
+    <section class="about-card">
+      <h2 class="about-card__title">🌡️ Heatwave Definition</h2>
+      <p>This project uses an <strong>IMD-inspired heatwave definition</strong> applied to ERA5 reanalysis grid data:</p>
+      <table class="about-table">
+        <thead>
+          <tr>
+            <th>Region Type</th>
+            <th>Heatwave Threshold</th>
+            <th>Severe Heatwave</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Plains</td>
+            <td>Tmax ≥ 40°C <em>or</em> departure ≥ 4.5°C</td>
+            <td>Tmax ≥ 45°C <em>or</em> departure ≥ 6.5°C</td>
+          </tr>
+          <tr>
+            <td>Coastal</td>
+            <td>Tmax ≥ 37°C <em>or</em> departure ≥ 4.5°C</td>
+            <td>Tmax ≥ 41°C <em>or</em> departure ≥ 6.5°C</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:12px;font-size:0.85rem;color:var(--text-muted);">
+        ⚠️ These thresholds are applied to ERA5 model output, not official IMD station observations.
+        ERA5 grid-cell values may differ from ground-station readings.
+      </p>
+    </section>
+
+    <!-- Cities -->
+    <section class="about-card">
+      <h2 class="about-card__title">🏙️ Target Cities</h2>
+      <div class="about-cities-grid">
+        <div class="about-city"><strong>New Delhi</strong><br>Delhi · Plains<br>28.61°N, 77.21°E</div>
+        <div class="about-city"><strong>Lucknow</strong><br>Uttar Pradesh · Plains<br>26.85°N, 80.95°E</div>
+        <div class="about-city"><strong>Nagpur</strong><br>Maharashtra · Plains<br>21.15°N, 79.09°E</div>
+        <div class="about-city"><strong>Ahmedabad</strong><br>Gujarat · Plains<br>23.02°N, 72.57°E</div>
+        <div class="about-city"><strong>Mumbai</strong><br>Maharashtra · Coastal<br>19.08°N, 72.88°E</div>
+      </div>
+    </section>
+
+    <!-- Data Sources -->
+    <section class="about-card">
+      <h2 class="about-card__title">📦 Data Sources</h2>
+      <table class="about-table">
+        <thead><tr><th>Source</th><th>Variables</th><th>Period</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>ERA5 Reanalysis</strong> (ECMWF via CDS)</td>
+            <td>2m temperature, dewpoint, wind, surface pressure, geopotential, solar radiation, total precipitation</td>
+            <td>1990–2025</td>
+          </tr>
+          <tr>
+            <td><strong>IMD Guidelines</strong></td>
+            <td>Heatwave definition thresholds, regional classification</td>
+            <td>Reference</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="about-card">
+      <h2 class="about-card__title">🛠️ Technology Stack</h2>
+      <div class="tech-grid">
+        <div class="tech-item"><strong>Python 3.11+</strong><br>Core language</div>
+        <div class="tech-item"><strong>scikit-learn</strong><br>ML model training</div>
+        <div class="tech-item"><strong>pandas / NumPy</strong><br>Data processing</div>
+        <div class="tech-item"><strong>SHAP</strong><br>Model explainability</div>
+        <div class="tech-item"><strong>FastAPI</strong><br>Backend API</div>
+        <div class="tech-item"><strong>Chart.js</strong><br>Data visualization</div>
+        <div class="tech-item"><strong>Leaflet.js</strong><br>Interactive maps</div>
+        <div class="tech-item"><strong>Vanilla JS/CSS</strong><br>Frontend</div>
+      </div>
+    </section>
+
+    <!-- Disclaimer -->
+    <section class="about-card about-card--warning">
+      <h2 class="about-card__title">⚠️ Disclaimer</h2>
+      <p>This is a <strong>student research project</strong>. The predictions and risk assessments are generated by a machine learning model trained on reanalysis data and are <strong>NOT</strong> official government forecasts or certified medical advice.</p>
+      <ul>
+        <li>Predictions use ERA5 reanalysis data, not official IMD station observations.</li>
+        <li>Risk levels and adaptation recommendations are project-defined.</li>
+        <li>Always follow instructions from local meteorological authorities during heat emergencies.</li>
+        <li>Do not use this system as the sole basis for emergency planning decisions.</li>
+      </ul>
+    </section>
+
+    <footer class="footer">
+      <p class="footer__text">ClimateGuard · Final Year Project · 2025</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>

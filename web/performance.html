@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ClimateGuard Model Performance — Confusion Matrix, ROC Curve, PR Curve, Feature Importance">
+  <title>ClimateGuard — Model Performance</title>
+  <link rel="stylesheet" href="/web/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav-bar">
+    <a href="/" class="nav-brand">🌡️ ClimateGuard</a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Dashboard</a>
+      <a href="/performance" class="nav-link active">Model Performance</a>
+      <a href="/about" class="nav-link">About</a>
+    </div>
+  </nav>
+
+  <div class="container page-container">
+
+    <header class="page-header">
+      <h1 class="page-header__title">📊 Model Performance</h1>
+      <p class="page-header__subtitle">Evaluation on temporal test set (2023–2025) · 5 Indian cities</p>
+    </header>
+
+    <!-- Global Metrics Bar -->
+    <section class="perf-metrics-bar" id="perf-metrics-bar">
+      <!-- Populated by JS -->
+    </section>
+
+    <!-- Charts Row 1: Confusion Matrix + ROC + PR -->
+    <section class="perf-charts-row">
+      <div class="chart-card">
+        <div class="chart-card__title">Confusion Matrix</div>
+        <div id="confusion-matrix" class="confusion-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card__title">ROC Curve</div>
+        <canvas id="roc-chart"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card__title">Precision–Recall Curve</div>
+        <canvas id="pr-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- Feature Importance -->
+    <section>
+      <div class="section-title">🔬 Top 25 Feature Importances (Random Forest)</div>
+      <div class="chart-card" style="padding: 30px;">
+        <canvas id="fi-chart" style="height: 500px !important;"></canvas>
+      </div>
+    </section>
+
+    <!-- City Comparison -->
+    <section>
+      <div class="section-title">🏙️ City-wise Performance Comparison</div>
+      <div class="city-comparison-table" id="city-comparison">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p class="footer__text">ClimateGuard · Model Performance Dashboard</p>
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="/web/performance.js"></script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ClimateGuard — AI-powered heatwave prediction dashboard for Indian cities. Predict heatwave risk using 35 years of ERA5 climate data.">
+  <title>ClimateGuard — Heatwave Prediction Dashboard</title>
+  <link rel="stylesheet" href="/web/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav-bar">
+    <a href="/" class="nav-brand">🌡️ ClimateGuard</a>
+    <div class="nav-links">
+      <a href="/" class="nav-link active">Dashboard</a>
+      <a href="/performance" class="nav-link">Model Performance</a>
+      <a href="/about" class="nav-link">About</a>
+    </div>
+  </nav>
+
+  <div class="container page-container">
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+    <header class="header">
+      <div class="header__brand">
+        <div class="header__icon">🌡️</div>
+        <h1 class="header__title">ClimateGuard</h1>
+      </div>
+      <p class="header__subtitle">
+        AI-Powered Heatwave Prediction for Indian Cities
+      </p>
+      <div class="header__badge">
+        <span class="header__badge-dot"></span>
+        Random Forest · 110 Features · Threshold 0.70
+      </div>
+    </header>
+
+    <!-- ============================================================
+         CITY SELECTOR
+         ============================================================ -->
+    <section id="city-section">
+      <div class="section-title">Select City</div>
+      <div class="city-grid" id="city-grid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ============================================================
+         DATE + PREDICT
+         ============================================================ -->
+    <section>
+      <div class="input-row">
+        <div class="input-group">
+          <label for="date-input">Select Date</label>
+          <input type="date" id="date-input" disabled>
+        </div>
+        <button class="btn-predict" id="predict-btn" disabled>
+          <span class="spinner"></span>
+          <span class="btn-text">Predict Heatwave Risk</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         ERROR BANNER
+         ============================================================ -->
+    <div class="error-banner" id="error-banner">
+      <span>⚠️</span>
+      <span id="error-text"></span>
+    </div>
+
+    <!-- ============================================================
+         RESULTS
+         ============================================================ -->
+    <section class="results" id="results">
+
+      <!-- Primary: Gauge + Info -->
+      <div class="results-primary">
+
+        <!-- Probability Gauge -->
+        <div class="gauge-card" id="gauge-card">
+          <svg class="gauge-svg" viewBox="0 0 200 200">
+            <!-- Track -->
+            <circle class="gauge-track" cx="100" cy="100" r="80"
+                    stroke-dasharray="377" stroke-dashoffset="94"
+                    transform="rotate(135 100 100)" />
+            <!-- Fill -->
+            <circle class="gauge-fill" id="gauge-fill" cx="100" cy="100" r="80"
+                    stroke-dasharray="377" stroke-dashoffset="283"
+                    transform="rotate(135 100 100)"
+                    stroke="var(--risk-low)" />
+            <!-- Value text -->
+            <text class="gauge-value" id="gauge-value" x="100" y="96">0%</text>
+            <text class="gauge-label" x="100" y="120">Probability</text>
+          </svg>
+          <div class="gauge-card__prediction" id="prediction-label">—</div>
+          <div class="gauge-card__actual" id="actual-label"></div>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-column">
+
+          <!-- Risk Level -->
+          <div class="info-card">
+            <div class="info-card__header">
+              <span class="info-card__title">Risk Level</span>
+            </div>
+            <div id="risk-badge-container">
+              <span class="risk-badge risk-badge--low" id="risk-badge">
+                <span class="risk-badge__dot"></span>
+                <span id="risk-level-text">LOW</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Score Details -->
+          <div class="info-card">
+            <div class="info-card__header">
+              <span class="info-card__title">Analysis Details</span>
+            </div>
+            <div id="score-details">
+              <div class="score-row">
+                <span class="score-row__label">City</span>
+                <span class="score-row__value" id="detail-city">—</span>
+              </div>
+              <div class="score-row">
+                <span class="score-row__label">Date (day T)</span>
+                <span class="score-row__value" id="detail-date">—</span>
+              </div>
+              <div class="score-row">
+                <span class="score-row__label">Prediction</span>
+                <span class="score-row__value" id="detail-prediction">—</span>
+              </div>
+              <div class="score-row">
+                <span class="score-row__label">Expert Rules Triggered</span>
+                <span class="score-row__value" id="detail-rules">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Warnings -->
+          <div class="info-card" id="warnings-card" style="display: none;">
+            <div class="info-card__header">
+              <span class="info-card__title">⚠️ Warnings</span>
+            </div>
+            <div id="warnings-list"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Expert Rules -->
+      <section class="rules-section">
+        <div class="section-title">Expert Rules (7 IMD-Inspired Rules)</div>
+        <div class="rules-grid" id="rules-grid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Recommendations -->
+      <section class="recs-section" id="recs-section" style="display: none;">
+        <div class="section-title">Adaptation Recommendations</div>
+        <div class="recs-grid" id="recs-grid">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- SHAP Explainability -->
+      <section class="shap-section" id="shap-section" style="display: none;">
+        <div class="section-title">🔬 Why This Prediction? (SHAP Explainability)</div>
+        <button class="btn-explain" id="explain-btn">
+          <span class="spinner"></span>
+          <span class="btn-text">Explain This Prediction</span>
+        </button>
+        <div class="shap-chart-container" id="shap-container" style="display: none;">
+          <div class="chart-card" style="padding: 24px;">
+            <div class="chart-card__title">Top 15 Feature Contributions (SHAP Values)</div>
+            <canvas id="shap-chart" style="height: 420px !important;"></canvas>
+          </div>
+          <p class="shap-note">Green bars push the prediction towards <strong>heatwave</strong>, red bars push towards <strong>normal</strong>. Longer bars = stronger influence.</p>
+        </div>
+      </section>
+
+    </section>
+
+    <!-- ============================================================
+         MAP VIEW
+         ============================================================ -->
+    <section class="map-section">
+      <div class="section-title">🗺️ City Map — Heatwave Risk Overview</div>
+      <div class="map-container" id="map-container">
+        <div id="map"></div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TREND CHART
+         ============================================================ -->
+    <section class="chart-section" id="chart-section">
+      <div class="section-title">📈 Temperature & Heatwave Probability Trends</div>
+      <div class="chart-controls">
+        <select id="chart-city-select" class="chart-select">
+          <option value="">Select a city to view trends</option>
+        </select>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card__title">Daily Max Temperature (°C)</div>
+          <canvas id="temp-chart"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card__title">Heatwave Probability (%)</div>
+          <canvas id="prob-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         MODEL INFO (COLLAPSIBLE)
+         ============================================================ -->
+    <section class="model-info-section">
+      <button class="model-info-toggle" id="model-info-toggle">
+        <span>📊</span>
+        <span>Model Information & Performance Metrics</span>
+        <span class="model-info-toggle__arrow" id="model-info-arrow" style="margin-left: auto;">▼</span>
+      </button>
+      <div class="model-info-content" id="model-info-content">
+        <div class="model-info-grid" id="model-info-grid">
+          <!-- Populated by JS -->
+        </div>
+        <div class="metrics-bar" id="metrics-bar">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         FOOTER
+         ============================================================ -->
+    <footer class="footer">
+      <p class="footer__text">
+        ClimateGuard · Indian Heatwave Prediction System<br>
+        Built with ERA5 Reanalysis Data (1990–2025)
+      </p>
+      <p class="footer__disclaimer">
+        This is a student research project. Predictions use an IMD-inspired heatwave definition applied to ERA5 reanalysis data,
+        not official IMD station observations. Risk levels and recommendations are project-defined and are NOT official government
+        guidance or certified medical advice. Always follow local authority instructions during heat emergencies.
+      </p>
+    </footer>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="/web/app.js"></script>
+</body>
+</html>
