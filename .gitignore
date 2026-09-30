@@ -34,6 +34,10 @@ ENV/
 *.swo
 .DS_Store
 Thumbs.db
+web_backup/
+app.py.bak
+node_modules/
+playwright-artifacts/
 
 # ------------------------------------------------------------
 # Jupyter checkpoints

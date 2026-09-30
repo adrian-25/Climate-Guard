@@ -1,4 +1,4 @@
-﻿# ClimateGuard ΓÇö Indian Heatwave Prediction
+# ClimateGuard ΓÇö Indian Heatwave Prediction
 
 **Explainable & Drift-Aware Heatwave Risk Prediction for Indian Cities**
 
@@ -51,10 +51,21 @@ The model prioritises **recall** (catch as many real heatwave days as possible) 
 ### 1. Install dependencies
 
 ```bash
-pip install scikit-learn joblib pandas numpy xgboost
+pip install fastapi uvicorn scikit-learn joblib pandas numpy xgboost
 ```
 
 See `docs/setup.md` for the full reproducibility guide.
+### Run the dashboard
+
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8001
+```
+
+Open `http://localhost:8001`. Live forecasts use [Open-Meteo](https://open-meteo.com/); retain its attribution.
+
+### Optional map configuration
+
+The dashboard uses keyless OpenFreeMap Positron vector tiles by default, with Esri World Light Gray Canvas as a WebGL fallback. `MAPPLS_KEY` is optional: Mappls currently documents a separate Web SDK rather than a Leaflet raster endpoint, so this version preserves Leaflet and falls through to OpenFreeMap. For a future Mappls SDK migration, create a key in [Mappls Console](https://auth.mappls.com/console), restrict it to your production domain, and set `MAPPLS_KEY` only in the server environment. Never commit `.env`; use `.env.example` as the reference.
 
 ### 2. Use the prediction interface
 
@@ -318,7 +329,7 @@ python -m pytest tests/test_prediction_interface.py -v
 - **Do NOT retrain** the model. `models/final/climateguard_final_model.joblib` is a locked artifact.
 - **Do NOT modify** any file in `data/` ΓÇö all datasets are validated, read-only artifacts.
 - **Do NOT change** the threshold (0.70). It was fixed on the validation split before test evaluation.
-- **Do NOT implement** Part 2 or Part 3 functionality in this repository.
+- **Do NOT implement** Part 2 or Part 3 functionality in this repository.`r`n- **Academic-use disclaimer:** ClimateGuard is a research model, not an official heatwave warning system. Follow India Meteorological Department and local-authority alerts during heat emergencies.
 
 ---
 

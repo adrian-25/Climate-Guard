@@ -10,6 +10,7 @@ Run:
 import sys
 import json
 import math
+import os
 import numpy as np
 from pathlib import Path
 from typing import Optional
@@ -170,6 +171,16 @@ class PredictRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # API endpoints
 # ---------------------------------------------------------------------------
+
+@app.get("/api/config")
+def get_public_config():
+    """Return browser-safe, optional configuration only.
+
+    Mappls static keys are designed for browser use and must still be limited
+    to the application's domain in the Mappls developer console.  No server
+    credentials or other environment variables are exposed here.
+    """
+    return {"mappls_key": os.getenv("MAPPLS_KEY", "").strip()}
 
 @app.get("/api/cities")
 def get_cities():

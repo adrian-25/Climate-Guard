@@ -583,25 +583,132 @@ function renderSHAPChart(data) {
 // ============================================================
 let leafletMap = null;
 
+const INDIA_BOUNDS = [[6, 65], [38, 98]];
+const OPENFREEMAP_ATTRIBUTION = '<a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> © <a href="https://openmaptiles.org/" target="_blank" rel="noopener noreferrer">OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>';
+
+/*
+ * Provider priority is deliberately centralized here. Mappls is first when a
+ * public key is configured, but its current Web Maps JS documentation exposes
+ * a separate Mappls.Map / mappls.Marker SDK rather than a Leaflet tile layer.
+ * Replacing it safely needs a future migration of the Leaflet marker, popup,
+ * bounds, and live-update code. Until then it is skipped and the compatible
+ * OpenFreeMap vector layer is used; Esri remains a no-WebGL fallback.
+ */
+const MAP_TILE_PROVIDERS = [
+  {
+    id: 'mappls',
+    name: 'Mappls',
+    canUse: config => Boolean(config?.mappls_key),
+    add: async () => {
+      throw new Error('Mappls currently requires its Web Maps SDK, not a Leaflet-compatible raster tile URL.');
+    },
+  },
+  {
+    id: 'openfreemap',
+    name: 'OpenFreeMap Positron',
+    canUse: () => Boolean(window.L?.maplibreGL && window.maplibregl),
+    add: addOpenFreeMapLayer,
+  },
+  {
+    id: 'esri-light-gray',
+    name: 'Esri World Light Gray Canvas',
+    canUse: () => Boolean(window.L?.tileLayer),
+    add: addEsriLightGrayLayer,
+  },
+];
+
+function waitForMapLibreLoad(layer) {
+  return new Promise((resolve, reject) => {
+    const glMap = layer.getMaplibreMap();
+    const timeout = window.setTimeout(() => reject(new Error('OpenFreeMap timed out while loading.')), 10000);
+    const finish = callback => value => {
+      window.clearTimeout(timeout);
+      callback(value);
+    };
+    glMap.once('load', finish(resolve));
+    glMap.once('error', event => finish(reject)(event?.error || new Error('OpenFreeMap failed to load.')));
+  });
+}
+
+async function addOpenFreeMapLayer() {
+  const layer = L.maplibreGL({
+    style: 'https://tiles.openfreemap.org/styles/positron',
+    attributionControl: false,
+  }).addTo(leafletMap);
+
+  try {
+    await waitForMapLibreLoad(layer);
+    leafletMap.attributionControl.addAttribution(OPENFREEMAP_ATTRIBUTION);
+    return layer;
+  } catch (error) {
+    leafletMap.removeLayer(layer);
+    throw error;
+  }
+}
+
+async function addEsriLightGrayLayer() {
+  return new Promise((resolve, reject) => {
+    const layer = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: 'Tiles © <a href="https://www.esri.com/" target="_blank" rel="noopener noreferrer">Esri</a> — Esri, DeLorme, NAVTEQ',
+        minZoom: 4,
+        maxZoom: 10,
+      },
+    );
+    const timeout = window.setTimeout(() => {
+      layer.remove();
+      reject(new Error('Esri fallback timed out while loading.'));
+    }, 10000);
+    layer.once('load', () => {
+      window.clearTimeout(timeout);
+      resolve(layer);
+    });
+    layer.once('tileerror', event => {
+      window.clearTimeout(timeout);
+      layer.remove();
+      reject(event?.error || new Error('Esri fallback failed to load.'));
+    });
+    layer.addTo(leafletMap);
+  });
+}
+
+async function addFirstWorkingMapLayer(config) {
+  const failures = [];
+  for (const provider of MAP_TILE_PROVIDERS) {
+    if (!provider.canUse(config)) continue;
+    try {
+      await provider.add();
+      console.info(`Map provider active: ${provider.name}`);
+      return provider.name;
+    } catch (error) {
+      failures.push(`${provider.name}: ${error.message}`);
+      console.warn(`Map provider unavailable: ${provider.name}`, error);
+    }
+  }
+  throw new Error(`No map provider could be initialized. ${failures.join(' ')}`);
+}
+
 async function initMap() {
   try {
-    const mapData = await api('/map-data');
+    const [mapData, config] = await Promise.all([
+      api('/map-data'),
+      api('/config').catch(() => ({ mappls_key: '' })),
+    ]);
 
     leafletMap = L.map('map', {
       center: [22.5, 80],
       zoom: 5,
       zoomControl: true,
       attributionControl: true,
-      maxBounds: [[6, 65], [38, 98]],
+      maxBounds: INDIA_BOUNDS,
+      maxBoundsViscosity: 1,
       minZoom: 4,
       maxZoom: 10,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      maxZoom: 10,
-      minZoom: 4,
-    }).addTo(leafletMap);
+    await addFirstWorkingMapLayer(config);
+    leafletMap.fitBounds(INDIA_BOUNDS, { padding: [12, 12] });
 
     mapData.forEach(city => {
       const riskColor = city.max_probability >= 0.8 ? '#C84040'
