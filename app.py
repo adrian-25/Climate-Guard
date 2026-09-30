@@ -476,7 +476,56 @@ def serve_performance():
 def serve_about():
     return FileResponse(WEB_DIR / "about.html")
 
+# ---------------------------------------------------------------------------
+# Phase 7 — Live data endpoints (ADDITIVE — no existing routes changed)
+# ---------------------------------------------------------------------------
+try:
+    from live_data import get_live_forecast, cache_status as live_cache_status, CITIES as LIVE_CITIES
+    _LIVE_DATA_AVAILABLE = True
+    print("[startup] Live data module loaded (Open-Meteo integration available)")
+except Exception as _live_err:
+    _LIVE_DATA_AVAILABLE = False
+    print(f"[startup] Live data module unavailable: {_live_err}")
+
+
+@app.get("/api/live/status")
+def get_live_status():
+    """Return live data availability and cache state."""
+    if not _LIVE_DATA_AVAILABLE:
+        return {"available": False, "reason": "live_data module failed to load"}
+    return {
+        "available": True,
+        "source": "Open-Meteo.com",
+        "source_url": "https://open-meteo.com",
+        "cache_ttl_minutes": 30,
+        "cache": live_cache_status(),
+    }
+
+
+@app.get("/api/live/{city}")
+def get_live_city(city: str):
+    """
+    Fetch live weather from Open-Meteo, engineer all 110 features, and run
+    the full ClimateGuard pipeline (Part 1 + Part 3 expert rules) for today
+    and the next ~5 forecast days.
+
+    Response shape is compatible with /api/predict where possible.
+    On fetch failure, returns a clear error payload — never fake data.
+    """
+    if not _LIVE_DATA_AVAILABLE:
+        raise HTTPException(503, "Live data module unavailable. Check server logs.")
+
+    city = city.lower().strip()
+    if city not in CITIES:
+        raise HTTPException(400, f"Unknown city: {city}. Valid: {list(CITIES.keys())}")
+
+    result = get_live_forecast(city, pipeline)
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Mount static files AFTER API routes
+# ---------------------------------------------------------------------------
 app.mount("/web", StaticFiles(directory=str(WEB_DIR)), name="static")
 
 
@@ -484,4 +533,4 @@ app.mount("/web", StaticFiles(directory=str(WEB_DIR)), name="static")
 # Run
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=8001, log_level="info")

@@ -12,6 +12,8 @@ const state = {
   dateMin: null,
   dateMax: null,
   loading: false,
+  mode: 'live',  // 'live' | 'historical'
+  liveRefreshTimer: null,
 };
 
 // ============================================================
@@ -50,17 +52,17 @@ const dom = {
 };
 
 // ============================================================
-// CATEGORY ICONS
+// CATEGORY LABELS (text, no emoji)
 // ============================================================
 const CATEGORY_ICONS = {
-  'hydration':              '💧',
-  'outdoor_exposure':       '☀️',
-  'cooling':                '❄️',
-  'vulnerable_populations': '👶',
-  'workplace':              '🏗️',
-  'public_awareness':       '📢',
-  'emergency_preparedness': '🚨',
-  'general':                '📋',
+  'hydration':              '',
+  'outdoor_exposure':       '',
+  'cooling':                '',
+  'vulnerable_populations': '',
+  'workplace':              '',
+  'public_awareness':       '',
+  'emergency_preparedness': '',
+  'general':                '',
 };
 
 // ============================================================
@@ -87,7 +89,7 @@ async function init() {
     state.cities = await api('/cities');
     renderCities();
 
-    // Load model info
+    // Load model info (hidden panel — keeps JS intact)
     const modelInfo = await api('/model-info');
     renderModelInfo(modelInfo);
 
@@ -96,6 +98,12 @@ async function init() {
 
     // Populate chart city selector
     populateChartCitySelect();
+
+    // Initialize mode switch
+    initModeSwitch();
+
+    // Start in Live mode — show live panel, hide historical controls
+    setMode('live');
 
   } catch (err) {
     showError(`Failed to load: ${err.message}`);
@@ -107,11 +115,17 @@ async function init() {
 // ============================================================
 function renderCities() {
   dom.cityGrid.innerHTML = state.cities.map(city => `
-    <div class="city-card" data-city="${city.key}" id="city-${city.key}">
+    <button class="city-card" data-city="${city.key}" id="city-${city.key}"
+            aria-pressed="false" type="button">
+      <span class="city-card__check" aria-hidden="true">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="2 6 5 9 10 3"/>
+        </svg>
+      </span>
       <div class="city-card__name">${city.name}</div>
       <div class="city-card__meta">${city.state}</div>
       <div class="city-card__region">${city.region}</div>
-    </div>
+    </button>
   `).join('');
 
   // Attach click handlers
@@ -122,12 +136,25 @@ function renderCities() {
 
 async function selectCity(cityKey) {
   // Update visual state
-  $$('.city-card').forEach(c => c.classList.remove('active'));
-  $(`#city-${cityKey}`).classList.add('active');
+  $$('.city-card').forEach(c => {
+    c.classList.remove('active');
+    c.setAttribute('aria-pressed', 'false');
+  });
+  const selected = $(`#city-${cityKey}`);
+  if (selected) {
+    selected.classList.add('active');
+    selected.setAttribute('aria-pressed', 'true');
+  }
 
   state.selectedCity = cityKey;
 
-  // Load dates for city
+  // Live mode: fetch live data; Historical mode: load dates
+  if (state.mode === 'live') {
+    loadLive(cityKey);
+    return;
+  }
+
+  // Load dates for city (historical mode)
   try {
     const dateInfo = await api(`/dates/${cityKey}`);
     state.dateMin = dateInfo.date_min;
@@ -185,20 +212,23 @@ function renderResults(data) {
   const pred = data.prediction?.prediction ?? 0;
   const riskLevel = (data.risk?.level ?? 'LOW').toUpperCase();
 
-  // --- Gauge ---
+  // --- Gauge (runs on hidden SVG, keeps function intact) ---
   animateGauge(prob, riskLevel);
 
-  // --- Prediction label ---
+  // --- Probability bar (visible display) ---
+  updateProbBar(prob, riskLevel);
+
+  // --- Prediction label (hidden element, kept for JS compat) ---
   dom.predictionLabel.textContent = pred === 1
-    ? '🔥 Heatwave Tomorrow'
-    : '✅ Normal Day Tomorrow';
-  dom.predictionLabel.style.color = pred === 1 ? 'var(--risk-extreme)' : 'var(--risk-low)';
+    ? 'Heatwave tomorrow'
+    : 'Normal day tomorrow';
+  dom.predictionLabel.style.color = pred === 1 ? 'var(--risk-extreme-text)' : 'var(--risk-low-text)';
 
   // --- Actual label ---
   if (data.actual) {
     const match = pred === data.actual.heatwave_next_day;
-    dom.actualLabel.textContent = `Actual: ${data.actual.label} ${match ? '✓ Correct' : '✗ Missed'}`;
-    dom.actualLabel.style.color = match ? 'var(--risk-low)' : 'var(--risk-extreme)';
+    dom.actualLabel.textContent = `Actual: ${data.actual.label} ${match ? '(correct)' : '(missed)'}`;
+    dom.actualLabel.style.color = match ? 'var(--risk-low-text)' : 'var(--risk-extreme-text)';
   } else {
     dom.actualLabel.textContent = '';
   }
@@ -252,8 +282,41 @@ function renderResults(data) {
 }
 
 // ============================================================
-// GAUGE ANIMATION
+// PROBABILITY BAR UPDATE (visible replacement for gauge)
 // ============================================================
+function updateProbBar(probability, riskLevel) {
+  const pct = Math.round(probability * 100);
+
+  // Large number
+  const numEl = document.getElementById('prob-number-display');
+  if (numEl) numEl.textContent = pct + '%';
+
+  // Meter bar
+  const fill = document.getElementById('prob-bar-fill');
+  if (fill) {
+    fill.style.width = pct + '%';
+    fill.dataset.risk = riskLevel;
+  }
+
+  // Meter aria
+  const meter = document.getElementById('prob-meter');
+  if (meter) meter.setAttribute('aria-valuenow', pct);
+
+  // Plain-language sentence
+  const sentence = document.getElementById('prob-sentence');
+  if (sentence) {
+    const riskMessages = {
+      LOW:      'Low probability of a heatwave tomorrow.',
+      MODERATE: 'Moderate chance of a heatwave tomorrow — consider preparedness.',
+      HIGH:     'High probability of a heatwave tomorrow. Precautions advised.',
+      EXTREME:  'Extreme probability of a heatwave tomorrow. Take immediate action.',
+    };
+    const predText = probability >= 0.70 ? 'Heatwave predicted tomorrow.' : 'Normal day predicted tomorrow.';
+    sentence.textContent = `${predText} ${riskMessages[riskLevel] || ''}`;
+  }
+}
+
+
 function animateGauge(probability, riskLevel) {
   // The gauge arc is 270 degrees (3/4 of a circle)
   // circumference = 2 * PI * 80 ≈ 502.65
@@ -301,7 +364,7 @@ function renderExpertRules(rules) {
       ? `rule-card triggered severity-${severity}`
       : 'rule-card';
     const iconClass = triggered ? 'rule-icon active' : 'rule-icon inactive';
-    const iconText = triggered ? '✓' : '○';
+    const iconText = triggered ? '&#10003;' : '&ndash;';
     const severityClass = triggered ? severity : 'not-triggered';
     const severityText = triggered ? severity.toUpperCase() : 'NOT TRIGGERED';
 
@@ -337,7 +400,6 @@ function renderRecommendations(recs) {
     return `
       <div class="rec-card" style="animation: fadeSlideUp 0.4s ease ${i * 0.05}s both;">
         <div class="rec-card__category">
-          <span class="rec-card__category-icon">${icon}</span>
           ${displayCat}
         </div>
         <div class="rec-card__message">${rec.message || ''}</div>
@@ -458,12 +520,12 @@ function renderSHAPChart(data) {
   const featureValues = contributions.map(c => c.feature_value);
 
   const colors = values.map(v => v > 0
-    ? 'rgba(16, 185, 129, 0.7)'   // green = pushes toward heatwave
-    : 'rgba(239, 68, 68, 0.7)');  // red = pushes toward normal
+    ? 'rgba(200, 66, 27, 0.65)'    // accent = pushes toward heatwave
+    : 'rgba(92, 85, 80, 0.55)');   // neutral = pushes toward normal
 
   const borderColors = values.map(v => v > 0
-    ? 'rgba(16, 185, 129, 1)'
-    : 'rgba(239, 68, 68, 1)');
+    ? 'rgba(200, 66, 27, 0.9)'
+    : 'rgba(92, 85, 80, 0.9)');
 
   if (shapChart) shapChart.destroy();
   const ctx = document.getElementById('shap-chart').getContext('2d');
@@ -487,13 +549,15 @@ function renderSHAPChart(data) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(15, 15, 35, 0.95)',
-          titleColor: '#f0f0f8',
-          bodyColor: '#8b8ba7',
+          backgroundColor: '#FFFFFF',
+          titleColor: '#1A1714',
+          bodyColor: '#5C5550',
+          borderColor: '#E4DED4',
+          borderWidth: 1,
           callbacks: {
             label: (ctx) => {
               const i = ctx.dataIndex;
-              const dir = values[i] > 0 ? '↑ Heatwave' : '↓ Normal';
+              const dir = values[i] > 0 ? 'increases risk' : 'decreases risk';
               return `SHAP: ${values[i].toFixed(4)} (${dir}) | Value: ${featureValues[i]}`;
             },
           },
@@ -501,12 +565,12 @@ function renderSHAPChart(data) {
       },
       scales: {
         x: {
-          ticks: { color: '#5a5a7a', font: { size: 10 } },
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          title: { display: true, text: 'SHAP Value (impact on prediction)', color: '#5a5a7a' },
+          ticks: { color: '#8C8580', font: { size: 10 } },
+          grid: { color: 'rgba(26, 23, 20, 0.06)' },
+          title: { display: true, text: 'SHAP value (impact on prediction)', color: '#8C8580' },
         },
         y: {
-          ticks: { color: '#9ca3af', font: { size: 11 } },
+          ticks: { color: '#5C5550', font: { size: 11 } },
           grid: { display: false },
         },
       },
@@ -524,23 +588,26 @@ async function initMap() {
     const mapData = await api('/map-data');
 
     leafletMap = L.map('map', {
-      center: [23.5, 77],
+      center: [22.5, 80],
       zoom: 5,
       zoomControl: true,
       attributionControl: true,
+      maxBounds: [[6, 65], [38, 98]],
+      minZoom: 4,
+      maxZoom: 10,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
       maxZoom: 10,
       minZoom: 4,
     }).addTo(leafletMap);
 
     mapData.forEach(city => {
-      const riskColor = city.max_probability >= 0.8 ? '#ef4444'
-        : city.max_probability >= 0.6 ? '#f97316'
-        : city.max_probability >= 0.3 ? '#f59e0b'
-        : '#10b981';
+      const riskColor = city.max_probability >= 0.8 ? '#C84040'
+        : city.max_probability >= 0.6 ? '#D47A3A'
+        : city.max_probability >= 0.3 ? '#D4A43A'
+        : '#A3CEAF';
 
       const riskClass = city.max_probability >= 0.8 ? 'extreme'
         : city.max_probability >= 0.6 ? 'high'
@@ -639,9 +706,9 @@ function renderTrendCharts(trendData) {
   const probs = sampled.map(r => r.prob != null ? +(r.prob * 100).toFixed(2) : null);
   const heatwaveBg = sampled.map(r => r.heatwave === 1 ? 'rgba(239, 68, 68, 0.15)' : 'transparent');
 
-  // Chart.js dark theme defaults
-  const gridColor = 'rgba(255, 255, 255, 0.04)';
-  const tickColor = '#5a5a7a';
+  // Chart.js light theme defaults
+  const gridColor = 'rgba(26, 23, 20, 0.06)';
+  const tickColor = '#8C8580';
 
   // --- Temperature Chart ---
   if (tempChart) tempChart.destroy();
@@ -653,20 +720,20 @@ function renderTrendCharts(trendData) {
       labels,
       datasets: [
         {
-          label: 'Max Temp (°C)',
+          label: 'Max temp (°C)',
           data: tmax,
-          borderColor: '#ef4444',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          borderColor: '#C8421B',
+          backgroundColor: 'rgba(200, 66, 27, 0.08)',
           borderWidth: 1.5,
           pointRadius: 0,
           fill: true,
           tension: 0.3,
         },
         {
-          label: 'Min Temp (°C)',
+          label: 'Min temp (°C)',
           data: tmin,
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99, 102, 241, 0.08)',
+          borderColor: '#8C8580',
+          backgroundColor: 'rgba(140, 133, 128, 0.06)',
           borderWidth: 1.5,
           pointRadius: 0,
           fill: true,
@@ -680,16 +747,16 @@ function renderTrendCharts(trendData) {
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: {
-          labels: { color: tickColor, font: { family: 'Inter', size: 11 } },
+          labels: { color: tickColor, font: { family: 'IBM Plex Sans', size: 11 } },
         },
         tooltip: {
-          backgroundColor: 'rgba(15, 15, 35, 0.95)',
-          titleColor: '#f0f0f8',
-          bodyColor: '#8b8ba7',
-          borderColor: 'rgba(255,255,255,0.1)',
+          backgroundColor: '#FFFFFF',
+          titleColor: '#1A1714',
+          bodyColor: '#5C5550',
+          borderColor: '#E4DED4',
           borderWidth: 1,
-          titleFont: { family: 'Inter' },
-          bodyFont: { family: 'Inter' },
+          titleFont: { family: 'IBM Plex Sans' },
+          bodyFont: { family: 'IBM Plex Sans' },
         },
       },
       scales: {
@@ -715,10 +782,10 @@ function renderTrendCharts(trendData) {
       labels,
       datasets: [
         {
-          label: 'Heatwave Prob (%)',
+          label: 'Heatwave probability (%)',
           data: probs,
-          borderColor: '#f59e0b',
-          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          borderColor: '#C8421B',
+          backgroundColor: 'rgba(200, 66, 27, 0.08)',
           borderWidth: 1.5,
           pointRadius: 0,
           fill: true,
@@ -727,7 +794,7 @@ function renderTrendCharts(trendData) {
         {
           label: 'Threshold (70%)',
           data: labels.map(() => 70),
-          borderColor: 'rgba(239, 68, 68, 0.5)',
+          borderColor: 'rgba(26, 23, 20, 0.35)',
           borderWidth: 1,
           borderDash: [6, 4],
           pointRadius: 0,
@@ -741,16 +808,16 @@ function renderTrendCharts(trendData) {
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: {
-          labels: { color: tickColor, font: { family: 'Inter', size: 11 } },
+          labels: { color: tickColor, font: { family: 'IBM Plex Sans', size: 11 } },
         },
         tooltip: {
-          backgroundColor: 'rgba(15, 15, 35, 0.95)',
-          titleColor: '#f0f0f8',
-          bodyColor: '#8b8ba7',
-          borderColor: 'rgba(255,255,255,0.1)',
+          backgroundColor: '#FFFFFF',
+          titleColor: '#1A1714',
+          bodyColor: '#5C5550',
+          borderColor: '#E4DED4',
           borderWidth: 1,
-          titleFont: { family: 'Inter' },
-          bodyFont: { family: 'Inter' },
+          titleFont: { family: 'IBM Plex Sans' },
+          bodyFont: { family: 'IBM Plex Sans' },
         },
       },
       scales: {
@@ -768,6 +835,146 @@ function renderTrendCharts(trendData) {
     },
   });
 }
+
+// ============================================================
+// MODE SWITCH
+// ============================================================
+function initModeSwitch() {
+  const livBtn  = document.getElementById('mode-live-btn');
+  const histBtn = document.getElementById('mode-hist-btn');
+  const caption = document.getElementById('mode-caption');
+  if (!livBtn || !histBtn) return;
+
+  livBtn.addEventListener('click', () => setMode('live'));
+  histBtn.addEventListener('click', () => setMode('historical'));
+}
+
+function setMode(mode) {
+  state.mode = mode;
+  const livBtn  = document.getElementById('mode-live-btn');
+  const histBtn = document.getElementById('mode-hist-btn');
+  const caption = document.getElementById('mode-caption');
+  const histControls = document.getElementById('historical-controls');
+  const livePanel    = document.getElementById('live-panel');
+
+  if (mode === 'live') {
+    livBtn?.classList.add('mode-btn--active');
+    histBtn?.classList.remove('mode-btn--active');
+    if (caption) caption.textContent = 'Current conditions from Open-Meteo';
+    if (histControls) histControls.style.display = 'none';
+    if (livePanel) livePanel.style.display = 'block';
+    // Hide historical results
+    dom.results.classList.remove('visible');
+    if (state.selectedCity) loadLive(state.selectedCity);
+  } else {
+    histBtn?.classList.add('mode-btn--active');
+    livBtn?.classList.remove('mode-btn--active');
+    if (caption) caption.textContent = 'Test set (2023–2025)';
+    if (histControls) histControls.style.display = 'block';
+    if (livePanel) livePanel.style.display = 'none';
+    // Stop auto-refresh
+    if (state.liveRefreshTimer) { clearInterval(state.liveRefreshTimer); state.liveRefreshTimer = null; }
+  }
+}
+
+// ============================================================
+// LIVE DATA
+// ============================================================
+async function loadLive(cityKey) {
+  const loadingEl = document.getElementById('live-loading');
+  const errorEl   = document.getElementById('live-error');
+  const contentEl = document.getElementById('live-content');
+  if (!loadingEl) return;
+
+  loadingEl.style.display = 'flex';
+  if (errorEl)   errorEl.style.display   = 'none';
+  if (contentEl) contentEl.style.display = 'none';
+
+  try {
+    const data = await api(`/live/${cityKey}`);
+
+    if (data.error) {
+      if (errorEl) {
+        errorEl.textContent = `Live data unavailable: ${data.error}. Use Historical mode to browse the test set.`;
+        errorEl.style.display = 'flex';
+      }
+      loadingEl.style.display = 'none';
+      return;
+    }
+
+    renderLiveStrip(data);
+
+    // Last updated timestamp
+    const luEl = document.getElementById('live-last-updated');
+    if (luEl && data.last_updated) {
+      const dt = new Date(data.last_updated);
+      const hhmm = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
+      luEl.textContent = `Updated ${hhmm} IST`;
+    }
+
+    if (contentEl) contentEl.style.display = 'block';
+
+    // Start 30-minute auto-refresh if not already running
+    if (!state.liveRefreshTimer) {
+      state.liveRefreshTimer = setInterval(() => {
+        if (document.visibilityState === 'visible' && state.mode === 'live' && state.selectedCity) {
+          loadLive(state.selectedCity);
+        }
+      }, 30 * 60 * 1000);
+    }
+  } catch (err) {
+    if (errorEl) {
+      errorEl.textContent = `Could not fetch live data: ${err.message}. Switching to Historical mode.`;
+      errorEl.style.display = 'flex';
+    }
+  } finally {
+    loadingEl.style.display = 'none';
+  }
+}
+
+function renderLiveStrip(data) {
+  const strip = document.getElementById('live-strip');
+  if (!strip) return;
+  const today = new Date().toISOString().slice(0, 10);
+
+  strip.innerHTML = (data.days || []).map(day => {
+    const isToday   = day.date === today;
+    const isError   = day.error != null;
+    const cardClass = isToday ? 'live-day-card live-day-card--today'
+                    : isError ? 'live-day-card live-day-card--error'
+                    : 'live-day-card';
+    const dateStr = new Date(day.date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+    const dayLabel = isToday ? `<span class="today-label">Today</span>` : dateStr;
+
+    if (isError) return `<div class="${cardClass}">
+      <div class="live-day-date">${dayLabel}</div>
+      <div style="font-size: 0.75rem; color: var(--ink-muted);">Data unavailable</div>
+    </div>`;
+
+    const risk = day.risk_level || 'LOW';
+    const prob = day.probability != null ? (day.probability * 100).toFixed(1) : '—';
+    const tmax = day.temperature_max != null ? `${day.temperature_max}°C` : '—';
+    const nRules = (day.triggered_rules || []).length;
+
+    return `<div class="${cardClass}">
+      <div class="live-day-date">${dayLabel}</div>
+      <div class="live-day-temp">${tmax}</div>
+      <div class="live-day-prob">${prob}% probability</div>
+      <span class="live-day-risk ${risk}">${risk}</span>
+      ${nRules > 0 ? `<div class="live-day-rules">${nRules} rule${nRules > 1 ? 's' : ''} triggered</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// Manual refresh button
+document.addEventListener('DOMContentLoaded', () => {
+  const refreshBtn = document.getElementById('live-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      if (state.selectedCity) loadLive(state.selectedCity);
+    });
+  }
+});
 
 // ============================================================
 // BOOT
