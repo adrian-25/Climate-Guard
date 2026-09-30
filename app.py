@@ -11,6 +11,8 @@ import sys
 import json
 import math
 import os
+import logging
+import uuid
 from datetime import datetime, timezone
 import requests
 import numpy as np
@@ -35,6 +37,7 @@ from sklearn.metrics import (
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent
 PREDICTION_LOG = PROJECT_ROOT / "runtime" / "live_predictions.jsonl"
+MODEL_REGISTRY_PATH = PROJECT_ROOT / "model_registry.json"
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -71,6 +74,9 @@ print(f"[startup] Pipeline ready: {pipeline}")
 # Load model metadata
 with open(PROJECT_ROOT / "models" / "final" / "metadata.json") as f:
     model_metadata = json.load(f)
+with open(MODEL_REGISTRY_PATH, encoding="utf-8") as f:
+    model_registry = json.load(f)
+ACTIVE_MODEL = next(item for item in model_registry["models"] if item["version"] == model_registry["active_version"])
 
 # Precompute heatwave probabilities for ALL test rows (fast batch predict)
 print("[startup] Precomputing probabilities for trend charts ...")
@@ -154,18 +160,24 @@ print("[startup] Ready! Navigate to http://localhost:8000")
 # ---------------------------------------------------------------------------
 # FastAPI app
 # ---------------------------------------------------------------------------
-app = FastAPI(title="ClimateGuard Dashboard", version="1.0.0")
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(message)s")
+logger = logging.getLogger("climateguard")
+allowed_origins = [item.strip() for item in os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:8001,http://127.0.0.1:8001").split(",") if item.strip()]
+app = FastAPI(title="ClimateGuard Dashboard API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 @app.middleware("http")
 async def add_security_headers(request, call_next):
+    request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     response = await call_next(request)
+    logger.info(json.dumps({"event": "request_complete", "request_id": request_id, "path": request.url.path, "status": response.status_code}))
+    response.headers["X-Request-ID"] = request_id
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -196,7 +208,7 @@ def get_public_config():
 @app.get("/api/health")
 def get_health():
     """Lightweight deployment health check with no sensitive details."""
-    return {"status": "ok", "model_ready": predictor is not None,
+    return {"status": "ok", "model_ready": predictor is not None, "model_version": ACTIVE_MODEL["version"],
             "live_data_available": _LIVE_DATA_AVAILABLE if "_LIVE_DATA_AVAILABLE" in globals() else False,
             "checked_at": datetime.now(timezone.utc).isoformat()}
 
