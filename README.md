@@ -4,6 +4,21 @@
 
 > **Current product notes (September 2026):** ClimateGuard now includes a 7-day live outlook, calibration/baseline reporting, SQLite-backed opt-in alerts, CSV/print/share tools, a PWA shell, Docker, and a Render blueprint. It remains a research model—not an official IMD warning system.
 
+## Dashboard preview
+
+![ClimateGuard dashboard showing city selection, live mode, alert preferences, and map](docs/images/dashboard-overview.png)
+
+## How to use the website
+
+1. Open the dashboard at `http://localhost:8001` after starting the server.
+2. Stay in **Live** mode for the current 7-day Open-Meteo outlook, then select one of the five validated cities. Each day shows the risk level, probability, maximum temperature, humidity, wind, and practical advice.
+3. Switch to **Historical** mode to choose a dataset date and run a next-day prediction. Use **Show feature explanation** for the SHAP-based explanation and select a city below the map for trend charts.
+4. Use **Model performance** to review calibration, baselines, limitations, and the accumulating live track record before drawing conclusions from a forecast.
+5. Download a city’s historical data as CSV, print a report, or share the current city through the page URL.
+6. To receive alerts, choose a city, minimum risk level, and language, then enter an email address. Alerts do not start until the confirmation link is used. Hindi and Marathi are machine-drafted and should be reviewed by a native speaker before production use.
+
+ClimateGuard is a research model, not an official warning system. Follow IMD and local-authority advisories during heat emergencies.
+
 ## Product quick start
 
 ```bash
