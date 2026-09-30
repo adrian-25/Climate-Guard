@@ -55,6 +55,7 @@
           <a href="/"            class="nav-link" ${isActive('dashboard',   current)} role="listitem">Dashboard</a>
           <a href="/performance" class="nav-link" ${isActive('performance', current)} role="listitem">Model performance</a>
           <a href="/about"       class="nav-link" ${isActive('about',       current)} role="listitem">About</a>
+          <span id="system-status" class="system-status" role="status">Checking service</span>
         </div>
       </div>
     `;
@@ -104,6 +105,20 @@
 
     // Footer at end
     body.appendChild(renderFooter());
+
+    fetch('/api/health')
+      .then(response => response.ok ? response.json() : Promise.reject())
+      .then(data => {
+        const status = document.getElementById('system-status');
+        if (status) {
+          status.textContent = data.live_data_available ? 'Service online' : 'Model online';
+          status.classList.add('system-status--online');
+        }
+      })
+      .catch(() => {
+        const status = document.getElementById('system-status');
+        if (status) { status.textContent = 'Service unavailable'; status.classList.add('system-status--offline'); }
+      });
 
     // Remove any hard-coded nav-bar / site-footer already in HTML
     // (during transition period some pages may still have them)

@@ -230,6 +230,17 @@ body {
   font-weight: 600;
 }
 
+.system-status {
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  white-space: nowrap;
+  padding: 2px 6px;
+  border: 1px solid var(--rule-light);
+  border-radius: var(--radius-sm);
+}
+.system-status--online { color: var(--risk-low-text); border-color: var(--risk-low-border); background: var(--risk-low-bg); }
+.system-status--offline { color: var(--risk-extreme-text); border-color: var(--risk-extreme-border); background: var(--risk-extreme-bg); }
+
 /* ----------------------------------------------------------------
    FOOTER
    ---------------------------------------------------------------- */

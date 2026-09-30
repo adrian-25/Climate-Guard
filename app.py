@@ -163,6 +163,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
 # ---------------------------------------------------------------------------
 # Request / response schemas
 # ---------------------------------------------------------------------------
@@ -184,6 +192,13 @@ def get_public_config():
     credentials or other environment variables are exposed here.
     """
     return {"mappls_key": os.getenv("MAPPLS_KEY", "").strip()}
+
+@app.get("/api/health")
+def get_health():
+    """Lightweight deployment health check with no sensitive details."""
+    return {"status": "ok", "model_ready": predictor is not None,
+            "live_data_available": _LIVE_DATA_AVAILABLE if "_LIVE_DATA_AVAILABLE" in globals() else False,
+            "checked_at": datetime.now(timezone.utc).isoformat()}
 
 @app.get("/api/official-alerts/{city}")
 def get_official_alert_context(city: str):
