@@ -8,6 +8,13 @@
 
 ![ClimateGuard dashboard showing city selection, live mode, alert preferences, and map](docs/images/dashboard-overview.png)
 
+### Explore the product
+
+| City map | Transparent model comparison |
+| --- | --- |
+| ![India map with ClimateGuard city risk markers](docs/images/city-map.png) | ![ClimateGuard model baseline comparison table](docs/images/model-credibility.png) |
+| Compare the five validated cities on an India-focused map. | Review the active model alongside persistence and an IMD-style proxy. |
+
 ## How to use the website
 
 1. Open the dashboard at `http://localhost:8001` after starting the server.
