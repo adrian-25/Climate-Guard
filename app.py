@@ -55,11 +55,12 @@ outcome_scheduler = BackgroundScheduler(timezone="Asia/Kolkata")
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src import live_tracking
+from src import alerts, live_tracking
 from src.integration.pipeline import ClimateGuardPipeline
 from src.prediction import ClimateGuardPredictor
 
 LIVE_TRACKING_DB = live_tracking.database_path(PROJECT_ROOT)
+ALERT_DATABASE = alerts.database_path(PROJECT_ROOT)
 
 # ---------------------------------------------------------------------------
 # City metadata
@@ -237,6 +238,14 @@ async def lifespan(application):
             id="live-outcome-reconciliation",
             replace_existing=True,
         )
+        if os.getenv("ALERT_SCHEDULER_ENABLED", "true").lower() == "true":
+            outcome_scheduler.add_job(
+                refresh_subscriber_alerts,
+                "interval",
+                minutes=30,
+                id="subscriber-alert-refresh",
+                replace_existing=True,
+            )
         outcome_scheduler.start()
     yield
     if outcome_scheduler.running:
@@ -285,6 +294,13 @@ class PredictRequest(BaseModel):
     date: str
 
 
+class SubscribeRequest(BaseModel):
+    email: str
+    city: str
+    minimum_risk_level: str = "HIGH"
+    language: str = "en"
+
+
 # ---------------------------------------------------------------------------
 # API endpoints
 # ---------------------------------------------------------------------------
@@ -330,6 +346,82 @@ def get_health():
 def get_live_track_record():
     """Return persisted live forecast quality when observations are available."""
     return live_tracking.summary(LIVE_TRACKING_DB)
+
+
+@app.post("/api/subscribe", status_code=201)
+def subscribe_to_alerts(payload: SubscribeRequest):
+    """Start double opt-in for the minimum data needed for city risk alerts."""
+    city = payload.city.lower().strip()
+    if city not in CITIES:
+        raise HTTPException(400, f"Unknown city: {city}")
+    try:
+        subscription = alerts.subscribe(
+            ALERT_DATABASE,
+            payload.email.strip(),
+            city,
+            payload.minimum_risk_level.upper().strip(),
+            payload.language.lower().strip(),
+        )
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    confirmation = alerts.render_alert(
+        CITIES[city]["name"],
+        "your selected forecast days",
+        "MODERATE",
+        0,
+        payload.language.lower().strip(),
+        f"{os.getenv('PUBLIC_BASE_URL', 'http://localhost:8001')}/api/unsubscribe/{subscription['token']}",
+    )
+    confirmation["subject"] = "Confirm your ClimateGuard heat-risk alerts"
+    confirmation["body"] = (
+        "Confirm your ClimateGuard alert subscription: "
+        f"{os.getenv('PUBLIC_BASE_URL', 'http://localhost:8001')}/api/confirm/{subscription['token']}\n\n"
+        "If you did not request this, you can ignore this email."
+    )
+    try:
+        alerts.send_email(payload.email.strip(), confirmation)
+    except Exception:
+        logger.exception(json.dumps({"event": "subscription_confirmation_failed"}))
+        raise HTTPException(
+            503, "We could not send the confirmation email. Please try again."
+        ) from None
+    return {
+        "status": "confirmation_required",
+        "message": "Check your email to confirm alerts. No alerts will be sent until confirmation.",
+    }
+
+
+@app.get("/api/confirm/{token}")
+def confirm_alert_subscription(token: str):
+    if not alerts.confirm(ALERT_DATABASE, token):
+        raise HTTPException(404, "Confirmation link is invalid or no longer active.")
+    return {
+        "status": "confirmed",
+        "message": "Heat-risk alerts are now active. You can unsubscribe using the link in any alert.",
+    }
+
+
+@app.get("/api/unsubscribe/{token}")
+def unsubscribe_from_alerts(token: str):
+    if not alerts.unsubscribe(ALERT_DATABASE, token):
+        raise HTTPException(404, "Unsubscribe link is invalid.")
+    return {"status": "unsubscribed", "message": "You will no longer receive ClimateGuard alerts."}
+
+
+@app.get("/api/alerts/preview")
+def preview_alert(city: str, level: str, lang: str = "en"):
+    """Render an alert safely for review without creating or sending anything."""
+    city_key, level = city.lower().strip(), level.upper().strip()
+    if city_key not in CITIES or level not in alerts.RISK_RANK or lang not in {"en", "hi", "mr"}:
+        raise HTTPException(422, "Use a supported city, risk level, and language.")
+    return alerts.render_alert(
+        CITIES[city_key]["name"],
+        datetime.now(alerts.IST).date().isoformat(),
+        level,
+        0.75,
+        lang,
+        "https://example.invalid/unsubscribe",
+    )
 
 
 @app.get("/api/official-alerts/{city}")
@@ -470,6 +562,35 @@ def log_live_predictions(city: str, result: dict) -> None:
         ACTIVE_MODEL["version"],
         result.get("last_updated", datetime.now(timezone.utc).isoformat()),
     )
+
+
+def dispatch_alerts_for_live_forecast(city: str, result: dict) -> None:
+    """Deliver eligible alerts after a fresh live refresh; failures stay isolated."""
+    now = datetime.now(alerts.IST)
+    for day in result.get("days", []):
+        level = str(day.get("risk_level", "LOW")).upper()
+        probability = day.get("probability")
+        if day.get("error") or probability is None or level not in alerts.RISK_RANK:
+            continue
+        for subscription in alerts.confirmed_for_city(ALERT_DATABASE, city):
+            alerts.deliver_if_due(
+                ALERT_DATABASE, subscription, day["date"], level, float(probability), now
+            )
+
+
+def refresh_subscriber_alerts() -> None:
+    """Scheduled refresh for confirmed cities; no subscription means no network work."""
+    if not _LIVE_DATA_AVAILABLE:
+        return
+    for city in alerts.subscribed_cities(ALERT_DATABASE):
+        try:
+            result = get_live_forecast(city, pipeline)
+            if not result.get("error"):
+                dispatch_alerts_for_live_forecast(city, result)
+        except Exception as exc:
+            logger.warning(
+                json.dumps({"event": "alert_refresh_failed", "city": city, "error": str(exc)})
+            )
 
 
 def reconcile_live_outcomes() -> None:
@@ -905,6 +1026,7 @@ def get_live_city(request: Request, city: str):
     result = get_live_forecast(city, pipeline)
     if not result.get("error") and not result.get("cache_used"):
         log_live_predictions(city, result)
+        dispatch_alerts_for_live_forecast(city, result)
     return result
 
 

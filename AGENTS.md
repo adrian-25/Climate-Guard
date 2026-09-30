@@ -41,3 +41,7 @@ Run the existing interface tests with `python tests/test_prediction_interface.py
   data audit documentation, and an append-only SQLite live-forecast ledger with scheduled
   Open-Meteo observed-temperature proxy reconciliation. The dashboard reports insufficient
   live evidence honestly until matched outcomes accumulate; it never calls this an IMD warning.
+- Phase 3 completed opt-in alerting: SQLite subscriptions with double opt-in and one-click
+  unsubscribe, data-file message templates, dry-run Resend/SMTP seams, a live-refresh scheduler,
+  deduplication, quiet hours, daily caps and retry backoff. Hindi and Marathi templates are
+  machine-drafted and require native-speaker review before production use.

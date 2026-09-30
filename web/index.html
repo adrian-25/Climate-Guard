@@ -78,6 +78,7 @@
       <div id="live-content" style="display:none;">
         <!-- Live forecast strip -->
         <div id="live-strip" class="live-strip" aria-label="Day-by-day forecast"></div>
+        <aside id="today-advice" class="live-disclaimer" aria-live="polite"></aside>
         <p class="live-attribution">
           Weather data by <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo.com</a>
           &middot; <span id="live-last-updated"></span>
@@ -249,6 +250,19 @@
 
     </section><!-- /results -->
 
+    <section class="alert-signup" aria-labelledby="alert-signup-heading">
+      <h2 class="section-title" id="alert-signup-heading">Heat-risk alerts</h2>
+      <p class="section-subhead">Get a confirmation email before alerts begin. We store only your email and alert preferences to send these alerts; we never share them. You can unsubscribe in one click. India&rsquo;s DPDP Act applies.</p>
+      <form id="subscribe-form" class="subscribe-form" novalidate>
+        <label>Email <input id="subscribe-email" name="email" type="email" autocomplete="email" required></label>
+        <label>City <select id="subscribe-city" name="city" required></select></label>
+        <label>Minimum risk <select id="subscribe-level" name="minimum_risk_level"><option>HIGH</option><option>MODERATE</option><option>EXTREME</option></select></label>
+        <label>Language <select id="subscribe-language" name="language"><option value="en">English</option><option value="hi">Hindi (machine draft)</option><option value="mr">Marathi (machine draft)</option></select></label>
+        <button class="btn-predict" type="submit">Send confirmation</button>
+      </form>
+      <p id="subscribe-status" role="status" aria-live="polite"></p>
+    </section>
+
     <hr class="divider">
 
     <!-- ============================================================
@@ -316,5 +330,6 @@
   <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/dist/leaflet-maplibre-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="/web/app.js"></script>
+  <script src="/web/alerts.js"></script>
 </body>
 </html>

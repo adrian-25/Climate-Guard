@@ -3,6 +3,7 @@
 from fastapi.testclient import TestClient
 
 import app
+from src import alerts
 
 client = TestClient(app.app)
 
@@ -69,3 +70,24 @@ def test_live_track_record_has_clear_insufficient_data_state():
     response = client.get("/api/evaluation/live-track-record")
     assert response.status_code == 200
     assert response.json()["status"] in {"not_enough_data", "available"}
+
+
+def test_subscription_endpoints_require_confirmation(monkeypatch, tmp_path):
+    monkeypatch.setattr(app, "ALERT_DATABASE", tmp_path / "alerts.sqlite3")
+    response = client.post(
+        "/api/subscribe",
+        json={
+            "email": "person@example.com",
+            "city": "delhi",
+            "minimum_risk_level": "HIGH",
+            "language": "en",
+        },
+    )
+    assert response.status_code == 201
+    subscription = alerts.confirmed_for_city(app.ALERT_DATABASE, "delhi")
+    assert subscription == []
+    token = alerts.subscribe(app.ALERT_DATABASE, "other@example.com", "delhi", "HIGH", "en")[
+        "token"
+    ]
+    assert client.get(f"/api/confirm/{token}").json()["status"] == "confirmed"
+    assert client.get("/api/alerts/preview?city=delhi&level=HIGH&lang=mr").status_code == 200

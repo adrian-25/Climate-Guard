@@ -1010,6 +1010,7 @@ async function loadLive(cityKey) {
     }
 
     renderLiveStrip(data);
+    renderTodayAdvice(data.days?.[0]);
     renderOfficialAlert(await api(`/official-alerts/${cityKey}`));
 
     // Last updated timestamp
@@ -1078,6 +1079,17 @@ function renderLiveStrip(data) {
       ${nRules > 0 ? `<div class="live-day-rules">${nRules} rule${nRules > 1 ? 's' : ''} triggered</div>` : ''}
     </div>`;
   }).join('');
+}
+
+async function renderTodayAdvice(day) {
+  const el = document.getElementById('today-advice');
+  if (!el || !day || day.error || !state.selectedCity) return;
+  try {
+    const response = await api(`/alerts/preview?city=${encodeURIComponent(state.selectedCity)}&level=${encodeURIComponent(day.risk_level || 'LOW')}&lang=en`);
+    el.innerHTML = response.tips?.length ? `<strong>What to do today</strong><ul>${response.tips.map(tip => `<li>${tip}</li>`).join('')}</ul>` : '<strong>What to do today</strong> Continue to check IMD and local authority advisories.';
+  } catch (_) {
+    el.textContent = 'What to do today: continue to check IMD and local authority advisories.';
+  }
 }
 
 // Manual refresh button
