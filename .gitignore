@@ -38,6 +38,7 @@ web_backup/
 app.py.bak
 node_modules/
 playwright-artifacts/
+playwright_check.mjs
 runtime/
 
 # ------------------------------------------------------------
