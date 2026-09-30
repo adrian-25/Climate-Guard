@@ -1,0 +1,29 @@
+name: Quality checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install fastapi uvicorn pandas numpy scikit-learn joblib requests pytest shap
+      - run: python -m py_compile app.py live_data.py
+      - run: python -m pytest tests/test_prediction_interface.py -q
+
+  dashboard-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.63.0
+      - run: npx playwright install --with-deps chromium
+      - name: Verify browser runtime
+        run: node -e "const { chromium } = require('playwright'); chromium.launch({headless:true}).then(b => b.close())"

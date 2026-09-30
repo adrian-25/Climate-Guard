@@ -1010,6 +1010,7 @@ async function loadLive(cityKey) {
     }
 
     renderLiveStrip(data);
+    renderOfficialAlert(await api(`/official-alerts/${cityKey}`));
 
     // Last updated timestamp
     const luEl = document.getElementById('live-last-updated');
@@ -1037,6 +1038,12 @@ async function loadLive(cityKey) {
   } finally {
     loadingEl.style.display = 'none';
   }
+}
+
+function renderOfficialAlert(alert) {
+  const el = document.getElementById('official-alert');
+  if (!el) return;
+  el.innerHTML = `<strong>Official context:</strong> ${alert.message} <a href="${alert.source_url}" target="_blank" rel="noopener noreferrer">${alert.source_name}</a>.`;
 }
 
 function renderLiveStrip(data) {

@@ -11,6 +11,8 @@ import sys
 import json
 import math
 import os
+from datetime import datetime, timezone
+import requests
 import numpy as np
 from pathlib import Path
 from typing import Optional
@@ -32,6 +34,7 @@ from sklearn.metrics import (
 # Project root setup
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent
+PREDICTION_LOG = PROJECT_ROOT / "runtime" / "live_predictions.jsonl"
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -181,6 +184,92 @@ def get_public_config():
     credentials or other environment variables are exposed here.
     """
     return {"mappls_key": os.getenv("MAPPLS_KEY", "").strip()}
+
+@app.get("/api/official-alerts/{city}")
+def get_official_alert_context(city: str):
+    """Provide an official IMD source without claiming a non-verified alert."""
+    if city not in CITIES:
+        raise HTTPException(404, f"Unknown city: {city}")
+    return {
+        "city": city,
+        "city_name": CITIES[city]["name"],
+        "status": "not_automatically_verified",
+        "message": "Check the India Meteorological Department warning portal for official alerts. ClimateGuard predictions are not official warnings.",
+        "source_name": "India Meteorological Department",
+        "source_url": "https://mausam.imd.gov.in/",
+    }
+
+@app.get("/api/evaluation/live-summary")
+def get_live_evaluation_summary():
+    """Summarize locally logged live forecasts; outcome matching is additive later."""
+    if not PREDICTION_LOG.exists():
+        return {"logged_predictions": 0, "cities": {}, "outcomes_matched": 0}
+    records = []
+    for line in PREDICTION_LOG.read_text(encoding="utf-8").splitlines():
+        try:
+            records.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    cities = {}
+    for record in records:
+        cities[record["city"]] = cities.get(record["city"], 0) + 1
+    return {"logged_predictions": len(records), "cities": cities, "outcomes_matched": 0,
+            "note": "Use /api/evaluation/live-outcomes for observed-temperature proxy matching."}
+
+@app.get("/api/evaluation/live-outcomes")
+def get_live_outcomes():
+    """Compare past logged forecasts with Open-Meteo observed Tmax proxies.
+
+    The proxy is deliberately not presented as an IMD-certified heatwave label:
+    it treats the city's project threshold as an observed heat signal only.
+    """
+    if not PREDICTION_LOG.exists():
+        return {"evaluated": 0, "matched": 0, "note": "No logged forecasts yet."}
+    records = []
+    for line in PREDICTION_LOG.read_text(encoding="utf-8").splitlines():
+        try:
+            record = json.loads(line)
+            if record["date"] < datetime.now(timezone.utc).date().isoformat():
+                records.append(record)
+        except (json.JSONDecodeError, KeyError):
+            continue
+    outcomes, unavailable = [], 0
+    for record in records:
+        city = CITIES.get(record["city"])
+        if not city:
+            unavailable += 1; continue
+        try:
+            response = requests.get("https://archive-api.open-meteo.com/v1/archive", params={
+                "latitude": city["lat"], "longitude": city["lon"], "start_date": record["date"],
+                "end_date": record["date"], "daily": "temperature_2m_max", "timezone": "Asia/Kolkata"}, timeout=10)
+            tmax = response.json()["daily"]["temperature_2m_max"][0]
+            threshold = 37 if record["city"] == "mumbai" else 40
+            observed_signal = tmax >= threshold
+            outcomes.append({**record, "observed_tmax": tmax, "threshold_c": threshold,
+                             "observed_heat_signal": observed_signal,
+                             "matched_proxy": bool(record["prediction"]) == observed_signal})
+        except (requests.RequestException, KeyError, IndexError, TypeError, ValueError):
+            unavailable += 1
+    return {"evaluated": len(records), "matched": len(outcomes), "unavailable": unavailable,
+            "proxy_accuracy": round(sum(x["matched_proxy"] for x in outcomes) / len(outcomes), 4) if outcomes else None,
+            "outcomes": outcomes,
+            "note": "Observed Tmax comes from Open-Meteo archive. This threshold proxy is not an official IMD heatwave outcome."}
+
+def log_live_predictions(city: str, result: dict) -> None:
+    """Append successful forecast-day estimates for later observed-outcome checks."""
+    rows = [
+        {"logged_at": datetime.now(timezone.utc).isoformat(), "city": city,
+         "date": day["date"], "probability": day["probability"],
+         "prediction": day["prediction"], "risk_level": day["risk_level"]}
+        for day in result.get("days", [])
+        if day.get("error") is None and day.get("probability") is not None
+    ]
+    if not rows:
+        return
+    PREDICTION_LOG.parent.mkdir(exist_ok=True)
+    with PREDICTION_LOG.open("a", encoding="utf-8") as handle:
+        for row in rows:
+            handle.write(json.dumps(row) + "\n")
 
 @app.get("/api/cities")
 def get_cities():
@@ -531,6 +620,8 @@ def get_live_city(city: str):
         raise HTTPException(400, f"Unknown city: {city}. Valid: {list(CITIES.keys())}")
 
     result = get_live_forecast(city, pipeline)
+    if not result.get("error") and not result.get("cache_used"):
+        log_live_predictions(city, result)
     return result
 
 
