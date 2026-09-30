@@ -1,6 +1,6 @@
 """Network-free unit tests for live Open-Meteo integration."""
-import unittest
 import json
+import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 

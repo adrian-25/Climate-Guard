@@ -35,3 +35,4 @@ Run the existing interface tests with `python tests/test_prediction_interface.py
 - Phase 1 completed foundation increments: model registry, explicit CORS, request IDs,
   structured request logs, lint/pre-commit configuration, mocked live-data tests, and API
   contract tests. Rate limits protect the expensive prediction, explanation, and live routes.
+  Latest focused coverage run: 51% total (65% app module; 33% live-data module).
