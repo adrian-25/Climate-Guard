@@ -397,13 +397,23 @@ class ClimateGuardExplainer:
         # shap_values is a list of 2 arrays [class0, class1] for binary classification
         shap_values = self._shap_explainer.shap_values(X_arr)
 
-        # For binary RF: shap_values is [neg_class_array, pos_class_array]
-        # Each array has shape (n_samples, n_features)
+        # Handle multiple SHAP output formats across versions:
+        #   Old SHAP (<0.41): list of 2D arrays → [neg_class, pos_class], each (n_samples, n_features)
+        #   New SHAP (>=0.41): single 3D array (n_samples, n_features, n_classes)
+        #                   or single 2D array (n_samples, n_features) for binary
+        import numpy as _np
+        sv = _np.array(shap_values)
         if isinstance(shap_values, list):
-            sv_pos = shap_values[1][0]  # positive class (heatwave), first row
+            # Old format: list[class] → pick positive class, first row
+            sv_pos = _np.array(shap_values[1])[0]
+        elif sv.ndim == 3:
+            # New format: (n_samples, n_features, n_classes) → positive class last dim, first row
+            sv_pos = sv[0, :, 1]
+        elif sv.ndim == 2:
+            # Single-output or already (n_samples, n_features)
+            sv_pos = sv[0]
         else:
-            # Some SHAP versions return a single array for binary classification
-            sv_pos = shap_values[0]
+            sv_pos = sv.ravel()
 
         # Get SHAP base value for the positive class
         try:

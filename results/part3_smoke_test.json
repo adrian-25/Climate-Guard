@@ -1,10 +1,10 @@
 {
   "smoke_test": "part3_e2e",
-  "timestamp": "2026-09-10T02:34:22.766674",
+  "timestamp": "2026-09-30T12:42:31.687182",
   "pipeline_info": {
     "threshold": 0.7,
     "n_features": 110,
-    "shap_available": false
+    "shap_available": true
   },
   "model_integrity": {
     "model_file": "climateguard_final_model.joblib",
@@ -56,37 +56,37 @@
       "risk_level": "LOW",
       "risk_score": 0.0,
       "recommendation_count": 3,
-      "explanation_method": "global_rf_importance",
+      "explanation_method": "shap",
       "explanation_top_features": [
-        {
-          "feature": "tmax_departure",
-          "value": -0.4387747138397522,
-          "contribution": 0.1260149959843641,
-          "direction": "global_importance"
-        },
         {
           "feature": "qualifying_day",
           "value": 0.0,
-          "contribution": 0.11174736584551544,
-          "direction": "global_importance"
+          "contribution": -0.00946782812698631,
+          "direction": "decreases_risk"
         },
         {
-          "feature": "temperature_2m_mean",
-          "value": 18.6,
-          "contribution": 0.07573670986972388,
-          "direction": "global_importance"
+          "feature": "tmax_departure",
+          "value": -0.4387747138397522,
+          "contribution": -0.009383214063259386,
+          "direction": "decreases_risk"
         },
         {
           "feature": "temperature_2m_max",
           "value": 26.8,
-          "contribution": 0.0732441590195198,
-          "direction": "global_importance"
+          "contribution": -0.008150685858434788,
+          "direction": "decreases_risk"
+        },
+        {
+          "feature": "temperature_2m_mean",
+          "value": 18.6,
+          "contribution": -0.006686205046909683,
+          "direction": "decreases_risk"
         },
         {
           "feature": "temperature_2m_mean_lag1",
           "value": 19.7,
-          "contribution": 0.049612992320815445,
-          "direction": "global_importance"
+          "contribution": -0.00400901855748655,
+          "direction": "decreases_risk"
         }
       ],
       "expert_rules_total": 7,
@@ -106,43 +106,43 @@
         "warnings": []
       },
       "prediction": {
-        "probability": 0.8040445655777451,
+        "probability": 0.804044565577745,
         "prediction": 1
       },
       "risk_level": "EXTREME",
-      "risk_score": 0.8040445655777451,
+      "risk_score": 0.804044565577745,
       "recommendation_count": 7,
-      "explanation_method": "global_rf_importance",
+      "explanation_method": "shap",
       "explanation_top_features": [
         {
           "feature": "tmax_departure",
           "value": 4.784911550468266,
-          "contribution": 0.1260149959843641,
-          "direction": "global_importance"
+          "contribution": 0.1610747061077877,
+          "direction": "increases_risk"
         },
         {
           "feature": "qualifying_day",
           "value": 1.0,
-          "contribution": 0.11174736584551544,
-          "direction": "global_importance"
-        },
-        {
-          "feature": "temperature_2m_mean",
-          "value": 36.5,
-          "contribution": 0.07573670986972388,
-          "direction": "global_importance"
+          "contribution": 0.13321087677059917,
+          "direction": "increases_risk"
         },
         {
           "feature": "temperature_2m_max",
           "value": 44.5,
-          "contribution": 0.0732441590195198,
-          "direction": "global_importance"
+          "contribution": 0.08935115834250396,
+          "direction": "increases_risk"
+        },
+        {
+          "feature": "temperature_2m_mean",
+          "value": 36.5,
+          "contribution": 0.07266874561504158,
+          "direction": "increases_risk"
         },
         {
           "feature": "temperature_2m_mean_lag1",
           "value": 35.1,
-          "contribution": 0.049612992320815445,
-          "direction": "global_importance"
+          "contribution": 0.045086373315817774,
+          "direction": "increases_risk"
         }
       ],
       "expert_rules_total": 7,
@@ -184,37 +184,37 @@
         "risk_level": "LOW",
         "risk_score": 0.0,
         "recommendation_count": 3,
-        "explanation_method": "global_rf_importance",
+        "explanation_method": "shap",
         "explanation_top_features": [
-          {
-            "feature": "tmax_departure",
-            "value": -0.4387747138397522,
-            "contribution": 0.1260149959843641,
-            "direction": "global_importance"
-          },
           {
             "feature": "qualifying_day",
             "value": 0.0,
-            "contribution": 0.11174736584551544,
-            "direction": "global_importance"
+            "contribution": -0.00946782812698631,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean",
-            "value": 18.6,
-            "contribution": 0.07573670986972388,
-            "direction": "global_importance"
+            "feature": "tmax_departure",
+            "value": -0.4387747138397522,
+            "contribution": -0.009383214063259386,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_max",
             "value": 26.8,
-            "contribution": 0.0732441590195198,
-            "direction": "global_importance"
+            "contribution": -0.008150685858434788,
+            "direction": "decreases_risk"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 18.6,
+            "contribution": -0.006686205046909683,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_mean_lag1",
             "value": 19.7,
-            "contribution": 0.049612992320815445,
-            "direction": "global_importance"
+            "contribution": -0.00400901855748655,
+            "direction": "decreases_risk"
           }
         ],
         "expert_rules_total": 7,
@@ -240,37 +240,37 @@
         "risk_level": "LOW",
         "risk_score": 0.0,
         "recommendation_count": 3,
-        "explanation_method": "global_rf_importance",
+        "explanation_method": "shap",
         "explanation_top_features": [
-          {
-            "feature": "tmax_departure",
-            "value": -0.7774843912591081,
-            "contribution": 0.1260149959843641,
-            "direction": "global_importance"
-          },
           {
             "feature": "qualifying_day",
             "value": 0.0,
-            "contribution": 0.11174736584551544,
-            "direction": "global_importance"
+            "contribution": -0.009452341127555742,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean",
-            "value": 18.4,
-            "contribution": 0.07573670986972388,
-            "direction": "global_importance"
+            "feature": "tmax_departure",
+            "value": -0.7774843912591081,
+            "contribution": -0.009438061758323882,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_max",
             "value": 26.4,
-            "contribution": 0.0732441590195198,
-            "direction": "global_importance"
+            "contribution": -0.007961470467890029,
+            "direction": "decreases_risk"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 18.4,
+            "contribution": -0.006653102571224693,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_mean_lag1",
             "value": 18.6,
-            "contribution": 0.049612992320815445,
-            "direction": "global_importance"
+            "contribution": -0.00401000169396523,
+            "direction": "decreases_risk"
           }
         ],
         "expert_rules_total": 7,
@@ -296,37 +296,37 @@
         "risk_level": "LOW",
         "risk_score": 0.0,
         "recommendation_count": 3,
-        "explanation_method": "global_rf_importance",
+        "explanation_method": "shap",
         "explanation_top_features": [
-          {
-            "feature": "tmax_departure",
-            "value": -1.1211888657648252,
-            "contribution": 0.1260149959843641,
-            "direction": "global_importance"
-          },
           {
             "feature": "qualifying_day",
             "value": 0.0,
-            "contribution": 0.11174736584551544,
-            "direction": "global_importance"
+            "contribution": -0.009475668465139227,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean",
-            "value": 18.5,
-            "contribution": 0.07573670986972388,
-            "direction": "global_importance"
+            "feature": "tmax_departure",
+            "value": -1.1211888657648252,
+            "contribution": -0.009453344939805286,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_max",
             "value": 26.0,
-            "contribution": 0.0732441590195198,
-            "direction": "global_importance"
+            "contribution": -0.007998231508364545,
+            "direction": "decreases_risk"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 18.5,
+            "contribution": -0.006616805909502908,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_mean_lag1",
             "value": 18.4,
-            "contribution": 0.049612992320815445,
-            "direction": "global_importance"
+            "contribution": -0.003985728930999427,
+            "direction": "decreases_risk"
           }
         ],
         "expert_rules_total": 7,
@@ -352,37 +352,37 @@
         "risk_level": "LOW",
         "risk_score": 0.0,
         "recommendation_count": 3,
-        "explanation_method": "global_rf_importance",
+        "explanation_method": "shap",
         "explanation_top_features": [
           {
             "feature": "tmax_departure",
             "value": -3.9844562955254936,
-            "contribution": 0.1260149959843641,
-            "direction": "global_importance"
+            "contribution": -0.009488275164084896,
+            "direction": "decreases_risk"
           },
           {
             "feature": "qualifying_day",
             "value": 0.0,
-            "contribution": 0.11174736584551544,
-            "direction": "global_importance"
-          },
-          {
-            "feature": "temperature_2m_mean",
-            "value": 17.5,
-            "contribution": 0.07573670986972388,
-            "direction": "global_importance"
+            "contribution": -0.009383385633416766,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_max",
             "value": 23.1,
-            "contribution": 0.0732441590195198,
-            "direction": "global_importance"
+            "contribution": -0.007961298157770198,
+            "direction": "decreases_risk"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 17.5,
+            "contribution": -0.006642279084196601,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_mean_lag1",
             "value": 18.5,
-            "contribution": 0.049612992320815445,
-            "direction": "global_importance"
+            "contribution": -0.0038802816078673153,
+            "direction": "decreases_risk"
           }
         ],
         "expert_rules_total": 7,
@@ -408,37 +408,37 @@
         "risk_level": "LOW",
         "risk_score": 0.0,
         "recommendation_count": 3,
-        "explanation_method": "global_rf_importance",
+        "explanation_method": "shap",
         "explanation_top_features": [
           {
             "feature": "tmax_departure",
             "value": -4.051157648283038,
-            "contribution": 0.1260149959843641,
-            "direction": "global_importance"
+            "contribution": -0.00959846914774403,
+            "direction": "decreases_risk"
           },
           {
             "feature": "qualifying_day",
             "value": 0.0,
-            "contribution": 0.11174736584551544,
-            "direction": "global_importance"
-          },
-          {
-            "feature": "temperature_2m_mean",
-            "value": 17.2,
-            "contribution": 0.07573670986972388,
-            "direction": "global_importance"
+            "contribution": -0.009485831752242609,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_max",
             "value": 23.0,
-            "contribution": 0.0732441590195198,
-            "direction": "global_importance"
+            "contribution": -0.008111660175924308,
+            "direction": "decreases_risk"
+          },
+          {
+            "feature": "temperature_2m_mean",
+            "value": 17.2,
+            "contribution": -0.0067805886569821255,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_mean_lag1",
             "value": 17.5,
-            "contribution": 0.049612992320815445,
-            "direction": "global_importance"
+            "contribution": -0.004081017071318745,
+            "direction": "decreases_risk"
           }
         ],
         "expert_rules_total": 7,
@@ -464,37 +464,37 @@
         "risk_level": "LOW",
         "risk_score": 0.0,
         "recommendation_count": 3,
-        "explanation_method": "global_rf_importance",
+        "explanation_method": "shap",
         "explanation_top_features": [
           {
             "feature": "tmax_departure",
             "value": -1.6192117585848074,
-            "contribution": 0.1260149959843641,
-            "direction": "global_importance"
+            "contribution": -0.009629472279314797,
+            "direction": "decreases_risk"
           },
           {
             "feature": "qualifying_day",
             "value": 0.0,
-            "contribution": 0.11174736584551544,
-            "direction": "global_importance"
-          },
-          {
-            "feature": "temperature_2m_mean",
-            "value": 19.6,
-            "contribution": 0.07573670986972388,
-            "direction": "global_importance"
+            "contribution": -0.009463552403297491,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_max",
             "value": 25.4,
-            "contribution": 0.0732441590195198,
-            "direction": "global_importance"
+            "contribution": -0.008227727370225476,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean_lag1",
-            "value": 17.2,
-            "contribution": 0.049612992320815445,
-            "direction": "global_importance"
+            "feature": "temperature_2m_mean",
+            "value": 19.6,
+            "contribution": -0.006833713927689343,
+            "direction": "decreases_risk"
+          },
+          {
+            "feature": "temperature_2m_max_lag1",
+            "value": 23.0,
+            "contribution": -0.004282853278562464,
+            "direction": "decreases_risk"
           }
         ],
         "expert_rules_total": 7,
@@ -520,37 +520,37 @@
         "risk_level": "LOW",
         "risk_score": 0.0,
         "recommendation_count": 3,
-        "explanation_method": "global_rf_importance",
+        "explanation_method": "shap",
         "explanation_top_features": [
           {
             "feature": "tmax_departure",
             "value": 1.2093002081165452,
-            "contribution": 0.1260149959843641,
-            "direction": "global_importance"
+            "contribution": -0.009633493146644887,
+            "direction": "decreases_risk"
           },
           {
             "feature": "qualifying_day",
             "value": 0.0,
-            "contribution": 0.11174736584551544,
-            "direction": "global_importance"
-          },
-          {
-            "feature": "temperature_2m_mean",
-            "value": 22.0,
-            "contribution": 0.07573670986972388,
-            "direction": "global_importance"
+            "contribution": -0.009427623030778928,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_max",
             "value": 28.2,
-            "contribution": 0.0732441590195198,
-            "direction": "global_importance"
+            "contribution": -0.00832431986002125,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean_lag1",
-            "value": 19.6,
-            "contribution": 0.049612992320815445,
-            "direction": "global_importance"
+            "feature": "temperature_2m_mean",
+            "value": 22.0,
+            "contribution": -0.0070035793691384214,
+            "direction": "decreases_risk"
+          },
+          {
+            "feature": "temperature_2m_max_lag1",
+            "value": 25.4,
+            "contribution": -0.004419522135676259,
+            "direction": "decreases_risk"
           }
         ],
         "expert_rules_total": 7,
@@ -576,37 +576,37 @@
         "risk_level": "LOW",
         "risk_score": 0.007165150920736131,
         "recommendation_count": 3,
-        "explanation_method": "global_rf_importance",
+        "explanation_method": "shap",
         "explanation_top_features": [
-          {
-            "feature": "tmax_departure",
-            "value": 2.5257414151925097,
-            "contribution": 0.1260149959843641,
-            "direction": "global_importance"
-          },
           {
             "feature": "qualifying_day",
             "value": 0.0,
-            "contribution": 0.11174736584551544,
-            "direction": "global_importance"
+            "contribution": -0.009551764091165326,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean",
-            "value": 22.1,
-            "contribution": 0.07573670986972388,
-            "direction": "global_importance"
+            "feature": "tmax_departure",
+            "value": 2.5257414151925097,
+            "contribution": -0.008863766199483558,
+            "direction": "decreases_risk"
+          },
+          {
+            "feature": "tmax_delta_3d",
+            "value": 6.5,
+            "contribution": 0.008709271258070453,
+            "direction": "increases_risk"
           },
           {
             "feature": "temperature_2m_max",
             "value": 29.5,
-            "contribution": 0.0732441590195198,
-            "direction": "global_importance"
+            "contribution": -0.008494904549228747,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean_lag1",
-            "value": 22.0,
-            "contribution": 0.049612992320815445,
-            "direction": "global_importance"
+            "feature": "temperature_2m_mean",
+            "value": 22.1,
+            "contribution": -0.007034759732597607,
+            "direction": "decreases_risk"
           }
         ],
         "expert_rules_total": 7,
@@ -632,37 +632,37 @@
         "risk_level": "LOW",
         "risk_score": 0.0008608058608058607,
         "recommendation_count": 3,
-        "explanation_method": "global_rf_importance",
+        "explanation_method": "shap",
         "explanation_top_features": [
-          {
-            "feature": "tmax_departure",
-            "value": 2.527198231009365,
-            "contribution": 0.1260149959843641,
-            "direction": "global_importance"
-          },
           {
             "feature": "qualifying_day",
             "value": 0.0,
-            "contribution": 0.11174736584551544,
-            "direction": "global_importance"
+            "contribution": -0.009503632039147222,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean",
-            "value": 21.8,
-            "contribution": 0.07573670986972388,
-            "direction": "global_importance"
+            "feature": "tmax_departure",
+            "value": 2.527198231009365,
+            "contribution": -0.009078976109442725,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_max",
             "value": 29.5,
-            "contribution": 0.0732441590195198,
-            "direction": "global_importance"
+            "contribution": -0.008702491749467007,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean_lag1",
-            "value": 22.1,
-            "contribution": 0.049612992320815445,
-            "direction": "global_importance"
+            "feature": "temperature_2m_mean",
+            "value": 21.8,
+            "contribution": -0.006812505293278704,
+            "direction": "decreases_risk"
+          },
+          {
+            "feature": "temperature_2m_max_lag1",
+            "value": 29.5,
+            "contribution": -0.004346004437011451,
+            "direction": "decreases_risk"
           }
         ],
         "expert_rules_total": 7,
@@ -688,37 +688,37 @@
         "risk_level": "LOW",
         "risk_score": 1.4619883040935671e-05,
         "recommendation_count": 3,
-        "explanation_method": "global_rf_importance",
+        "explanation_method": "shap",
         "explanation_top_features": [
-          {
-            "feature": "tmax_departure",
-            "value": 2.1266779396462034,
-            "contribution": 0.1260149959843641,
-            "direction": "global_importance"
-          },
           {
             "feature": "qualifying_day",
             "value": 0.0,
-            "contribution": 0.11174736584551544,
-            "direction": "global_importance"
+            "contribution": -0.009434239620216125,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean",
-            "value": 21.3,
-            "contribution": 0.07573670986972388,
-            "direction": "global_importance"
+            "feature": "tmax_departure",
+            "value": 2.1266779396462034,
+            "contribution": -0.009171306276629577,
+            "direction": "decreases_risk"
           },
           {
             "feature": "temperature_2m_max",
             "value": 29.1,
-            "contribution": 0.0732441590195198,
-            "direction": "global_importance"
+            "contribution": -0.00836121764611875,
+            "direction": "decreases_risk"
           },
           {
-            "feature": "temperature_2m_mean_lag1",
-            "value": 21.8,
-            "contribution": 0.049612992320815445,
-            "direction": "global_importance"
+            "feature": "temperature_2m_mean",
+            "value": 21.3,
+            "contribution": -0.0067591889327998705,
+            "direction": "decreases_risk"
+          },
+          {
+            "feature": "temperature_2m_max_lag1",
+            "value": 29.5,
+            "contribution": -0.004171374984696485,
+            "direction": "decreases_risk"
           }
         ],
         "expert_rules_total": 7,
