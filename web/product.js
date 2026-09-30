@@ -6,6 +6,8 @@
   async function init() {
     const labels = await fetch('/web/locales.json').then(r => r.json());
     const text = labels[chosen];
+    document.documentElement.lang = chosen;
+    document.querySelectorAll('[data-i18n]').forEach(node => { if (text[node.dataset.i18n]) node.textContent = text[node.dataset.i18n]; });
     const tools = document.createElement('div'); tools.className = 'product-tools';
     tools.innerHTML = `<label>${text.language}<select id="language-picker"><option value="en">English</option><option value="hi">हिन्दी*</option><option value="mr">मराठी*</option></select></label><button id="export-city" type="button">${text.export}</button><button id="print-report" type="button">${text.print}</button>`;
     document.querySelector('.masthead')?.append(tools);

@@ -1,5 +1,5 @@
 {
-  "en": {"language": "Language", "export": "Download CSV", "print": "Print report", "offline": "Offline — showing the last successful data."},
-  "hi": {"language": "भाषा", "export": "CSV डाउनलोड करें", "print": "रिपोर्ट प्रिंट करें", "offline": "ऑफ़लाइन — पिछला सफल डेटा दिख रहा है।"},
-  "mr": {"language": "भाषा", "export": "CSV डाउनलोड करा", "print": "अहवाल प्रिंट करा", "offline": "ऑफलाइन — शेवटचा यशस्वी डेटा दाखवत आहे."}
+  "en": {"language": "Language", "export": "Download CSV", "print": "Print report", "offline": "Offline — showing the last successful data.", "choose_city": "Choose a city", "live": "Live", "historical": "Historical", "alerts": "Heat-risk alerts", "trends": "Temperature and probability trends"},
+  "hi": {"language": "भाषा", "export": "CSV डाउनलोड करें", "print": "रिपोर्ट प्रिंट करें", "offline": "ऑफ़लाइन — पिछला सफल डेटा दिख रहा है।", "choose_city": "शहर चुनें", "live": "लाइव", "historical": "ऐतिहासिक", "alerts": "गर्मी-जोखिम अलर्ट", "trends": "तापमान और संभावना के रुझान"},
+  "mr": {"language": "भाषा", "export": "CSV डाउनलोड करा", "print": "अहवाल प्रिंट करा", "offline": "ऑफलाइन — शेवटचा यशस्वी डेटा दाखवत आहे.", "choose_city": "शहर निवडा", "live": "थेट", "historical": "ऐतिहासिक", "alerts": "उष्णता-धोका सूचना", "trends": "तापमान आणि शक्यतेचे कल"}
 }

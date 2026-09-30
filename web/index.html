@@ -35,10 +35,10 @@
     <div class="mode-switch" id="mode-switch" role="group" aria-label="Data mode">
       <button class="mode-btn mode-btn--active" id="mode-live-btn" data-mode="live" type="button">
         <span class="mode-live-dot" aria-hidden="true"></span>
-        Live
+        <span data-i18n="live">Live</span>
       </button>
       <button class="mode-btn" id="mode-hist-btn" data-mode="historical" type="button">
-        Historical
+        <span data-i18n="historical">Historical</span>
       </button>
       <span class="mode-caption" id="mode-caption">Current conditions from Open-Meteo</span>
     </div>
@@ -47,7 +47,7 @@
          CITY SELECTOR
          ============================================================ -->
     <section aria-labelledby="city-heading">
-      <h2 class="section-title" id="city-heading">Choose a city</h2>
+      <h2 class="section-title" id="city-heading" data-i18n="choose_city">Choose a city</h2>
       <div class="city-grid" id="city-grid" role="group" aria-label="City selection">
         <!-- Populated by app.js renderCities() -->
       </div>
@@ -255,7 +255,7 @@
     </section><!-- /results -->
 
     <section class="alert-signup" aria-labelledby="alert-signup-heading">
-      <h2 class="section-title" id="alert-signup-heading">Heat-risk alerts</h2>
+      <h2 class="section-title" id="alert-signup-heading" data-i18n="alerts">Heat-risk alerts</h2>
       <p class="section-subhead">Get a confirmation email before alerts begin. We store only your email and alert preferences to send these alerts; we never share them. You can unsubscribe in one click. India&rsquo;s DPDP Act applies.</p>
       <form id="subscribe-form" class="subscribe-form" novalidate>
         <label>Email <input id="subscribe-email" name="email" type="email" autocomplete="email" required></label>
@@ -284,7 +284,7 @@
          TREND CHART
          ============================================================ -->
     <section class="chart-section" aria-labelledby="trend-heading">
-      <h2 class="section-title" id="trend-heading">Temperature and probability trends</h2>
+      <h2 class="section-title" id="trend-heading" data-i18n="trends">Temperature and probability trends</h2>
       <p class="section-subhead">Full test-period time series (2023&ndash;2025) for any city.</p>
       <div class="chart-controls">
         <label for="chart-city-select" class="visually-hidden">Select city for trend chart</label>
