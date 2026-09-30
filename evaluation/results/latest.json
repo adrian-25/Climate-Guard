@@ -1,0 +1,103 @@
+{
+  "model_version": "v1.0.0",
+  "dataset": {
+    "test_samples": 4865,
+    "positive_samples": 38
+  },
+  "active_model": {
+    "f1": 0.6947,
+    "precision": 0.5789,
+    "recall": 0.8684,
+    "brier": 0.0083
+  },
+  "confidence_intervals_95": {
+    "f1": [
+      0.5819,
+      0.7984
+    ],
+    "precision": [
+      0.4513,
+      0.7143
+    ],
+    "recall": [
+      0.7532,
+      0.9677
+    ],
+    "brier": [
+      0.0067,
+      0.0102
+    ]
+  },
+  "baselines": {
+    "persistence_heatwave_lag1": {
+      "f1": 0.6316,
+      "precision": 0.6316,
+      "recall": 0.6316,
+      "brier": 0.0058
+    },
+    "imd_style_qualifying_day_proxy": {
+      "f1": 0.747,
+      "precision": 0.6889,
+      "recall": 0.8158,
+      "brier": 0.0043
+    }
+  },
+  "calibration": {
+    "bin_mean_predicted": [
+      0.0,
+      0.0001467753737004421,
+      0.0010638057324966325,
+      0.005144424374232847,
+      0.02182060347569365,
+      0.2579609355766087
+    ],
+    "bin_fraction_positive": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.07802874743326489
+    ]
+  },
+  "time_ordered_folds": [
+    {
+      "fold": 1,
+      "samples": 1216,
+      "positives": 0,
+      "metrics": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.0
+      }
+    },
+    {
+      "fold": 2,
+      "samples": 1216,
+      "positives": 34,
+      "metrics": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.0233
+      }
+    },
+    {
+      "fold": 3,
+      "samples": 1216,
+      "positives": 0,
+      "metrics": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.0003
+      }
+    }
+  ],
+  "limitations": [
+    "Small positive count: 38 held-out next-day events.",
+    "Ahmedabad and Mumbai have zero held-out positives.",
+    "Temporal CV uses disposable in-memory clones and does not alter the locked active model."
+  ]
+}

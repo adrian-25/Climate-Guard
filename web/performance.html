@@ -49,6 +49,26 @@
       </div>
     </section>
 
+    <section aria-labelledby="credibility-heading" style="margin-bottom: var(--sp-10);">
+      <h2 class="section-title" id="credibility-heading">Model credibility checks</h2>
+      <p class="section-subhead">Read-only evaluation of the locked v1.0.0 model against simple baselines and calibration bins.</p>
+      <div id="evaluation-unavailable" class="live-disclaimer" hidden></div>
+      <div id="baseline-comparison" class="city-comparison-wrap"></div>
+      <div class="chart-card" style="margin-top: var(--sp-5);">
+        <div class="chart-card__title">Probability calibration</div>
+        <canvas id="calibration-chart" aria-label="Predicted probability compared with observed frequency"></canvas>
+      </div>
+      <p class="live-disclaimer" style="margin-top: var(--sp-4);">
+        Only 38 held-out next-day heatwave events exist. Ahmedabad and Mumbai have zero held-out positives, and the qualifying-day proxy is closely related to the project label definition. These results are research evidence, not an operational validation.
+      </p>
+    </section>
+
+    <section aria-labelledby="live-track-heading" style="margin-bottom: var(--sp-10);">
+      <h2 class="section-title" id="live-track-heading">Live track record</h2>
+      <p class="section-subhead">Live forecasts are stored locally and reconciled later with Open-Meteo observed maximum-temperature proxies.</p>
+      <div id="live-track-record" class="live-disclaimer" aria-live="polite">Loading live track record&hellip;</div>
+    </section>
+
     <!-- Feature importance -->
     <section aria-labelledby="fi-heading" style="margin-bottom: var(--sp-10);">
       <h2 class="section-title" id="fi-heading">Top feature importance</h2>

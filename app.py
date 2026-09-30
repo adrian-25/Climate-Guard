@@ -13,6 +13,7 @@ import math
 import os
 import sys
 import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -21,6 +22,7 @@ import numpy as np
 import pandas as pd
 import requests
 import uvicorn
+from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -48,34 +50,71 @@ from slowapi.util import get_remote_address
 PROJECT_ROOT = Path(__file__).resolve().parent
 PREDICTION_LOG = PROJECT_ROOT / "runtime" / "live_predictions.jsonl"
 MODEL_REGISTRY_PATH = PROJECT_ROOT / "model_registry.json"
+EVALUATION_RESULT_PATH = PROJECT_ROOT / "evaluation" / "results" / "latest.json"
+outcome_scheduler = BackgroundScheduler(timezone="Asia/Kolkata")
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src import live_tracking
 from src.integration.pipeline import ClimateGuardPipeline
 from src.prediction import ClimateGuardPredictor
+
+LIVE_TRACKING_DB = live_tracking.database_path(PROJECT_ROOT)
 
 # ---------------------------------------------------------------------------
 # City metadata
 # ---------------------------------------------------------------------------
 CITIES = {
-    "delhi":     {"name": "New Delhi",  "state": "Delhi",             "region": "Plains",  "lat": 28.6139, "lon": 77.2090},
-    "lucknow":   {"name": "Lucknow",   "state": "Uttar Pradesh",     "region": "Plains",  "lat": 26.8467, "lon": 80.9462},
-    "nagpur":    {"name": "Nagpur",     "state": "Maharashtra",       "region": "Plains",  "lat": 21.1458, "lon": 79.0882},
-    "ahmedabad": {"name": "Ahmedabad", "state": "Gujarat",           "region": "Plains",  "lat": 23.0225, "lon": 72.5714},
-    "mumbai":    {"name": "Mumbai",    "state": "Maharashtra",       "region": "Coastal", "lat": 19.0760, "lon": 72.8777},
+    "delhi": {
+        "name": "New Delhi",
+        "state": "Delhi",
+        "region": "Plains",
+        "lat": 28.6139,
+        "lon": 77.2090,
+    },
+    "lucknow": {
+        "name": "Lucknow",
+        "state": "Uttar Pradesh",
+        "region": "Plains",
+        "lat": 26.8467,
+        "lon": 80.9462,
+    },
+    "nagpur": {
+        "name": "Nagpur",
+        "state": "Maharashtra",
+        "region": "Plains",
+        "lat": 21.1458,
+        "lon": 79.0882,
+    },
+    "ahmedabad": {
+        "name": "Ahmedabad",
+        "state": "Gujarat",
+        "region": "Plains",
+        "lat": 23.0225,
+        "lon": 72.5714,
+    },
+    "mumbai": {
+        "name": "Mumbai",
+        "state": "Maharashtra",
+        "region": "Coastal",
+        "lat": 19.0760,
+        "lon": 72.8777,
+    },
 }
 
 # ---------------------------------------------------------------------------
 # Load data + pipeline at startup
 # ---------------------------------------------------------------------------
 print("[startup] Loading test data ...")
-X_test   = pd.read_csv(PROJECT_ROOT / "data" / "splits" / "temporal" / "X_test.csv")
+X_test = pd.read_csv(PROJECT_ROOT / "data" / "splits" / "temporal" / "X_test.csv")
 meta_test = pd.read_csv(PROJECT_ROOT / "data" / "splits" / "temporal" / "meta_test.csv")
-y_test   = pd.read_csv(PROJECT_ROOT / "data" / "splits" / "temporal" / "y_test.csv")
+y_test = pd.read_csv(PROJECT_ROOT / "data" / "splits" / "temporal" / "y_test.csv")
 
 # Merge features + metadata for easy lookup
 test_data = pd.concat([meta_test, X_test, y_test], axis=1)
-print(f"[startup] Loaded {len(test_data)} test rows across {test_data['city_key'].nunique()} cities")
+print(
+    f"[startup] Loaded {len(test_data)} test rows across {test_data['city_key'].nunique()} cities"
+)
 
 print("[startup] Loading ClimateGuardPipeline ...")
 pipeline = ClimateGuardPipeline(include_explanation=False)
@@ -86,7 +125,9 @@ with open(PROJECT_ROOT / "models" / "final" / "metadata.json") as f:
     model_metadata = json.load(f)
 with open(MODEL_REGISTRY_PATH, encoding="utf-8") as f:
     model_registry = json.load(f)
-ACTIVE_MODEL = next(item for item in model_registry["models"] if item["version"] == model_registry["active_version"])
+ACTIVE_MODEL = next(
+    item for item in model_registry["models"] if item["version"] == model_registry["active_version"]
+)
 
 # Precompute heatwave probabilities for ALL test rows (fast batch predict)
 print("[startup] Precomputing probabilities for trend charts ...")
@@ -122,7 +163,11 @@ roc_data = {"fpr": fpr[::step].tolist(), "tpr": tpr[::step].tolist(), "auc": rou
 precisions, recalls, pr_thresholds = precision_recall_curve(y_true_valid, y_prob_valid)
 pr_auc = average_precision_score(y_true_valid, y_prob_valid)
 step = max(1, len(precisions) // 200)
-pr_data = {"precision": precisions[::step].tolist(), "recall": recalls[::step].tolist(), "auc": round(pr_auc, 4)}
+pr_data = {
+    "precision": precisions[::step].tolist(),
+    "recall": recalls[::step].tolist(),
+    "auc": round(pr_auc, 4),
+}
 
 # Per-city metrics
 city_metrics = {}
@@ -172,8 +217,33 @@ print("[startup] Ready! Navigate to http://localhost:8000")
 # ---------------------------------------------------------------------------
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(message)s")
 logger = logging.getLogger("climateguard")
-allowed_origins = [item.strip() for item in os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:8001,http://127.0.0.1:8001").split(",") if item.strip()]
-app = FastAPI(title="ClimateGuard Dashboard API", version="1.0.0")
+allowed_origins = [
+    item.strip()
+    for item in os.getenv(
+        "CORS_ALLOW_ORIGINS", "http://localhost:8001,http://127.0.0.1:8001"
+    ).split(",")
+    if item.strip()
+]
+
+
+@asynccontextmanager
+async def lifespan(application):
+    enabled = os.getenv("LIVE_OUTCOME_SCHEDULER_ENABLED", "true").lower() == "true"
+    if enabled and not outcome_scheduler.running:
+        outcome_scheduler.add_job(
+            reconcile_live_outcomes,
+            "interval",
+            hours=6,
+            id="live-outcome-reconciliation",
+            replace_existing=True,
+        )
+        outcome_scheduler.start()
+    yield
+    if outcome_scheduler.running:
+        outcome_scheduler.shutdown(wait=False)
+
+
+app = FastAPI(title="ClimateGuard Dashboard API", version="1.0.0", lifespan=lifespan)
 limiter = Limiter(key_func=get_remote_address, default_limits=["240/minute"])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -185,16 +255,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.middleware("http")
 async def add_security_headers(request, call_next):
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
     response = await call_next(request)
-    logger.info(json.dumps({"event": "request_complete", "request_id": request_id, "path": request.url.path, "status": response.status_code}))
+    logger.info(
+        json.dumps(
+            {
+                "event": "request_complete",
+                "request_id": request_id,
+                "path": request.url.path,
+                "status": response.status_code,
+            }
+        )
+    )
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
+
 
 # ---------------------------------------------------------------------------
 # Request / response schemas
@@ -208,6 +289,7 @@ class PredictRequest(BaseModel):
 # API endpoints
 # ---------------------------------------------------------------------------
 
+
 @app.get("/api/config")
 def get_public_config():
     """Return browser-safe, optional configuration only.
@@ -218,12 +300,37 @@ def get_public_config():
     """
     return {"mappls_key": os.getenv("MAPPLS_KEY", "").strip()}
 
+
 @app.get("/api/health")
+def get_legacy_health():
+    """Legacy lightweight deployment health check; response shape is stable."""
+    return {
+        "status": "ok",
+        "model_ready": predictor is not None,
+        "live_data_available": (
+            _LIVE_DATA_AVAILABLE if "_LIVE_DATA_AVAILABLE" in globals() else False
+        ),
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.get("/health")
 def get_health():
-    """Lightweight deployment health check with no sensitive details."""
-    return {"status": "ok", "model_ready": predictor is not None, "model_version": ACTIVE_MODEL["version"],
-            "live_data_available": _LIVE_DATA_AVAILABLE if "_LIVE_DATA_AVAILABLE" in globals() else False,
-            "checked_at": datetime.now(timezone.utc).isoformat()}
+    """Deployment health check with active-model and data freshness context."""
+    cache = live_cache_status() if "live_cache_status" in globals() else {}
+    refreshed = [entry.get("fetched_at") for entry in cache.values() if entry.get("fetched_at")]
+    return {
+        **get_legacy_health(),
+        "model_version": ACTIVE_MODEL["version"],
+        "last_live_data_refresh": max(refreshed) if refreshed else None,
+    }
+
+
+@app.get("/api/evaluation/live-track-record")
+def get_live_track_record():
+    """Return persisted live forecast quality when observations are available."""
+    return live_tracking.summary(LIVE_TRACKING_DB)
+
 
 @app.get("/api/official-alerts/{city}")
 def get_official_alert_context(city: str):
@@ -239,6 +346,7 @@ def get_official_alert_context(city: str):
         "source_url": "https://mausam.imd.gov.in/",
     }
 
+
 @app.get("/api/evaluation/live-summary")
 def get_live_evaluation_summary():
     """Summarize locally logged live forecasts; outcome matching is additive later."""
@@ -253,8 +361,23 @@ def get_live_evaluation_summary():
     cities = {}
     for record in records:
         cities[record["city"]] = cities.get(record["city"], 0) + 1
-    return {"logged_predictions": len(records), "cities": cities, "outcomes_matched": 0,
-            "note": "Use /api/evaluation/live-outcomes for observed-temperature proxy matching."}
+    return {
+        "logged_predictions": len(records),
+        "cities": cities,
+        "outcomes_matched": 0,
+        "note": "Use /api/evaluation/live-outcomes for observed-temperature proxy matching.",
+    }
+
+
+@app.get("/api/evaluation/latest")
+def get_latest_evaluation():
+    """Return the latest read-only evaluation artifact generated by evaluation/run_evaluation.py."""
+    if not EVALUATION_RESULT_PATH.exists():
+        raise HTTPException(
+            503, "Evaluation artifact is unavailable. Run evaluation/run_evaluation.py."
+        )
+    return json.loads(EVALUATION_RESULT_PATH.read_text(encoding="utf-8"))
+
 
 @app.get("/api/evaluation/live-outcomes")
 def get_live_outcomes():
@@ -277,30 +400,60 @@ def get_live_outcomes():
     for record in records:
         city = CITIES.get(record["city"])
         if not city:
-            unavailable += 1; continue
+            unavailable += 1
+            continue
         try:
-            response = requests.get("https://archive-api.open-meteo.com/v1/archive", params={
-                "latitude": city["lat"], "longitude": city["lon"], "start_date": record["date"],
-                "end_date": record["date"], "daily": "temperature_2m_max", "timezone": "Asia/Kolkata"}, timeout=10)
+            response = requests.get(
+                "https://archive-api.open-meteo.com/v1/archive",
+                params={
+                    "latitude": city["lat"],
+                    "longitude": city["lon"],
+                    "start_date": record["date"],
+                    "end_date": record["date"],
+                    "daily": "temperature_2m_max",
+                    "timezone": "Asia/Kolkata",
+                },
+                timeout=10,
+            )
             tmax = response.json()["daily"]["temperature_2m_max"][0]
             threshold = 37 if record["city"] == "mumbai" else 40
             observed_signal = tmax >= threshold
-            outcomes.append({**record, "observed_tmax": tmax, "threshold_c": threshold,
-                             "observed_heat_signal": observed_signal,
-                             "matched_proxy": bool(record["prediction"]) == observed_signal})
+            outcomes.append(
+                {
+                    **record,
+                    "observed_tmax": tmax,
+                    "threshold_c": threshold,
+                    "observed_heat_signal": observed_signal,
+                    "matched_proxy": bool(record["prediction"]) == observed_signal,
+                }
+            )
         except (requests.RequestException, KeyError, IndexError, TypeError, ValueError):
             unavailable += 1
-    return {"evaluated": len(records), "matched": len(outcomes), "unavailable": unavailable,
-            "proxy_accuracy": round(sum(x["matched_proxy"] for x in outcomes) / len(outcomes), 4) if outcomes else None,
-            "outcomes": outcomes,
-            "note": "Observed Tmax comes from Open-Meteo archive. This threshold proxy is not an official IMD heatwave outcome."}
+    return {
+        "evaluated": len(records),
+        "matched": len(outcomes),
+        "unavailable": unavailable,
+        "proxy_accuracy": (
+            round(sum(x["matched_proxy"] for x in outcomes) / len(outcomes), 4)
+            if outcomes
+            else None
+        ),
+        "outcomes": outcomes,
+        "note": "Observed Tmax comes from Open-Meteo archive. This threshold proxy is not an official IMD heatwave outcome.",
+    }
+
 
 def log_live_predictions(city: str, result: dict) -> None:
     """Append successful forecast-day estimates for later observed-outcome checks."""
     rows = [
-        {"logged_at": datetime.now(timezone.utc).isoformat(), "city": city,
-         "date": day["date"], "probability": day["probability"],
-         "prediction": day["prediction"], "risk_level": day["risk_level"]}
+        {
+            "logged_at": datetime.now(timezone.utc).isoformat(),
+            "city": city,
+            "date": day["date"],
+            "probability": day["probability"],
+            "prediction": day["prediction"],
+            "risk_level": day["risk_level"],
+        }
         for day in result.get("days", [])
         if day.get("error") is None and day.get("probability") is not None
     ]
@@ -310,17 +463,66 @@ def log_live_predictions(city: str, result: dict) -> None:
     with PREDICTION_LOG.open("a", encoding="utf-8") as handle:
         for row in rows:
             handle.write(json.dumps(row) + "\n")
+    live_tracking.record(
+        LIVE_TRACKING_DB,
+        city,
+        result.get("days", []),
+        ACTIVE_MODEL["version"],
+        result.get("last_updated", datetime.now(timezone.utc).isoformat()),
+    )
+
+
+def reconcile_live_outcomes() -> None:
+    """Fill past forecast rows from Open-Meteo archive; one failure never stops the job."""
+    for prediction_id, city_key, forecast_date in live_tracking.pending_before_today(
+        LIVE_TRACKING_DB
+    ):
+        city = CITIES.get(city_key)
+        if not city:
+            continue
+        try:
+            response = requests.get(
+                "https://archive-api.open-meteo.com/v1/archive",
+                params={
+                    "latitude": city["lat"],
+                    "longitude": city["lon"],
+                    "start_date": forecast_date,
+                    "end_date": forecast_date,
+                    "daily": "temperature_2m_max",
+                    "timezone": "Asia/Kolkata",
+                },
+                timeout=12,
+            )
+            response.raise_for_status()
+            tmax = float(response.json()["daily"]["temperature_2m_max"][0])
+            live_tracking.record_outcome(
+                LIVE_TRACKING_DB, prediction_id, tmax, 37 if city_key == "mumbai" else 40
+            )
+        except (requests.RequestException, KeyError, IndexError, TypeError, ValueError) as exc:
+            logger.warning(
+                json.dumps(
+                    {
+                        "event": "live_outcome_unavailable",
+                        "city": city_key,
+                        "date": forecast_date,
+                        "error": str(exc),
+                    }
+                )
+            )
+
 
 @app.get("/api/cities")
 def get_cities():
     """Return all available cities with metadata."""
     result = []
     for key, info in CITIES.items():
-        result.append({
-            "key": key,
-            **info,
-            **stats_data.get(key, {}),
-        })
+        result.append(
+            {
+                "key": key,
+                **info,
+                **stats_data.get(key, {}),
+            }
+        )
     return result
 
 
@@ -366,8 +568,14 @@ def predict(request: Request, req: PredictRequest):
     # Strip metadata columns that cause ETL validation failure
     # Keep only: city_key, date, and the 110 model features
     META_COLS_TO_DROP = {
-        "city", "state", "region_type", "heatwave",
-        "hw_event_id", "hw_event_start", "hw_event_end", "hw_event_length",
+        "city",
+        "state",
+        "region_type",
+        "heatwave",
+        "hw_event_id",
+        "hw_event_start",
+        "hw_event_end",
+        "hw_event_length",
         "heatwave_next_day",
     }
     pipeline_row = {k: v for k, v in row.items() if k not in META_COLS_TO_DROP}
@@ -438,14 +646,20 @@ def get_trends(city: str):
 
     records = []
     for _, row in city_df.iterrows():
-        records.append({
-            "date": str(row["date"]),
-            "tmax": safe_float(row.get("temperature_2m_max")),
-            "tmin": safe_float(row.get("temperature_2m_min")),
-            "prob": safe_float(row.get("pred_probability")),
-            "heatwave": int(row.get("heatwave", 0)),
-            "hw_next": int(row.get("heatwave_next_day", 0)) if not math.isnan(row.get("heatwave_next_day", 0)) else 0,
-        })
+        records.append(
+            {
+                "date": str(row["date"]),
+                "tmax": safe_float(row.get("temperature_2m_max")),
+                "tmin": safe_float(row.get("temperature_2m_min")),
+                "prob": safe_float(row.get("pred_probability")),
+                "heatwave": int(row.get("heatwave", 0)),
+                "hw_next": (
+                    int(row.get("heatwave_next_day", 0))
+                    if not math.isnan(row.get("heatwave_next_day", 0))
+                    else 0
+                ),
+            }
+        )
     return {"city": city, "city_name": CITIES[city]["name"], "data": records}
 
 
@@ -459,19 +673,21 @@ def get_map_data():
         max_prob = float(city_df["pred_probability"].max())
         hw_days = int(city_df["heatwave"].sum()) if "heatwave" in city_df.columns else 0
         total = len(city_df)
-        result.append({
-            "key": key,
-            "name": info["name"],
-            "state": info["state"],
-            "region": info["region"],
-            "lat": info["lat"],
-            "lon": info["lon"],
-            "avg_probability": round(avg_prob, 4),
-            "max_probability": round(max_prob, 4),
-            "heatwave_days": hw_days,
-            "total_days": total,
-            "heatwave_pct": round(hw_days / total * 100, 1) if total > 0 else 0,
-        })
+        result.append(
+            {
+                "key": key,
+                "name": info["name"],
+                "state": info["state"],
+                "region": info["region"],
+                "lat": info["lat"],
+                "lon": info["lon"],
+                "avg_probability": round(avg_prob, 4),
+                "max_probability": round(max_prob, 4),
+                "heatwave_days": hw_days,
+                "total_days": total,
+                "heatwave_pct": round(hw_days / total * 100, 1) if total > 0 else 0,
+            }
+        )
     return result
 
 
@@ -535,6 +751,7 @@ def explain_prediction(request: Request, req: PredictRequest):
     # Use Tree SHAP for fast per-prediction explanation
     try:
         import shap
+
         explainer = shap.TreeExplainer(predictor.model)
         shap_values = explainer.shap_values(row_features)
         # For binary classification, shap_values[1] = class 1 (heatwave)
@@ -554,7 +771,11 @@ def explain_prediction(request: Request, req: PredictRequest):
             }
             for i in top_indices
         ]
-        base_value = float(explainer.expected_value[1]) if isinstance(explainer.expected_value, (list, np.ndarray)) else float(explainer.expected_value)
+        base_value = (
+            float(explainer.expected_value[1])
+            if isinstance(explainer.expected_value, (list, np.ndarray))
+            else float(explainer.expected_value)
+        )
     except Exception as e:
         # Fallback: use feature importances * feature values
         contributions = []
@@ -562,12 +783,14 @@ def explain_prediction(request: Request, req: PredictRequest):
         weighted = fi * np.abs(row_features[0])
         top_indices = np.argsort(weighted)[::-1][:15]
         for i in top_indices:
-            contributions.append({
-                "feature": feature_cols[i],
-                "shap_value": round(float(fi[i]), 6),
-                "feature_value": round(float(row_features[0, i]), 4),
-                "direction": "important",
-            })
+            contributions.append(
+                {
+                    "feature": feature_cols[i],
+                    "shap_value": round(float(fi[i]), 6),
+                    "feature_value": round(float(row_features[0, i]), 4),
+                    "direction": "important",
+                }
+            )
         base_value = 0.5
 
     return {
@@ -585,19 +808,29 @@ def get_city_comparison():
     for city_key, info in CITIES.items():
         city_df = test_data[test_data["city_key"] == city_key]
         valid = city_df.dropna(subset=["heatwave_next_day"])
-        result.append({
-            "key": city_key,
-            "name": info["name"],
-            "state": info["state"],
-            "region": info["region"],
-            "total_days": len(valid),
-            "heatwave_days": int(valid["heatwave"].sum()) if "heatwave" in valid.columns else 0,
-            "avg_tmax": round(float(city_df["temperature_2m_max"].mean()), 1) if "temperature_2m_max" in city_df.columns else None,
-            "max_tmax": round(float(city_df["temperature_2m_max"].max()), 1) if "temperature_2m_max" in city_df.columns else None,
-            "avg_prob": round(float(city_df["pred_probability"].mean()) * 100, 2),
-            "max_prob": round(float(city_df["pred_probability"].max()) * 100, 1),
-            **city_metrics.get(city_key, {}),
-        })
+        result.append(
+            {
+                "key": city_key,
+                "name": info["name"],
+                "state": info["state"],
+                "region": info["region"],
+                "total_days": len(valid),
+                "heatwave_days": int(valid["heatwave"].sum()) if "heatwave" in valid.columns else 0,
+                "avg_tmax": (
+                    round(float(city_df["temperature_2m_max"].mean()), 1)
+                    if "temperature_2m_max" in city_df.columns
+                    else None
+                ),
+                "max_tmax": (
+                    round(float(city_df["temperature_2m_max"].max()), 1)
+                    if "temperature_2m_max" in city_df.columns
+                    else None
+                ),
+                "avg_prob": round(float(city_df["pred_probability"].mean()) * 100, 2),
+                "max_prob": round(float(city_df["pred_probability"].max()) * 100, 1),
+                **city_metrics.get(city_key, {}),
+            }
+        )
     return result
 
 
@@ -606,17 +839,21 @@ def get_city_comparison():
 # ---------------------------------------------------------------------------
 WEB_DIR = PROJECT_ROOT / "web"
 
+
 @app.get("/")
 def serve_index():
     return FileResponse(WEB_DIR / "index.html")
+
 
 @app.get("/performance")
 def serve_performance():
     return FileResponse(WEB_DIR / "performance.html")
 
+
 @app.get("/about")
 def serve_about():
     return FileResponse(WEB_DIR / "about.html")
+
 
 # ---------------------------------------------------------------------------
 # Phase 7 — Live data endpoints (ADDITIVE — no existing routes changed)
@@ -625,6 +862,7 @@ try:
     from live_data import CITIES as LIVE_CITIES
     from live_data import cache_status as live_cache_status
     from live_data import get_live_forecast
+
     _LIVE_DATA_AVAILABLE = True
     print("[startup] Live data module loaded (Open-Meteo integration available)")
 except Exception as _live_err:

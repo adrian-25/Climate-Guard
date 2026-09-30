@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install fastapi uvicorn pandas numpy scikit-learn joblib requests pytest shap
+      - run: pip install fastapi uvicorn pandas numpy scikit-learn joblib requests pytest shap APScheduler slowapi
       - run: python -m py_compile app.py live_data.py
       - run: python -m pytest tests/test_prediction_interface.py -q
       - name: Verify additive API health route

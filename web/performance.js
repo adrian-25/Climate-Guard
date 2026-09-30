@@ -129,10 +129,12 @@ function scatterOptions(xLabel, yLabel, auc) {
 // Main
 // ----------------------------------------------------------------
 async function init() {
-  const [perfData, fiData, cityData] = await Promise.all([
+  const [perfData, fiData, cityData, evaluation, liveTrackRecord] = await Promise.all([
     API('/performance'),
     API('/feature-importance'),
     API('/city-comparison'),
+    API('/evaluation/latest').catch(() => null),
+    API('/evaluation/live-track-record').catch(() => null),
   ]);
 
   renderMetricsBar(perfData);
@@ -141,6 +143,45 @@ async function init() {
   renderPRChart(perfData.pr);
   renderFeatureImportance(fiData);
   renderCityComparison(cityData);
+  renderEvaluation(evaluation);
+  renderLiveTrackRecord(liveTrackRecord);
+}
+
+function renderLiveTrackRecord(data) {
+  const el = document.getElementById('live-track-record');
+  if (!el) return;
+  if (!data || data.status === 'not_enough_data') {
+    const count = data?.logged_predictions || 0;
+    el.textContent = 'Not enough data yet: ' + count + ' live forecast' + (count === 1 ? '' : 's') + ' logged and no reconciled outcomes. This section updates after forecast dates pass.';
+    return;
+  }
+  el.textContent = data.matched_outcomes + ' reconciled outcomes: precision ' + data.precision.toFixed(4) + ', recall ' + data.recall.toFixed(4) + '. ' + data.note;
+}
+
+function renderEvaluation(evaluation) {
+  if (!evaluation) {
+    const unavailable = document.getElementById('evaluation-unavailable');
+    unavailable.hidden = false;
+    unavailable.textContent = 'Evaluation artifact is unavailable. Run the documented evaluation script before using these checks.';
+    return;
+  }
+  const metrics = ['f1', 'precision', 'recall', 'brier'];
+  const rows = [
+    ['Active model', evaluation.active_model],
+    ['Persistence baseline', evaluation.baselines.persistence_heatwave_lag1],
+    ['IMD-style qualifying-day proxy', evaluation.baselines.imd_style_qualifying_day_proxy],
+  ];
+  document.getElementById('baseline-comparison').innerHTML = `<table class="comp-table"><thead><tr><th>Approach</th>${metrics.map(metric => `<th class="right">${metric.toUpperCase()}</th>`).join('')}</tr></thead><tbody>${rows.map(([name, value]) => `<tr><td class="comp-city">${name}</td>${metrics.map(metric => `<td class="comp-metric right">${value[metric].toFixed(4)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+
+  const points = evaluation.calibration.bin_mean_predicted.map((x, index) => ({ x, y: evaluation.calibration.bin_fraction_positive[index] }));
+  new Chart(document.getElementById('calibration-chart'), {
+    type: 'scatter',
+    data: { datasets: [
+      { label: 'Observed frequency', data: points, showLine: true, borderColor: CHART.accent, pointRadius: 3 },
+      { label: 'Perfect calibration', data: [{ x: 0, y: 0 }, { x: 1, y: 1 }], showLine: true, borderColor: CHART.neutral, borderDash: [5, 5], pointRadius: 0 },
+    ] },
+    options: scatterOptions('Mean predicted probability', 'Observed heatwave frequency'),
+  });
 }
 
 // ----------------------------------------------------------------

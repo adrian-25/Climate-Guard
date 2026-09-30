@@ -36,3 +36,8 @@ Run the existing interface tests with `python tests/test_prediction_interface.py
   structured request logs, lint/pre-commit configuration, mocked live-data tests, and API
   contract tests. Rate limits protect the expensive prediction, explanation, and live routes.
   Latest focused coverage run: 51% total (65% app module; 33% live-data module).
+- Phase 2 completed credibility increments: a reproducible frozen-model evaluation artifact,
+  temporal folds and calibration data, explicit persistence and IMD-style proxy baselines,
+  data audit documentation, and an append-only SQLite live-forecast ledger with scheduled
+  Open-Meteo observed-temperature proxy reconciliation. The dashboard reports insufficient
+  live evidence honestly until matched outcomes accumulate; it never calls this an IMD warning.
