@@ -32,4 +32,6 @@ Run the existing interface tests with `python tests/test_prediction_interface.py
 
 ## Phase log
 
-- Phase 1 is in progress: engineering foundation.
+- Phase 1 completed foundation increments: model registry, explicit CORS, request IDs,
+  structured request logs, lint/pre-commit configuration, mocked live-data tests, and API
+  contract tests. Rate limits protect the expensive prediction, explanation, and live routes.

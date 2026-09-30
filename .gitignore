@@ -89,4 +89,6 @@ models/phase10/**/scaler.joblib
 # Log files and OS noise
 # ------------------------------------------------------------
 *.log
+.coverage
+htmlcov/
 desktop.ini

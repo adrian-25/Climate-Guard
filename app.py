@@ -7,30 +7,40 @@ Run:
     → http://localhost:8000
 """
 
-import sys
 import json
+import logging
 import math
 import os
-import logging
+import sys
 import uuid
 from datetime import datetime, timezone
-import requests
-import numpy as np
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import pandas as pd
+import requests
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sklearn.metrics import (
-    confusion_matrix, roc_curve, precision_recall_curve,
-    classification_report, f1_score, precision_score, recall_score,
-    accuracy_score, roc_auc_score, average_precision_score,
+    accuracy_score,
+    average_precision_score,
+    classification_report,
+    confusion_matrix,
+    f1_score,
+    precision_recall_curve,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+    roc_curve,
 )
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 # ---------------------------------------------------------------------------
 # Project root setup
@@ -164,6 +174,9 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(message)s")
 logger = logging.getLogger("climateguard")
 allowed_origins = [item.strip() for item in os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:8001,http://127.0.0.1:8001").split(",") if item.strip()]
 app = FastAPI(title="ClimateGuard Dashboard API", version="1.0.0")
+limiter = Limiter(key_func=get_remote_address, default_limits=["240/minute"])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -328,7 +341,8 @@ def get_dates(city: str):
 
 
 @app.post("/api/predict")
-def predict(req: PredictRequest):
+@limiter.limit("30/minute")
+def predict(request: Request, req: PredictRequest):
     """Run the full ClimateGuard pipeline for a city + date."""
     city = req.city.lower().strip()
     date = req.date.strip()
@@ -500,7 +514,8 @@ def get_feature_importance():
 
 
 @app.post("/api/explain")
-def explain_prediction(req: PredictRequest):
+@limiter.limit("15/minute")
+def explain_prediction(request: Request, req: PredictRequest):
     """Run prediction with per-feature importance for explainability."""
     city = req.city.lower().strip()
     date = req.date.strip()
@@ -607,7 +622,9 @@ def serve_about():
 # Phase 7 — Live data endpoints (ADDITIVE — no existing routes changed)
 # ---------------------------------------------------------------------------
 try:
-    from live_data import get_live_forecast, cache_status as live_cache_status, CITIES as LIVE_CITIES
+    from live_data import CITIES as LIVE_CITIES
+    from live_data import cache_status as live_cache_status
+    from live_data import get_live_forecast
     _LIVE_DATA_AVAILABLE = True
     print("[startup] Live data module loaded (Open-Meteo integration available)")
 except Exception as _live_err:
@@ -630,7 +647,8 @@ def get_live_status():
 
 
 @app.get("/api/live/{city}")
-def get_live_city(city: str):
+@limiter.limit("12/minute")
+def get_live_city(request: Request, city: str):
     """
     Fetch live weather from Open-Meteo, engineer all 110 features, and run
     the full ClimateGuard pipeline (Part 1 + Part 3 expert rules) for today
