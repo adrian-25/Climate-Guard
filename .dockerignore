@@ -1,0 +1,13 @@
+.git
+.github
+.venv
+venv
+__pycache__
+*.py[cod]
+.env
+runtime
+playwright-artifacts
+web_backup
+data/raw_backup
+data/raw_staging
+notebooks

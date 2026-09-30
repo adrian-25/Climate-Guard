@@ -12,9 +12,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install fastapi uvicorn pandas numpy scikit-learn joblib requests pytest shap APScheduler slowapi
+      - run: pip install -r requirements-dev.txt
       - run: python -m py_compile app.py live_data.py
-      - run: python -m pytest tests/test_prediction_interface.py -q
+      - run: ruff check app.py live_data.py src/alerts.py src/cities.py src/live_tracking.py tests/test_api_contract.py tests/test_alerts.py tests/test_city_registry.py tests/test_live_data_unit.py tests/test_live_tracking.py evaluation
+      - run: black --check app.py live_data.py src/alerts.py src/cities.py src/live_tracking.py tests/test_api_contract.py tests/test_alerts.py tests/test_city_registry.py tests/test_live_data_unit.py tests/test_live_tracking.py evaluation
+      - run: coverage run -m pytest -q
+      - run: coverage report -m
+      - run: pip-audit -r requirements.txt
       - name: Verify additive API health route
         run: python -c "import app; assert app.get_health()['status'] == 'ok'"
 
@@ -29,3 +33,13 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Verify browser runtime
         run: node -e "const { chromium } = require('playwright'); chromium.launch({headless:true}).then(b => b.close())"
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false

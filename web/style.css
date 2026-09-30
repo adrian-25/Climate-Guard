@@ -1739,6 +1739,7 @@ a:hover {
   color: var(--ink-secondary);
   margin-bottom: var(--sp-3);
 }
+.live-day-details { color: var(--ink-muted); font-size: .72rem; line-height: 1.35; min-height: 2.7em; }
 
 .live-day-risk {
   display: inline-block;
@@ -1788,6 +1789,11 @@ a:hover {
 }
 
 .alert-signup { margin: 40px 0; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.product-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin-top: 16px; }
+.product-tools label { display: grid; gap: 4px; font-size: .78rem; }
+.product-tools select, .product-tools button { min-height: 36px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); color: var(--text); }
+.offline-banner { margin: 0; padding: 8px 16px; background: var(--risk-moderate-bg); color: var(--risk-moderate-text); text-align: center; }
+@media print { .nav-bar, .product-tools, .mode-switch, .btn-live-refresh, .alert-signup, .site-footer, .map-section { display: none !important; } body { background: #fff; color: #111; } }
 .subscribe-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 12px; align-items: end; }
 .subscribe-form label { display: grid; gap: 6px; color: var(--text-muted); font-size: .85rem; }
 .subscribe-form input, .subscribe-form select { min-height: 40px; border: 1px solid var(--line); border-radius: 6px; padding: 8px; background: var(--bg); color: var(--text); }

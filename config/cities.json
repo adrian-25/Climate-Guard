@@ -1,0 +1,7 @@
+{
+  "delhi": {"name": "New Delhi", "state": "Delhi", "region": "Plains", "region_type": "plains", "lat": 28.6139, "lon": 77.2090, "model_status": "validated"},
+  "lucknow": {"name": "Lucknow", "state": "Uttar Pradesh", "region": "Plains", "region_type": "plains", "lat": 26.8467, "lon": 80.9462, "model_status": "validated"},
+  "nagpur": {"name": "Nagpur", "state": "Maharashtra", "region": "Plains", "region_type": "plains", "lat": 21.1458, "lon": 79.0882, "model_status": "validated"},
+  "ahmedabad": {"name": "Ahmedabad", "state": "Gujarat", "region": "Plains", "region_type": "plains", "lat": 23.0225, "lon": 72.5714, "model_status": "validated"},
+  "mumbai": {"name": "Mumbai", "state": "Maharashtra", "region": "Coastal", "region_type": "coastal", "lat": 19.0760, "lon": 72.8777, "model_status": "validated"}
+}

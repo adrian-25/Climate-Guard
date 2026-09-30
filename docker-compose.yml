@@ -1,0 +1,15 @@
+services:
+  climateguard:
+    build: .
+    ports:
+      - "8001:8001"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_PATH: /app/runtime/climateguard.sqlite3
+      ALERT_DATABASE_PATH: /app/runtime/climateguard.sqlite3
+    volumes:
+      - climateguard_runtime:/app/runtime
+volumes:
+  climateguard_runtime:

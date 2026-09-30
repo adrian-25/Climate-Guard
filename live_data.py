@@ -46,23 +46,23 @@ from scipy.stats import linregress
 PROJECT_ROOT = Path(__file__).resolve().parent
 
 # ---------------------------------------------------------------------------
-# City metadata (mirrors CITIES in app.py exactly)
+# City metadata from the versioned active-model city registry
 # ---------------------------------------------------------------------------
-CITIES: Dict[str, Dict] = {
-    "delhi":     {"name": "New Delhi",  "state": "Delhi",         "region": "Plains",  "lat": 28.6139, "lon": 77.2090, "region_type": "plains"},
-    "lucknow":   {"name": "Lucknow",    "state": "Uttar Pradesh", "region": "Plains",  "lat": 26.8467, "lon": 80.9462, "region_type": "plains"},
-    "nagpur":    {"name": "Nagpur",     "state": "Maharashtra",   "region": "Plains",  "lat": 21.1458, "lon": 79.0882, "region_type": "plains"},
-    "ahmedabad": {"name": "Ahmedabad",  "state": "Gujarat",       "region": "Plains",  "lat": 23.0225, "lon": 72.5714, "region_type": "plains"},
-    "mumbai":    {"name": "Mumbai",     "state": "Maharashtra",   "region": "Coastal", "lat": 19.0760, "lon": 72.8777, "region_type": "coastal"},
-}
-
-CITY_ORDER = ["delhi", "lucknow", "nagpur", "ahmedabad", "mumbai"]
+from src.cities import CITIES, CITY_ORDER
 
 SEASON_MAP = {
-    12: 0, 1: 0, 2: 0,    # winter
-    3: 1, 4: 1, 5: 1,     # spring
-    6: 2, 7: 2, 8: 2, 9: 2, # monsoon
-    10: 3, 11: 3,          # autumn
+    12: 0,
+    1: 0,
+    2: 0,  # winter
+    3: 1,
+    4: 1,
+    5: 1,  # spring
+    6: 2,
+    7: 2,
+    8: 2,
+    9: 2,  # monsoon
+    10: 3,
+    11: 3,  # autumn
 }
 
 # ---------------------------------------------------------------------------
@@ -71,17 +71,19 @@ SEASON_MAP = {
 _NORMALS_PATH = PROJECT_ROOT / "data" / "city_tmax_normals.json"
 _TMAX_NORMALS: Dict[str, Dict[str, float]] = {}
 
+
 def _load_normals() -> None:
     global _TMAX_NORMALS
     if not _NORMALS_PATH.exists():
         raise FileNotFoundError(
-            f"City tmax normals file not found: {_NORMALS_PATH}. "
-            "Run _build_normals.py first."
+            f"City tmax normals file not found: {_NORMALS_PATH}. " "Run _build_normals.py first."
         )
     with open(_NORMALS_PATH, encoding="utf-8") as f:
         _TMAX_NORMALS = json.load(f)
 
+
 _load_normals()
+
 
 def get_tmax_normal(city_key: str, doy: int) -> float:
     """Return the climatological tmax normal for a city and day-of-year."""
@@ -96,6 +98,7 @@ def get_tmax_normal(city_key: str, doy: int) -> float:
                     return float(v)
         return 35.0  # extreme fallback
     return float(v)
+
 
 # ---------------------------------------------------------------------------
 # Open-Meteo variable mapping
@@ -128,6 +131,7 @@ OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 _CACHE: Dict[str, Dict] = {}
 CACHE_TTL_SECONDS = 1800  # 30 minutes
 
+
 def _cache_get(city_key: str) -> Optional[Dict]:
     entry = _CACHE.get(city_key)
     if entry is None:
@@ -137,8 +141,10 @@ def _cache_get(city_key: str) -> Optional[Dict]:
         return None
     return entry
 
+
 def _cache_set(city_key: str, data: Dict) -> None:
     _CACHE[city_key] = {**data, "fetched_at": time.time()}
+
 
 def cache_status() -> Dict[str, Any]:
     now = time.time()
@@ -153,10 +159,11 @@ def cache_status() -> Dict[str, Any]:
         }
     return result
 
+
 # ---------------------------------------------------------------------------
 # Fetch raw weather from Open-Meteo
 # ---------------------------------------------------------------------------
-def _fetch_open_meteo(city_key: str, past_days: int = 30, forecast_days: int = 5) -> pd.DataFrame:
+def _fetch_open_meteo(city_key: str, past_days: int = 30, forecast_days: int = 7) -> pd.DataFrame:
     """
     Fetch daily weather from Open-Meteo for a city.
     Returns a DataFrame with dates and raw weather variables.
@@ -164,12 +171,12 @@ def _fetch_open_meteo(city_key: str, past_days: int = 30, forecast_days: int = 5
     """
     city = CITIES[city_key]
     params = {
-        "latitude":       city["lat"],
-        "longitude":      city["lon"],
-        "daily":          ",".join(OPEN_METEO_DAILY_VARS),
-        "timezone":       "Asia/Kolkata",
-        "past_days":      past_days,
-        "forecast_days":  forecast_days,
+        "latitude": city["lat"],
+        "longitude": city["lon"],
+        "daily": ",".join(OPEN_METEO_DAILY_VARS),
+        "timezone": "Asia/Kolkata",
+        "past_days": past_days,
+        "forecast_days": forecast_days,
     }
 
     try:
@@ -205,16 +212,18 @@ def _fetch_open_meteo(city_key: str, past_days: int = 30, forecast_days: int = 5
 
     return df
 
+
 # ---------------------------------------------------------------------------
 # Feature engineering (mirrors feature_engineering.py exactly)
 # ---------------------------------------------------------------------------
+
 
 def _rolling_slope(series: pd.Series, window: int) -> pd.Series:
     """Rolling linear slope — exact replica of feature_engineering.py rolling_slope()."""
     slopes = [np.nan] * len(series)
     values = series.values
     for i in range(window, len(values) + 1):
-        chunk = values[i - window:i]
+        chunk = values[i - window : i]
         valid_mask = ~np.isnan(chunk)
         if valid_mask.sum() >= 2:
             x = np.arange(window)[valid_mask]
@@ -233,7 +242,7 @@ KEY_WEATHER_VARS = [
     "wind_speed_10m_max",
     "surface_pressure_mean",
 ]
-LAG_OFFSETS  = [1, 2, 3, 7]
+LAG_OFFSETS = [1, 2, 3, 7]
 ROLL_WINDOWS = [3, 7]
 
 
@@ -250,20 +259,19 @@ def _compute_features(df: pd.DataFrame, city_key: str) -> pd.DataFrame:
 
     # --- tmax_normal and tmax_departure ---
     doys = df["date"].dt.dayofyear
-    df["tmax_normal"]   = doys.apply(lambda d: get_tmax_normal(city_key, int(d)))
+    df["tmax_normal"] = doys.apply(lambda d: get_tmax_normal(city_key, int(d)))
     df["tmax_departure"] = df["temperature_2m_max"] - df["tmax_normal"]
 
     # --- qualifying_day ---
-    is_coastal = (city_info["region_type"] == "coastal")
+    is_coastal = city_info["region_type"] == "coastal"
     if is_coastal:
         df["qualifying_day"] = (
-            (df["temperature_2m_max"] >= 37.0) &
-            (df["tmax_departure"] >= 4.5)
+            (df["temperature_2m_max"] >= 37.0) & (df["tmax_departure"] >= 4.5)
         ).astype(int)
     else:
         df["qualifying_day"] = (
-            ((df["temperature_2m_max"] >= 40.0) & (df["tmax_departure"] >= 4.5)) |
-            (df["temperature_2m_max"] >= 45.0)
+            ((df["temperature_2m_max"] >= 40.0) & (df["tmax_departure"] >= 4.5))
+            | (df["temperature_2m_max"] >= 45.0)
         ).astype(int)
 
     # --- heatwave_lag1 (yesterday's qualifying_day as proxy for heatwave state) ---
@@ -284,8 +292,8 @@ def _compute_features(df: pd.DataFrame, city_key: str) -> pd.DataFrame:
         for w in ROLL_WINDOWS:
             roll = past.rolling(window=w, min_periods=w)
             df[f"{var}_roll{w}_mean"] = roll.mean()
-            df[f"{var}_roll{w}_max"]  = roll.max()
-            df[f"{var}_roll{w}_min"]  = roll.min()
+            df[f"{var}_roll{w}_max"] = roll.max()
+            df[f"{var}_roll{w}_min"] = roll.min()
 
     # --- Group 4: trend features ---
     tmax = df["temperature_2m_max"]
@@ -297,29 +305,28 @@ def _compute_features(df: pd.DataFrame, city_key: str) -> pd.DataFrame:
     df["tmax_slope_7d"] = _rolling_slope(tmax_past, window=7)
 
     # --- Group 5: anomaly z-score ---
-    dep_past         = df["tmax_departure"].shift(1)
-    dep_roll30_std   = dep_past.rolling(window=30, min_periods=10).std()
-    dep_roll30_mean  = dep_past.rolling(window=30, min_periods=10).mean()
-    df["tmax_departure_zscore"] = (
-        (df["tmax_departure"] - dep_roll30_mean) /
-        dep_roll30_std.replace(0, np.nan)
+    dep_past = df["tmax_departure"].shift(1)
+    dep_roll30_std = dep_past.rolling(window=30, min_periods=10).std()
+    dep_roll30_mean = dep_past.rolling(window=30, min_periods=10).mean()
+    df["tmax_departure_zscore"] = (df["tmax_departure"] - dep_roll30_mean) / dep_roll30_std.replace(
+        0, np.nan
     )
 
     # --- Group 6: calendar features ---
     dates = df["date"]
-    df["month"]       = dates.dt.month
+    df["month"] = dates.dt.month
     df["day_of_year"] = dates.dt.dayofyear
     df["season_code"] = df["month"].map(SEASON_MAP)
-    df["month_sin"]   = np.sin(2 * np.pi * df["month"] / 12)
-    df["month_cos"]   = np.cos(2 * np.pi * df["month"] / 12)
-    df["doy_sin"]     = np.sin(2 * np.pi * df["day_of_year"] / 365.25)
-    df["doy_cos"]     = np.cos(2 * np.pi * df["day_of_year"] / 365.25)
+    df["month_sin"] = np.sin(2 * np.pi * df["month"] / 12)
+    df["month_cos"] = np.cos(2 * np.pi * df["month"] / 12)
+    df["doy_sin"] = np.sin(2 * np.pi * df["day_of_year"] / 365.25)
+    df["doy_cos"] = np.cos(2 * np.pi * df["day_of_year"] / 365.25)
 
     # --- Group 7: city features ---
     df["city_encoded"] = CITY_ORDER.index(city_key)
-    df["is_coastal"]   = int(is_coastal)
-    df["latitude"]     = city_info["lat"]
-    df["longitude"]    = city_info["lon"]
+    df["is_coastal"] = int(is_coastal)
+    df["latitude"] = city_info["lat"]
+    df["longitude"] = city_info["lon"]
 
     return df
 
@@ -329,6 +336,7 @@ def _load_feature_list() -> List[str]:
     with open(path, encoding="utf-8") as f:
         raw = json.load(f)
     return [entry["name"] for entry in raw]
+
 
 _FEATURE_NAMES: List[str] = _load_feature_list()
 
@@ -350,9 +358,12 @@ def _row_to_feature_dict(row: pd.Series) -> Optional[Dict[str, float]]:
 # Risk level (mirrors Part 2 thresholds from app.py exactly)
 # ---------------------------------------------------------------------------
 def _prob_to_risk(prob: float) -> str:
-    if prob >= 0.80: return "EXTREME"
-    if prob >= 0.60: return "HIGH"
-    if prob >= 0.30: return "MODERATE"
+    if prob >= 0.80:
+        return "EXTREME"
+    if prob >= 0.60:
+        return "HIGH"
+    if prob >= 0.30:
+        return "MODERATE"
     return "LOW"
 
 
@@ -390,7 +401,7 @@ def get_live_forecast(city_key: str, pipeline) -> Dict[str, Any]:
 
     # --- Fetch from Open-Meteo ---
     try:
-        raw_df = _fetch_open_meteo(city_key, past_days=30, forecast_days=5)
+        raw_df = _fetch_open_meteo(city_key, past_days=30, forecast_days=7)
     except Exception as exc:
         return {
             "city": city_key,
@@ -445,16 +456,17 @@ def get_live_forecast(city_key: str, pipeline) -> Dict[str, Any]:
 
         features = _row_to_feature_dict(row)
         if features is None:
-            missing = [n for n in _FEATURE_NAMES
-                       if n not in row.index or pd.isna(row.get(n))]
-            days.append({
-                "date": day_date,
-                "type": "forecast" if is_forecast else "today",
-                "error": f"Cannot predict: {len(missing)} feature(s) have null values: {missing[:5]}",
-                "probability": None,
-                "prediction": None,
-                "risk_level": None,
-            })
+            missing = [n for n in _FEATURE_NAMES if n not in row.index or pd.isna(row.get(n))]
+            days.append(
+                {
+                    "date": day_date,
+                    "type": "forecast" if is_forecast else "today",
+                    "error": f"Cannot predict: {len(missing)} feature(s) have null values: {missing[:5]}",
+                    "probability": None,
+                    "prediction": None,
+                    "risk_level": None,
+                }
+            )
             continue
 
         try:
@@ -472,41 +484,73 @@ def get_live_forecast(city_key: str, pipeline) -> Dict[str, Any]:
             )
             triggered_rules = [
                 {"rule_id": r.rule_id, "name": r.name, "severity": r.severity, "message": r.message}
-                for r in rule_results if r.triggered
+                for r in rule_results
+                if r.triggered
             ]
 
-            days.append({
-                "date":            day_date,
-                "type":            "forecast" if is_forecast else "today",
-                "is_forecast":     is_forecast,
-                "probability":     round(prob, 4),
-                "prediction":      pred_label,
-                "risk_level":      risk,
-                "temperature_max": round(float(row["temperature_2m_max"]), 1) if not pd.isna(row["temperature_2m_max"]) else None,
-                "temperature_min": round(float(row["temperature_2m_min"]), 1) if not pd.isna(row["temperature_2m_min"]) else None,
-                "tmax_departure":  round(float(row["tmax_departure"]), 2) if not pd.isna(row["tmax_departure"]) else None,
-                "qualifying_day":  int(row["qualifying_day"]),
-                "triggered_rules": triggered_rules,
-            })
+            days.append(
+                {
+                    "date": day_date,
+                    "type": "forecast" if is_forecast else "today",
+                    "is_forecast": is_forecast,
+                    "probability": round(prob, 4),
+                    "prediction": pred_label,
+                    "risk_level": risk,
+                    "temperature_max": (
+                        round(float(row["temperature_2m_max"]), 1)
+                        if not pd.isna(row["temperature_2m_max"])
+                        else None
+                    ),
+                    "temperature_min": (
+                        round(float(row["temperature_2m_min"]), 1)
+                        if not pd.isna(row["temperature_2m_min"])
+                        else None
+                    ),
+                    "apparent_temperature_max": (
+                        round(float(row["apparent_temperature_max"]), 1)
+                        if not pd.isna(row["apparent_temperature_max"])
+                        else None
+                    ),
+                    "humidity_mean": (
+                        round(float(row["relative_humidity_2m_mean"]), 1)
+                        if not pd.isna(row["relative_humidity_2m_mean"])
+                        else None
+                    ),
+                    "wind_speed_max": (
+                        round(float(row["wind_speed_10m_max"]), 1)
+                        if not pd.isna(row["wind_speed_10m_max"])
+                        else None
+                    ),
+                    "tmax_departure": (
+                        round(float(row["tmax_departure"]), 2)
+                        if not pd.isna(row["tmax_departure"])
+                        else None
+                    ),
+                    "qualifying_day": int(row["qualifying_day"]),
+                    "triggered_rules": triggered_rules,
+                }
+            )
         except Exception as exc:
-            days.append({
-                "date": day_date,
-                "type": "forecast" if is_forecast else "today",
-                "error": f"Prediction error: {exc}",
-                "probability": None,
-                "prediction": None,
-                "risk_level": None,
-            })
+            days.append(
+                {
+                    "date": day_date,
+                    "type": "forecast" if is_forecast else "today",
+                    "error": f"Prediction error: {exc}",
+                    "probability": None,
+                    "prediction": None,
+                    "risk_level": None,
+                }
+            )
 
     result = {
-        "city":          city_key,
-        "city_info":     city_info,
-        "days":          days,
-        "source":        "Open-Meteo.com (free API, no key)",
-        "source_url":    "https://open-meteo.com",
-        "last_updated":  datetime.utcnow().isoformat() + "Z",
-        "cache_used":    False,
-        "warnings":      warnings,
+        "city": city_key,
+        "city_info": city_info,
+        "days": days,
+        "source": "Open-Meteo.com (free API, no key)",
+        "source_url": "https://open-meteo.com",
+        "last_updated": datetime.utcnow().isoformat() + "Z",
+        "cache_used": False,
+        "warnings": warnings,
         "feature_notes": [
             "tmax_departure_zscore: computed from 30-day rolling window of live data.",
             "heatwave_lag1: derived from yesterday's qualifying_day flag (live proxy).",

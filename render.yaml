@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: climateguard
+    runtime: docker
+    healthCheckPath: /health
+    disk:
+      name: climateguard-runtime
+      mountPath: /app/runtime
+      sizeGB: 1
+    envVars:
+      - key: ALERT_DRY_RUN
+        value: "true"
+      - key: DATABASE_PATH
+        value: /app/runtime/climateguard.sqlite3
+      - key: ALERT_DATABASE_PATH
+        value: /app/runtime/climateguard.sqlite3

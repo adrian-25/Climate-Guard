@@ -1,0 +1,5 @@
+{
+  "en": {"language": "Language", "export": "Download CSV", "print": "Print report", "offline": "Offline — showing the last successful data."},
+  "hi": {"language": "भाषा", "export": "CSV डाउनलोड करें", "print": "रिपोर्ट प्रिंट करें", "offline": "ऑफ़लाइन — पिछला सफल डेटा दिख रहा है।"},
+  "mr": {"language": "भाषा", "export": "CSV डाउनलोड करा", "print": "अहवाल प्रिंट करा", "offline": "ऑफलाइन — शेवटचा यशस्वी डेटा दाखवत आहे."}
+}

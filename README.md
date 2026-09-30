@@ -1,5 +1,31 @@
 # ClimateGuard ΓÇö Indian Heatwave Prediction
 
+[![Quality checks](https://github.com/adrian-25/Climate-Guard/actions/workflows/quality.yml/badge.svg)](https://github.com/adrian-25/Climate-Guard/actions/workflows/quality.yml)
+
+> **Current product notes (September 2026):** ClimateGuard now includes a 7-day live outlook, calibration/baseline reporting, SQLite-backed opt-in alerts, CSV/print/share tools, a PWA shell, Docker, and a Render blueprint. It remains a research model—not an official IMD warning system.
+
+## Product quick start
+
+```bash
+pip install -r requirements-dev.txt
+uvicorn app:app --host 0.0.0.0 --port 8001
+python -m pytest
+```
+
+For Docker, copy `.env.example` to `.env` and run `docker compose up --build`. The runtime SQLite directory is a named volume. See [deployment instructions](docs/deployment.md), [MODEL_CARD.md](MODEL_CARD.md), and [CHANGELOG.md](CHANGELOG.md).
+
+```mermaid
+flowchart LR
+  UI[Plain HTML/CSS/JS PWA] --> API[FastAPI]
+  API --> RF[Locked RF model v1]
+  API --> OM[Open-Meteo]
+  API --> DB[(SQLite alerts/outcomes)]
+```
+
+### Alerts, privacy & safety
+
+Alerts use double opt-in, store only email/city/threshold/language, offer one-click unsubscribe, and default to dry-run delivery. Hindi and Marathi are machine-drafted and need native-speaker review. Configure all production variables through `.env.example`; never commit secrets. New endpoints include `/health`, `/api/subscribe`, `/api/alerts/preview`, and evaluation/track-record routes; existing response shapes remain intact.
+
 **Explainable & Drift-Aware Heatwave Risk Prediction for Indian Cities**
 
 ---

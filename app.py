@@ -56,52 +56,12 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src import alerts, live_tracking
+from src.cities import CITIES
 from src.integration.pipeline import ClimateGuardPipeline
 from src.prediction import ClimateGuardPredictor
 
 LIVE_TRACKING_DB = live_tracking.database_path(PROJECT_ROOT)
 ALERT_DATABASE = alerts.database_path(PROJECT_ROOT)
-
-# ---------------------------------------------------------------------------
-# City metadata
-# ---------------------------------------------------------------------------
-CITIES = {
-    "delhi": {
-        "name": "New Delhi",
-        "state": "Delhi",
-        "region": "Plains",
-        "lat": 28.6139,
-        "lon": 77.2090,
-    },
-    "lucknow": {
-        "name": "Lucknow",
-        "state": "Uttar Pradesh",
-        "region": "Plains",
-        "lat": 26.8467,
-        "lon": 80.9462,
-    },
-    "nagpur": {
-        "name": "Nagpur",
-        "state": "Maharashtra",
-        "region": "Plains",
-        "lat": 21.1458,
-        "lon": 79.0882,
-    },
-    "ahmedabad": {
-        "name": "Ahmedabad",
-        "state": "Gujarat",
-        "region": "Plains",
-        "lat": 23.0225,
-        "lon": 72.5714,
-    },
-    "mumbai": {
-        "name": "Mumbai",
-        "state": "Maharashtra",
-        "region": "Coastal",
-        "lat": 19.0760,
-        "lon": 72.8777,
-    },
-}
 
 # ---------------------------------------------------------------------------
 # Load data + pipeline at startup
@@ -252,7 +212,15 @@ async def lifespan(application):
         outcome_scheduler.shutdown(wait=False)
 
 
-app = FastAPI(title="ClimateGuard Dashboard API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="ClimateGuard Dashboard API",
+    description=(
+        "Research-model heatwave-risk dashboard. Predictions and alert content are not official "
+        "IMD warnings; use IMD and local authority advisories during heat emergencies."
+    ),
+    version="1.0.0",
+    lifespan=lifespan,
+)
 limiter = Limiter(key_func=get_remote_address, default_limits=["240/minute"])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

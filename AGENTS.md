@@ -45,3 +45,7 @@ Run the existing interface tests with `python tests/test_prediction_interface.py
   unsubscribe, data-file message templates, dry-run Resend/SMTP seams, a live-refresh scheduler,
   deduplication, quiet hours, daily caps and retry backoff. Hindi and Marathi templates are
   machine-drafted and require native-speaker review before production use.
+- Phases 4–6 completed product/release increments: the versioned city registry, 7-day live
+  weather context, PWA/static caching, print/export/share controls, Docker/Compose/Render,
+  CI quality gates, deployment guidance, model card, contribution guide and changelog. License
+  intentionally remains pending explicit owner selection (MIT is recommended).

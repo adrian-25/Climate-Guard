@@ -15,6 +15,7 @@ const state = {
   mode: 'live',  // 'live' | 'historical'
   liveRefreshTimer: null,
 };
+window.ClimateGuardState = state;
 
 // ============================================================
 // DOM REFERENCES
@@ -103,7 +104,12 @@ async function init() {
     initModeSwitch();
 
     // Start in Live mode — show live panel, hide historical controls
-    setMode('live');
+    const query = new URLSearchParams(location.search);
+    setMode(query.get('mode') === 'historical' ? 'historical' : 'live');
+    const deepLinkedCity = query.get('city');
+    if (deepLinkedCity && state.cities.some(city => city.key === deepLinkedCity)) {
+      selectCity(deepLinkedCity);
+    }
 
   } catch (err) {
     showError(`Failed to load: ${err.message}`);
@@ -147,6 +153,10 @@ async function selectCity(cityKey) {
   }
 
   state.selectedCity = cityKey;
+  const query = new URLSearchParams(location.search);
+  query.set('city', cityKey);
+  query.set('mode', state.mode);
+  history.replaceState(null, '', `/?${query}`);
 
   // Live mode: fetch live data; Historical mode: load dates
   if (state.mode === 'live') {
@@ -1069,11 +1079,15 @@ function renderLiveStrip(data) {
     const risk = day.risk_level || 'LOW';
     const prob = day.probability != null ? (day.probability * 100).toFixed(1) : '—';
     const tmax = day.temperature_max != null ? `${day.temperature_max}°C` : '—';
+    const feels = day.apparent_temperature_max != null ? `Feels ${day.apparent_temperature_max}°C` : '';
+    const humidity = day.humidity_mean != null ? `Humidity ${day.humidity_mean}%` : '';
+    const wind = day.wind_speed_max != null ? `Wind ${day.wind_speed_max} km/h` : '';
     const nRules = (day.triggered_rules || []).length;
 
     return `<div class="${cardClass}">
       <div class="live-day-date">${dayLabel}</div>
       <div class="live-day-temp">${tmax}</div>
+      <div class="live-day-details">${[feels, humidity, wind].filter(Boolean).join(' · ')}</div>
       <div class="live-day-prob">${prob}% probability</div>
       <span class="live-day-risk ${risk}">${risk}</span>
       ${nRules > 0 ? `<div class="live-day-rules">${nRules} rule${nRules > 1 ? 's' : ''} triggered</div>` : ''}
