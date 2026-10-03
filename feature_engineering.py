@@ -57,20 +57,25 @@ RESULTS_DIR   = ROOT / "results"
 LOG_FILE      = RESULTS_DIR / "phase7_feature_engineering_log.txt"
 GROUPS_FILE   = RESULTS_DIR / "phase7_feature_groups.json"
 
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-
 # ── logging ───────────────────────────────────────────────────────────────────
 logger = logging.getLogger("phase7")
 logger.setLevel(logging.DEBUG)
 fmt = logging.Formatter("%(asctime)s  %(levelname)-8s  %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S")
-fh = logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8")
-fh.setFormatter(fmt)
-ch = logging.StreamHandler(sys.stdout)
-ch.setFormatter(fmt)
-logger.addHandler(fh)
-logger.addHandler(ch)
+
+
+def configure_file_logging() -> None:
+    """Configure the legacy file logger only for the standalone India script."""
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    if logger.handlers:
+        return
+    file_handler = logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8")
+    file_handler.setFormatter(fmt)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(fmt)
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
 
 # ── constants ──────────────────────────────────────────────────────────────────
 # Key variables used for lag / rolling / trend features
@@ -142,12 +147,21 @@ def rolling_slope(series: pd.Series, window: int) -> pd.Series:
 # ══════════════════════════════════════════════════════════════════════════════
 # Main feature builder — operates on a single city's DataFrame
 # ══════════════════════════════════════════════════════════════════════════════
-def build_features_for_city(city_df: pd.DataFrame) -> pd.DataFrame:
+def build_features_for_city(
+    city_df: pd.DataFrame,
+    *,
+    city_order: list[str] | None = None,
+    coastal_region_types: tuple[str, ...] = ("coastal",),
+) -> pd.DataFrame:
     """
     Receives a single-city DataFrame sorted by date ascending.
     Returns the same DataFrame with all feature columns appended.
     No cross-city contamination is possible since this function is
     called exclusively inside groupby.apply.
+
+    ``city_order`` and ``coastal_region_types`` make the reusable transformation
+    suitable for a separately versioned regional model.  Their defaults preserve
+    the original India feature values and ordering exactly.
     """
     df = city_df.copy().sort_values("date").reset_index(drop=True)
     city_key = df["city_key"].iloc[0]
@@ -224,12 +238,13 @@ def build_features_for_city(city_df: pd.DataFrame) -> pd.DataFrame:
 
     # ── GROUP 7: city features ────────────────────────────────────────────────
     # city_key label encoding
+    active_city_order = city_order if city_order is not None else CITY_ORDER
     df["city_encoded"] = df["city_key"].map(
-        {c: i for i, c in enumerate(CITY_ORDER)}
+        {c: i for i, c in enumerate(active_city_order)}
     )
     # latitude and longitude kept as numeric geographic signal
     # region_type binary flag
-    df["is_coastal"] = (df["region_type"] == "coastal").astype(int)
+    df["is_coastal"] = df["region_type"].isin(coastal_region_types).astype(int)
 
     # ── TARGET: heatwave_next_day ─────────────────────────────────────────────
     # shift(-1): tomorrow's heatwave label.  Last row per city → NaN (dropped later).
@@ -400,6 +415,7 @@ def build_feature_group_registry(df: pd.DataFrame) -> dict:
 # Main
 # ══════════════════════════════════════════════════════════════════════════════
 def main():
+    configure_file_logging()
     logger.info("ClimateGuard — Phase 7: Feature Engineering")
     logger.info(f"Input : {INPUT_FILE}")
     logger.info(f"Output: {OUTPUT_FILE}")

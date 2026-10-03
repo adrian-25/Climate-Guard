@@ -60,6 +60,9 @@ from src.cities import CITIES
 from src.integration.pipeline import ClimateGuardPipeline
 from src.prediction import ClimateGuardPredictor
 
+INDIA_CITIES = {key: city for key, city in CITIES.items() if city.get("dataset_region", "india") == "india"}
+EUROPE_CITIES = {key: city for key, city in CITIES.items() if city.get("dataset_region") == "europe"}
+
 LIVE_TRACKING_DB = live_tracking.database_path(PROJECT_ROOT)
 ALERT_DATABASE = alerts.database_path(PROJECT_ROOT)
 
@@ -132,7 +135,7 @@ pr_data = {
 
 # Per-city metrics
 city_metrics = {}
-for city_key in CITIES:
+for city_key in INDIA_CITIES:
     mask = (test_data["city_key"] == city_key).values & valid_mask
     if mask.sum() == 0:
         continue
@@ -161,7 +164,7 @@ print(f"[startup] Performance data ready")
 
 # Precompute stats
 stats_data = {}
-for city_key in CITIES:
+for city_key in INDIA_CITIES:
     city_df = test_data[test_data["city_key"] == city_key]
     hw_count = int(city_df["heatwave"].sum()) if "heatwave" in city_df.columns else 0
     stats_data[city_key] = {
@@ -172,6 +175,15 @@ for city_key in CITIES:
     }
 
 print("[startup] Ready! Navigate to http://localhost:8000")
+
+try:
+    from src.europe_service import load_europe_service
+
+    europe_service = load_europe_service()
+    print("[startup] Europe-v1 model loaded" if europe_service else "[startup] Europe-v1 artifacts are not installed")
+except Exception as europe_error:  # optional regional model must not block India
+    europe_service = None
+    print(f"[startup] Europe-v1 unavailable: {europe_error}")
 
 # ---------------------------------------------------------------------------
 # FastAPI app
@@ -394,9 +406,22 @@ def preview_alert(city: str, level: str, lang: str = "en"):
 
 @app.get("/api/official-alerts/{city}")
 def get_official_alert_context(city: str):
-    """Provide an official IMD source without claiming a non-verified alert."""
+    """Provide regional official context without claiming a verified alert."""
     if city not in CITIES:
         raise HTTPException(404, f"Unknown city: {city}")
+    if city in EUROPE_CITIES:
+        info = CITIES[city]
+        if info["country"] == "Spain":
+            source_name, source_url = "AEMET", "https://www.aemet.es/"
+        elif info["country"] == "Portugal":
+            source_name, source_url = "IPMA", "https://www.ipma.pt/"
+        else:
+            source_name, source_url = "National meteorological service", "https://meteofrance.com/"
+        return {
+            "city": city, "city_name": info["name"], "status": "not_automatically_verified",
+            "message": "Check the relevant national meteorological service and local authority for official alerts. ClimateGuard predictions are not official warnings.",
+            "source_name": source_name, "source_url": source_url,
+        }
     return {
         "city": city,
         "city_name": CITIES[city]["name"],
@@ -601,10 +626,13 @@ def reconcile_live_outcomes() -> None:
 
 
 @app.get("/api/cities")
-def get_cities():
-    """Return all available cities with metadata."""
+def get_cities(region: str = "india"):
+    """Return cities for one model region; the legacy default remains India."""
+    selected = INDIA_CITIES if region.lower() == "india" else EUROPE_CITIES if region.lower() == "europe" else None
+    if selected is None:
+        raise HTTPException(422, "region must be 'india' or 'europe'")
     result = []
-    for key, info in CITIES.items():
+    for key, info in selected.items():
         result.append(
             {
                 "key": key,
@@ -620,6 +648,10 @@ def get_dates(city: str):
     """Return available dates for a city."""
     if city not in CITIES:
         raise HTTPException(404, f"Unknown city: {city}")
+    if city in EUROPE_CITIES:
+        if not europe_service:
+            raise HTTPException(503, "Europe-v1 artifacts are unavailable.")
+        return europe_service.dates(city)
     city_df = test_data[test_data["city_key"] == city]
     dates = sorted(city_df["date"].unique().tolist())
     return {
@@ -640,6 +672,13 @@ def predict(request: Request, req: PredictRequest):
 
     if city not in CITIES:
         raise HTTPException(400, f"Unknown city: {city}. Valid: {list(CITIES.keys())}")
+    if city in EUROPE_CITIES:
+        if not europe_service:
+            raise HTTPException(503, "Europe-v1 artifacts are unavailable.")
+        try:
+            return europe_service.predict(city, date)
+        except KeyError as exc:
+            raise HTTPException(404, str(exc)) from exc
 
     # Look up the feature row
     mask = (test_data["city_key"] == city) & (test_data["date"] == date)
@@ -725,6 +764,10 @@ def get_trends(city: str):
     """Return time-series data for trend charts."""
     if city not in CITIES:
         raise HTTPException(404, f"Unknown city: {city}")
+    if city in EUROPE_CITIES:
+        if not europe_service:
+            raise HTTPException(503, "Europe-v1 artifacts are unavailable.")
+        return europe_service.trends(city)
     city_df = test_data[test_data["city_key"] == city].copy()
     city_df = city_df.sort_values("date")
 
@@ -753,10 +796,16 @@ def get_trends(city: str):
 
 
 @app.get("/api/map-data")
-def get_map_data():
-    """Return city data for map markers with risk summary."""
+def get_map_data(region: str = "india"):
+    """Return map markers for a model region; the legacy default remains India."""
+    if region.lower() == "europe":
+        if not europe_service:
+            raise HTTPException(503, "Europe-v1 artifacts are unavailable.")
+        return europe_service.map_data()
+    if region.lower() != "india":
+        raise HTTPException(422, "region must be 'india' or 'europe'")
     result = []
-    for key, info in CITIES.items():
+    for key, info in INDIA_CITIES.items():
         city_df = test_data[test_data["city_key"] == key]
         avg_prob = float(city_df["pred_probability"].mean())
         max_prob = float(city_df["pred_probability"].max())
@@ -781,8 +830,22 @@ def get_map_data():
 
 
 @app.get("/api/performance")
-def get_performance():
-    """Return precomputed model performance data for charts."""
+def get_performance(region: str = "india"):
+    """Return precomputed performance data for a separately versioned model."""
+    if region.lower() == "europe":
+        if not europe_service:
+            raise HTTPException(503, "Europe-v1 artifacts are unavailable.")
+        data = europe_service.metadata
+        return {
+            "confusion_matrix": data["confusion_matrix"], "roc": data["roc"], "pr": data["pr"],
+            "global_metrics": data["global_metrics"], "city_metrics": data["city_metrics"],
+            "threshold": data["threshold"], "total_test_samples": data["total_test_samples"],
+            "positive_samples": data["positive_samples"], "negative_samples": data["negative_samples"],
+            "baselines": data["baselines"], "calibration": data["calibration"],
+            "definition": data["definition"], "limitations": data["limitations"], "region": "europe",
+        }
+    if region.lower() != "india":
+        raise HTTPException(422, "region must be 'india' or 'europe'")
     return {
         "confusion_matrix": {
             "tn": int(cm[0, 0]),
@@ -891,10 +954,16 @@ def explain_prediction(request: Request, req: PredictRequest):
 
 
 @app.get("/api/city-comparison")
-def get_city_comparison():
+def get_city_comparison(region: str = "india"):
     """Return side-by-side city comparison data."""
+    if region.lower() == "europe":
+        if not europe_service:
+            raise HTTPException(503, "Europe-v1 artifacts are unavailable.")
+        return list(europe_service.metadata["city_metrics"].values())
+    if region.lower() != "india":
+        raise HTTPException(422, "region must be 'india' or 'europe'")
     result = []
-    for city_key, info in CITIES.items():
+    for city_key, info in INDIA_CITIES.items():
         city_df = test_data[test_data["city_key"] == city_key]
         valid = city_df.dropna(subset=["heatwave_next_day"])
         result.append(
@@ -990,6 +1059,14 @@ def get_live_city(request: Request, city: str):
     city = city.lower().strip()
     if city not in CITIES:
         raise HTTPException(400, f"Unknown city: {city}. Valid: {list(CITIES.keys())}")
+
+    # Route European cities to the separate Europe live module
+    if city in EUROPE_CITIES:
+        try:
+            from src.europe_live import get_europe_live_forecast
+            return get_europe_live_forecast(city)
+        except Exception as exc:
+            raise HTTPException(503, f"Europe live data unavailable: {exc}") from exc
 
     result = get_live_forecast(city, pipeline)
     if not result.get("error") and not result.get("cache_used"):

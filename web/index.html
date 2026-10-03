@@ -24,10 +24,22 @@
          MASTHEAD
          ============================================================ -->
     <header class="masthead">
-      <h1 class="masthead__title">Heatwave risk forecasts<br>for five Indian cities</h1>
-      <p class="masthead__desc">Select a city and date to get a 1-day-ahead heatwave prediction from the model.</p>
-      <p class="masthead__meta">Random Forest &middot; 110 features &middot; decision threshold 0.70 &middot; test period 2023&ndash;2025</p>
+      <h1 class="masthead__title" id="masthead-title">Heatwave risk forecasts<br>for five Indian cities</h1>
+      <p class="masthead__desc" id="masthead-desc">Select a city and date to get a 1-day-ahead heatwave prediction from the model.</p>
+      <p class="masthead__meta" id="masthead-meta">Random Forest &middot; 110 features &middot; decision threshold 0.70 &middot; test period 2023&ndash;2025</p>
     </header>
+
+    <!-- ============================================================
+         REGION SWITCH (India | Europe)
+         ============================================================ -->
+    <div class="region-switch" id="region-switch" role="group" aria-label="Region">
+      <button class="region-btn region-btn--active" id="region-india-btn" data-region="india" type="button">
+        India
+      </button>
+      <button class="region-btn" id="region-europe-btn" data-region="europe" type="button">
+        Europe
+      </button>
+    </div>
 
     <!-- ============================================================
          MODE SWITCH (Live / Historical)

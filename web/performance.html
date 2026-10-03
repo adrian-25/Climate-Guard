@@ -16,8 +16,19 @@
 
     <header class="page-header">
       <h1 class="page-header__title">Model performance</h1>
-      <p class="page-header__subtitle">Evaluation on the held-out temporal test set (2023&ndash;2025) across five Indian cities.</p>
+      <p class="page-header__subtitle" id="perf-subtitle">Evaluation on the held-out temporal test set (2023&ndash;2025) across five Indian cities.</p>
     </header>
+
+    <!-- Region selector -->
+    <div class="region-switch" id="perf-region-switch" role="group" aria-label="Region" style="margin-bottom: var(--sp-6);">
+      <button class="region-btn region-btn--active" id="perf-india-btn" data-region="india" type="button">India</button>
+      <button class="region-btn" id="perf-europe-btn" data-region="europe" type="button">Europe</button>
+    </div>
+    <div id="europe-perf-note" style="display:none;" class="europe-definition-note" aria-live="polite">
+      Europe-v1 uses a relative, non-official research heatwave definition (≥3 consecutive warm-season days
+      above the city-specific 90th percentile and 30°C floor; baseline 1991–2020).
+      Metrics are <strong>not comparable</strong> to the India model or to official national weather-service criteria.
+    </div>
 
     <!-- Metrics bar -->
     <section aria-label="Global performance metrics">

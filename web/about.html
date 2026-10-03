@@ -128,6 +128,72 @@
         <p>ERA5 data via <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo Historical API</a> (no API key required).</p>
       </section>
 
+      <!-- ── EUROPE REGION ─────────────────────────────── -->
+      <section class="about-card">
+        <h2 class="about-card__title">Europe region</h2>
+        <p>
+          A second, separately versioned model (<strong>europe-v1</strong>) covers eleven cities in Spain,
+          Portugal, Andorra and Monaco.
+          It uses the same 110 engineered features and Random Forest architecture as the India model,
+          but was trained on a different heatwave label definition and a different temporal split.
+          Results are <strong>not comparable</strong> with the India model.
+        </p>
+
+        <h3 style="font-size:1rem;font-weight:600;margin:1rem 0 0.5rem;">Cities</h3>
+        <ul>
+          <li><strong>Spain</strong> &mdash; Madrid (Interior, 665 m), Seville (Mediterranean, 16 m), Valencia (Mediterranean, 15 m), Barcelona (Mediterranean, 15 m), Zaragoza (Interior, 214 m), Bilbao (Atlantic, 20 m)</li>
+          <li><strong>Portugal</strong> &mdash; Lisbon (Atlantic, 68 m), Porto (Atlantic, 91 m), &Eacute;vora (Interior, 242 m)</li>
+          <li><strong>Andorra</strong> &mdash; Andorra la Vella (Mountain, 1&thinsp;037 m)</li>
+          <li><strong>Monaco</strong> &mdash; Monaco (Mediterranean, 43 m)</li>
+        </ul>
+        <p>Coordinates and elevations were verified against the Open-Meteo geocoding API.</p>
+
+        <h3 style="font-size:1rem;font-weight:600;margin:1rem 0 0.5rem;">Heatwave definition</h3>
+        <p>
+          The Europe label is a <strong>relative, non-official research definition</strong>.
+          A heatwave day requires at least three consecutive days that are simultaneously:
+        </p>
+        <ul>
+          <li>in the warm season (May&ndash;September),</li>
+          <li>above the city&rsquo;s own 90th-percentile Tmax threshold (15-day centred window, 1991&ndash;2020 ERA5 baseline),</li>
+          <li>and above an absolute floor of 30&deg;C (to exclude any winter false positives).</li>
+        </ul>
+        <p>
+          This approach is consistent with the framework used by European climate scientists
+          (e.g. Frich et al.&thinsp;2002, Fischer &amp; Schar&thinsp;2010) but is <em>not</em> the official
+          criterion of any national meteorological service.
+          AEMET (Spain) and IPMA (Portugal) use different, operationally calibrated definitions.
+          The model's predictions are research estimates only.
+        </p>
+
+        <h3 style="font-size:1rem;font-weight:600;margin:1rem 0 0.5rem;">Data source</h3>
+        <p>
+          ERA5-Land reanalysis downloaded from the
+          <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo archive and climate APIs</a>
+          (no API key; free tier), 1991&ndash;2026.
+          The same 15 daily meteorological variables are used as for India
+          (temperature, humidity, wind, pressure, radiation, ET₀, precipitation).
+        </p>
+
+        <h3 style="font-size:1rem;font-weight:600;margin:1rem 0 0.5rem;">Model split and threshold</h3>
+        <ul>
+          <li>Training: 1991&ndash;2021</li>
+          <li>Validation: 2022 (threshold selected here only)</li>
+          <li>Test: 2023&ndash;2025</li>
+          <li>Decision threshold: 0.10 (lower than India&rsquo;s 0.70, selected for recall on validation)</li>
+        </ul>
+
+        <h3 style="font-size:1rem;font-weight:600;margin:1rem 0 0.5rem;">Known limitations (Europe)</h3>
+        <ol>
+          <li><strong>Bilbao has zero test-period heatwave days</strong> under this definition; F1 and precision/recall are undefined for Bilbao.</li>
+          <li><strong>Andorra la Vella and Monaco have very few events</strong> (7 and 9 test days respectively); per-city metrics are unreliable at these scales.</li>
+          <li><strong>Not comparable to India.</strong> Different label definition, different threshold, different climate. Cross-region metric comparisons are meaningless.</li>
+          <li><strong>ERA5-Land vs national station data.</strong> ERA5-Land grid cell values differ from station readings; results may diverge from official service assessments.</li>
+          <li><strong>Live predictions use Open-Meteo NWP forecasts</strong>, not ERA5 reanalysis, for future days. This introduces distributional shift compared to the training data.</li>
+          <li><strong>Spanish and Portuguese alert text is machine-drafted</strong> and requires native-speaker review before any public use.</li>
+        </ol>
+      </section>
+
     </div><!-- /about-body -->
 
   </div>

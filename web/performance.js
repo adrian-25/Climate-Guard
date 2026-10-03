@@ -126,26 +126,13 @@ function scatterOptions(xLabel, yLabel, auc) {
 }
 
 // ----------------------------------------------------------------
-// Main
+// Main — controlled by region switch at bottom of file
 // ----------------------------------------------------------------
-async function init() {
-  const [perfData, fiData, cityData, evaluation, liveTrackRecord] = await Promise.all([
-    API('/performance'),
-    API('/feature-importance'),
-    API('/city-comparison'),
-    API('/evaluation/latest').catch(() => null),
-    API('/evaluation/live-track-record').catch(() => null),
-  ]);
-
-  renderMetricsBar(perfData);
-  renderConfusionMatrix(perfData.confusion_matrix, perfData);
-  renderROCChart(perfData.roc);
-  renderPRChart(perfData.pr);
-  renderFeatureImportance(fiData);
-  renderCityComparison(cityData);
-  renderEvaluation(evaluation);
-  renderLiveTrackRecord(liveTrackRecord);
+async function init_india_only() {
+  // Legacy India-only init; kept for backward compatibility
+  // Actual init is now done by the region switch DOMContentLoaded handler
 }
+
 
 function renderLiveTrackRecord(data) {
   const el = document.getElementById('live-track-record');
@@ -380,7 +367,7 @@ function renderFeatureImportance(fiData) {
 // ----------------------------------------------------------------
 // City comparison table
 // ----------------------------------------------------------------
-function renderCityComparison(cities) {
+function renderCityComparison(cities, region = 'india') {
   const el = document.getElementById('city-comparison');
 
   function fmtMetric(v, heatwaveDays) {
@@ -427,4 +414,46 @@ function renderCityComparison(cities) {
   `;
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  // Read region from URL
+  const params = new URLSearchParams(location.search);
+  const initialRegion = params.get('region') === 'europe' ? 'europe' : 'india';
+
+  // Region switch buttons
+  const indiaBtn  = document.getElementById('perf-india-btn');
+  const europeBtn = document.getElementById('perf-europe-btn');
+  const note      = document.getElementById('europe-perf-note');
+  const subtitle  = document.getElementById('perf-subtitle');
+
+  async function loadRegion(region) {
+    // Update button states
+    if (region === 'europe') {
+      europeBtn?.classList.add('region-btn--active');
+      indiaBtn?.classList.remove('region-btn--active');
+      if (note)     note.style.display = 'block';
+      if (subtitle) subtitle.textContent = 'Evaluation on the held-out temporal test set (2023–2025) across eleven European cities.';
+    } else {
+      indiaBtn?.classList.add('region-btn--active');
+      europeBtn?.classList.remove('region-btn--active');
+      if (note)     note.style.display = 'none';
+      if (subtitle) subtitle.textContent = 'Evaluation on the held-out temporal test set (2023–2025) across five Indian cities.';
+    }
+    const url = region === 'europe' ? '/performance?region=europe' : '/performance';
+    const [perfData, fiData, cityData] = await Promise.all([
+      fetch(`/api/performance?region=${region}`).then(r => r.json()),
+      fetch(`/api/feature-importance`).then(r => r.json()),   // always India model importances
+      fetch(`/api/city-comparison?region=${region}`).then(r => r.json()),
+    ]);
+    renderMetricsBar(perfData);
+    renderConfusionMatrix(perfData.confusion_matrix, perfData);
+    renderROCChart(perfData.roc);
+    renderPRChart(perfData.pr);
+    if (region === 'india') renderFeatureImportance(fiData);
+    renderCityComparison(cityData, region);
+  }
+
+  indiaBtn?.addEventListener('click',  () => loadRegion('india'));
+  europeBtn?.addEventListener('click', () => loadRegion('europe'));
+
+  loadRegion(initialRegion);
+});

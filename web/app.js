@@ -14,6 +14,7 @@ const state = {
   loading: false,
   mode: 'live',  // 'live' | 'historical'
   liveRefreshTimer: null,
+  region: 'india',  // 'india' | 'europe'
 };
 window.ClimateGuardState = state;
 
@@ -86,15 +87,19 @@ async function api(path, options = {}) {
 // ============================================================
 async function init() {
   try {
-    // Load cities
-    state.cities = await api('/cities');
+    // Determine region from URL before loading cities
+    const query = new URLSearchParams(location.search);
+    state.region = (query.get('region') === 'europe') ? 'europe' : 'india';
+
+    // Load cities for the current region
+    state.cities = await api(`/cities?region=${state.region}`);
     renderCities();
 
     // Load model info (hidden panel — keeps JS intact)
     const modelInfo = await api('/model-info');
     renderModelInfo(modelInfo);
 
-    // Initialize map
+    // Initialize map (India bounds by default; region switch updates it)
     initMap();
 
     // Populate chart city selector
@@ -103,10 +108,12 @@ async function init() {
     // Initialize mode switch
     initModeSwitch();
 
+    // Initialize region switch (sets visual state, does NOT reload cities)
+    initRegionSwitch();
+
     // Start in Live mode — show live panel, hide historical controls
-    const query = new URLSearchParams(location.search);
-    setMode(query.get('mode') === 'historical' ? 'historical' : 'live');
     const deepLinkedCity = query.get('city');
+    setMode(query.get('mode') === 'historical' ? 'historical' : 'live');
     if (deepLinkedCity && state.cities.some(city => city.key === deepLinkedCity)) {
       selectCity(deepLinkedCity);
     }
@@ -116,29 +123,7 @@ async function init() {
   }
 }
 
-// ============================================================
-// CITY RENDERING
-// ============================================================
-function renderCities() {
-  dom.cityGrid.innerHTML = state.cities.map(city => `
-    <button class="city-card" data-city="${city.key}" id="city-${city.key}"
-            aria-pressed="false" type="button">
-      <span class="city-card__check" aria-hidden="true">
-        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="2 6 5 9 10 3"/>
-        </svg>
-      </span>
-      <div class="city-card__name">${city.name}</div>
-      <div class="city-card__meta">${city.state}</div>
-      <div class="city-card__region">${city.region}</div>
-    </button>
-  `).join('');
-
-  // Attach click handlers
-  $$('.city-card').forEach(card => {
-    card.addEventListener('click', () => selectCity(card.dataset.city));
-  });
-}
+// renderCities is defined in the REGION SWITCH section above (region-aware)
 
 async function selectCity(cityKey) {
   // Update visual state
@@ -593,7 +578,12 @@ function renderSHAPChart(data) {
 // ============================================================
 let leafletMap = null;
 
-const INDIA_BOUNDS = [[6, 65], [38, 98]];
+const INDIA_BOUNDS  = [[6, 65], [38, 98]];
+const EUROPE_BOUNDS = [[35, -12], [45, 8]];  // Iberia + W Mediterranean
+
+function getCurrentBounds() {
+  return state.region === 'europe' ? EUROPE_BOUNDS : INDIA_BOUNDS;
+}
 const OPENFREEMAP_ATTRIBUTION = '<a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> © <a href="https://openmaptiles.org/" target="_blank" rel="noopener noreferrer">OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>';
 
 /*
@@ -702,23 +692,24 @@ async function addFirstWorkingMapLayer(config) {
 async function initMap() {
   try {
     const [mapData, config] = await Promise.all([
-      api('/map-data'),
+      api(`/map-data?region=${state.region}`),
       api('/config').catch(() => ({ mappls_key: '' })),
     ]);
 
+    const bounds = getCurrentBounds();
     leafletMap = L.map('map', {
-      center: [22.5, 80],
-      zoom: 5,
+      center: state.region === 'europe' ? [40, -2] : [22.5, 80],
+      zoom: state.region === 'europe' ? 5 : 5,
       zoomControl: true,
       attributionControl: true,
-      maxBounds: INDIA_BOUNDS,
-      maxBoundsViscosity: 1,
+      maxBounds: bounds,
+      maxBoundsViscosity: 0.8,
       minZoom: 4,
       maxZoom: 10,
     });
 
     await addFirstWorkingMapLayer(config);
-    leafletMap.fitBounds(INDIA_BOUNDS, { padding: [12, 12] });
+    leafletMap.fitBounds(getCurrentBounds(), { padding: [12, 12] });
 
     mapData.forEach(city => {
       const riskColor = city.max_probability >= 0.8 ? '#C84040'
@@ -742,7 +733,7 @@ async function initMap() {
 
       const popupContent = `
         <div class="map-popup__name">${city.name}</div>
-        <div class="map-popup__state">${city.state} · ${city.region}</div>
+        <div class="map-popup__state">${city.country ? city.country + ' · ' : ''}${city.state} · ${city.region}</div>
         <div class="map-popup__stat">
           <span class="map-popup__stat-label">Heatwave Days</span>
           <span class="map-popup__stat-value ${riskClass}">${city.heatwave_days}</span>
@@ -1115,6 +1106,158 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ============================================================
+// REGION SWITCH (India | Europe)
+// ============================================================
+function initRegionSwitch() {
+  const indiaBtn  = document.getElementById('region-india-btn');
+  const europeBtn = document.getElementById('region-europe-btn');
+  if (!indiaBtn || !europeBtn) return;
+
+  // Read region from URL
+  const urlRegion = new URLSearchParams(location.search).get('region') || 'india';
+  setRegion(urlRegion, false);
+
+  indiaBtn.addEventListener('click',  () => setRegion('india'));
+  europeBtn.addEventListener('click', () => setRegion('europe'));
+}
+
+async function setRegion(region, reload = true) {
+  state.region = region;
+  const indiaBtn  = document.getElementById('region-india-btn');
+  const europeBtn = document.getElementById('region-europe-btn');
+
+  if (region === 'europe') {
+    europeBtn?.classList.add('region-btn--active');
+    indiaBtn?.classList.remove('region-btn--active');
+    const h1 = document.getElementById('masthead-title');
+    if (h1) h1.innerHTML = 'Heatwave risk forecasts<br>for eleven European cities';
+    const desc = document.getElementById('masthead-desc');
+    if (desc) desc.textContent = 'Select a city to get a 1-day-ahead heatwave prediction using the Europe research model.';
+    const meta = document.getElementById('masthead-meta');
+    if (meta) meta.textContent = 'Random Forest · 110 features · percentile-based definition · test period 2023–2025 · not an official warning';
+    // Update expert rules subhead
+    const rulesSubhead = document.querySelector('.rules-section .section-subhead');
+    if (rulesSubhead) rulesSubhead.textContent = 'Four contextual rules based on Europe's relative heat definition. Not official national meteorological alerts.';
+  } else {
+    indiaBtn?.classList.add('region-btn--active');
+    europeBtn?.classList.remove('region-btn--active');
+    const h1 = document.getElementById('masthead-title');
+    if (h1) h1.innerHTML = 'Heatwave risk forecasts<br>for five Indian cities';
+    const desc = document.getElementById('masthead-desc');
+    if (desc) desc.textContent = 'Select a city and date to get a 1-day-ahead heatwave prediction from the model.';
+    const meta = document.getElementById('masthead-meta');
+    if (meta) meta.textContent = 'Random Forest · 110 features · decision threshold 0.70 · test period 2023–2025';
+    const rulesSubhead = document.querySelector('.rules-section .section-subhead');
+    if (rulesSubhead) rulesSubhead.textContent = 'Seven deterministic rules derived from IMD-inspired heatwave criteria. These supplement the model probability.';
+  }
+
+  if (reload) {
+    // Update URL
+    const q = new URLSearchParams(location.search);
+    q.set('region', region);
+    q.delete('city');
+    history.replaceState(null, '', `/?${q}`);
+    // Reset state
+    state.selectedCity = null;
+    state.cities = [];
+    dom.results.classList.remove('visible');
+    hideError();
+    // Reload cities for new region
+    try {
+      state.cities = await api(`/cities?region=${region}`);
+      renderCities();
+      populateChartCitySelect();
+      // Reinitialize map with new region bounds
+      if (leafletMap) {
+        leafletMap.fitBounds(getCurrentBounds(), { animate: true, padding: [12, 12] });
+        leafletMap.setMaxBounds(getCurrentBounds());
+        // Refresh map markers for new region
+        leafletMap.eachLayer(layer => { if (layer instanceof L.CircleMarker) leafletMap.removeLayer(layer); });
+        const mapData = await api(`/map-data?region=${region}`);
+        mapData.forEach(city => {
+          const riskColor = city.max_probability >= 0.8 ? '#C84040'
+            : city.max_probability >= 0.6 ? '#D47A3A'
+            : city.max_probability >= 0.3 ? '#D4A43A'
+            : '#A3CEAF';
+          const riskClass = city.max_probability >= 0.8 ? 'extreme'
+            : city.max_probability >= 0.6 ? 'high'
+            : city.max_probability >= 0.3 ? 'moderate' : 'low';
+          const marker = L.circleMarker([city.lat, city.lon], {
+            radius: 10 + (city.heatwave_pct * 0.8),
+            fillColor: riskColor, color: riskColor,
+            weight: 2, opacity: 0.9, fillOpacity: 0.4,
+          }).addTo(leafletMap);
+          marker.bindPopup(`
+            <div class="map-popup__name">${city.name}</div>
+            <div class="map-popup__state">${city.country ? city.country + ' · ' : ''}${city.region}</div>
+            <div class="map-popup__stat"><span class="map-popup__stat-label">Heatwave Days</span><span class="map-popup__stat-value ${riskClass}">${city.heatwave_days}</span></div>
+            <div class="map-popup__stat"><span class="map-popup__stat-label">Max Probability</span><span class="map-popup__stat-value ${riskClass}">${(city.max_probability * 100).toFixed(1)}%</span></div>
+          `, { maxWidth: 260 });
+        });
+      }
+    } catch (err) {
+      showError(`Could not load ${region} cities: ${err.message}`);
+    }
+  }
+}
+
+// Override renderCities to group Europe cities by country
+function renderCities() {
+  if (state.region === 'europe') {
+    // Group by country
+    const byCountry = {};
+    state.cities.forEach(city => {
+      const country = city.country || city.state || 'Other';
+      if (!byCountry[country]) byCountry[country] = [];
+      byCountry[country].push(city);
+    });
+    const countryOrder = ['Spain', 'Portugal', 'Andorra', 'Monaco'];
+    const orderedCountries = [
+      ...countryOrder.filter(c => byCountry[c]),
+      ...Object.keys(byCountry).filter(c => !countryOrder.includes(c)),
+    ];
+
+    let html = '';
+    orderedCountries.forEach(country => {
+      html += `<div class="city-group-heading" aria-hidden="true">${country}</div>`;
+      html += byCountry[country].map(city => `
+        <button class="city-card" data-city="${city.key}" id="city-${city.key}"
+                aria-pressed="false" type="button">
+          <span class="city-card__check" aria-hidden="true">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="2 6 5 9 10 3"/>
+            </svg>
+          </span>
+          <div class="city-card__name">${city.name}</div>
+          <div class="city-card__meta">${country}</div>
+          <div class="city-card__region">${city.region || ''}</div>
+        </button>
+      `).join('');
+    });
+    dom.cityGrid.innerHTML = html;
+  } else {
+    // Original India rendering
+    dom.cityGrid.innerHTML = state.cities.map(city => `
+      <button class="city-card" data-city="${city.key}" id="city-${city.key}"
+              aria-pressed="false" type="button">
+        <span class="city-card__check" aria-hidden="true">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="2 6 5 9 10 3"/>
+          </svg>
+        </span>
+        <div class="city-card__name">${city.name}</div>
+        <div class="city-card__meta">${city.state}</div>
+        <div class="city-card__region">${city.region}</div>
+      </button>
+    `).join('');
+  }
+
+  $$('.city-card').forEach(card => {
+    card.addEventListener('click', () => selectCity(card.dataset.city));
+  });
+}
 
 // ============================================================
 // BOOT
