@@ -711,55 +711,41 @@ async function initMap() {
     await addFirstWorkingMapLayer(config);
     leafletMap.fitBounds(getCurrentBounds(), { padding: [12, 12] });
 
-    mapData.forEach(city => {
-      const riskColor = city.max_probability >= 0.8 ? '#C84040'
-        : city.max_probability >= 0.6 ? '#D47A3A'
-        : city.max_probability >= 0.3 ? '#D4A43A'
-        : '#A3CEAF';
+    // Dedicated layer group so setRegion can swap markers without touching tiles
+    window._markerLayer = L.layerGroup().addTo(leafletMap);
 
-      const riskClass = city.max_probability >= 0.8 ? 'extreme'
-        : city.max_probability >= 0.6 ? 'high'
-        : city.max_probability >= 0.3 ? 'moderate'
-        : 'low';
+    function addMapMarkers(cities) {
+      if (!window._markerLayer) return;
+      window._markerLayer.clearLayers();
+      cities.forEach(city => {
+        const riskColor = city.max_probability >= 0.8 ? '#C84040'
+          : city.max_probability >= 0.6 ? '#D47A3A'
+          : city.max_probability >= 0.3 ? '#D4A43A'
+          : '#A3CEAF';
+        const riskClass = city.max_probability >= 0.8 ? 'extreme'
+          : city.max_probability >= 0.6 ? 'high'
+          : city.max_probability >= 0.3 ? 'moderate'
+          : 'low';
+        const marker = L.circleMarker([city.lat, city.lon], {
+          radius: Math.max(8, 8 + (city.heatwave_pct * 0.8)),
+          fillColor: riskColor, color: riskColor,
+          weight: 2, opacity: 0.9, fillOpacity: 0.4,
+        });
+        marker.bindPopup(`
+          <div class="map-popup__name">${city.name}</div>
+          <div class="map-popup__state">${city.country ? city.country + ' \xb7 ' : ''}${city.state || ''} \xb7 ${city.region}</div>
+          <div class="map-popup__stat"><span class="map-popup__stat-label">Heatwave Days</span><span class="map-popup__stat-value ${riskClass}">${city.heatwave_days}</span></div>
+          <div class="map-popup__stat"><span class="map-popup__stat-label">Heatwave %</span><span class="map-popup__stat-value ${riskClass}">${city.heatwave_pct}%</span></div>
+          <div class="map-popup__stat"><span class="map-popup__stat-label">Max Probability</span><span class="map-popup__stat-value ${riskClass}">${(city.max_probability * 100).toFixed(1)}%</span></div>
+          <div class="map-popup__stat"><span class="map-popup__stat-label">Avg Probability</span><span class="map-popup__stat-value">${(city.avg_probability * 100).toFixed(2)}%</span></div>
+        `, { maxWidth: 260 });
+        window._markerLayer.addLayer(marker);
+      });
+    }
 
-      const marker = L.circleMarker([city.lat, city.lon], {
-        radius: 10 + (city.heatwave_pct * 0.8),
-        fillColor: riskColor,
-        color: riskColor,
-        weight: 2,
-        opacity: 0.9,
-        fillOpacity: 0.4,
-      }).addTo(leafletMap);
-
-      const popupContent = `
-        <div class="map-popup__name">${city.name}</div>
-        <div class="map-popup__state">${city.country ? city.country + ' · ' : ''}${city.state} · ${city.region}</div>
-        <div class="map-popup__stat">
-          <span class="map-popup__stat-label">Heatwave Days</span>
-          <span class="map-popup__stat-value ${riskClass}">${city.heatwave_days}</span>
-        </div>
-        <div class="map-popup__stat">
-          <span class="map-popup__stat-label">Heatwave %</span>
-          <span class="map-popup__stat-value ${riskClass}">${city.heatwave_pct}%</span>
-        </div>
-        <div class="map-popup__stat">
-          <span class="map-popup__stat-label">Max Probability</span>
-          <span class="map-popup__stat-value ${riskClass}">${(city.max_probability * 100).toFixed(1)}%</span>
-        </div>
-        <div class="map-popup__stat">
-          <span class="map-popup__stat-label">Avg Probability</span>
-          <span class="map-popup__stat-value">${(city.avg_probability * 100).toFixed(2)}%</span>
-        </div>
-      `;
-
-      marker.bindPopup(popupContent, { maxWidth: 260 });
-
-      // Pulsing animation via CSS
-      const el = marker.getElement();
-      if (el) {
-        el.style.transition = 'r 0.3s ease';
-      }
-    });
+    // Expose helper so setRegion can call it too
+    window._addMapMarkers = addMapMarkers;
+    addMapMarkers(mapData);
 
     // Fix map rendering in hidden/scrolled containers
     setTimeout(() => leafletMap.invalidateSize(), 200);
@@ -778,6 +764,9 @@ let probChart = null;
 function populateChartCitySelect() {
   const select = document.getElementById('chart-city-select');
   if (!select) return;
+
+  // Clear existing options except the placeholder
+  while (select.options.length > 1) select.remove(1);
 
   state.cities.forEach(city => {
     const opt = document.createElement('option');
@@ -1137,9 +1126,8 @@ async function setRegion(region, reload = true) {
     if (desc) desc.textContent = 'Select a city to get a 1-day-ahead heatwave prediction using the Europe research model.';
     const meta = document.getElementById('masthead-meta');
     if (meta) meta.textContent = 'Random Forest · 110 features · percentile-based definition · test period 2023–2025 · not an official warning';
-    // Update expert rules subhead
     const rulesSubhead = document.querySelector('.rules-section .section-subhead');
-    if (rulesSubhead) rulesSubhead.textContent = 'Four contextual rules based on Europe's relative heat definition. Not official national meteorological alerts.';
+    if (rulesSubhead) rulesSubhead.textContent = 'Four contextual rules based on Europe\u2019s relative heat definition. Not official national meteorological alerts.';
   } else {
     indiaBtn?.classList.add('region-btn--active');
     europeBtn?.classList.remove('region-btn--active');
@@ -1169,33 +1157,26 @@ async function setRegion(region, reload = true) {
       state.cities = await api(`/cities?region=${region}`);
       renderCities();
       populateChartCitySelect();
-      // Reinitialize map with new region bounds
+      // Refresh map for the new region
       if (leafletMap) {
-        leafletMap.fitBounds(getCurrentBounds(), { animate: true, padding: [12, 12] });
-        leafletMap.setMaxBounds(getCurrentBounds());
-        // Refresh map markers for new region
-        leafletMap.eachLayer(layer => { if (layer instanceof L.CircleMarker) leafletMap.removeLayer(layer); });
-        const mapData = await api(`/map-data?region=${region}`);
-        mapData.forEach(city => {
-          const riskColor = city.max_probability >= 0.8 ? '#C84040'
-            : city.max_probability >= 0.6 ? '#D47A3A'
-            : city.max_probability >= 0.3 ? '#D4A43A'
-            : '#A3CEAF';
-          const riskClass = city.max_probability >= 0.8 ? 'extreme'
-            : city.max_probability >= 0.6 ? 'high'
-            : city.max_probability >= 0.3 ? 'moderate' : 'low';
-          const marker = L.circleMarker([city.lat, city.lon], {
-            radius: 10 + (city.heatwave_pct * 0.8),
-            fillColor: riskColor, color: riskColor,
-            weight: 2, opacity: 0.9, fillOpacity: 0.4,
-          }).addTo(leafletMap);
-          marker.bindPopup(`
-            <div class="map-popup__name">${city.name}</div>
-            <div class="map-popup__state">${city.country ? city.country + ' · ' : ''}${city.region}</div>
-            <div class="map-popup__stat"><span class="map-popup__stat-label">Heatwave Days</span><span class="map-popup__stat-value ${riskClass}">${city.heatwave_days}</span></div>
-            <div class="map-popup__stat"><span class="map-popup__stat-label">Max Probability</span><span class="map-popup__stat-value ${riskClass}">${(city.max_probability * 100).toFixed(1)}%</span></div>
-          `, { maxWidth: 260 });
-        });
+        const bounds = getCurrentBounds();
+        leafletMap.setMaxBounds(bounds);
+        leafletMap.fitBounds(bounds, { animate: true, padding: [12, 12] });
+        // Remove all circle markers (use a separate layer group)
+        if (window._markerLayer) {
+          window._markerLayer.clearLayers();
+        } else {
+          window._markerLayer = L.layerGroup().addTo(leafletMap);
+        }
+        try {
+          const mapData = await api(`/map-data?region=${region}`);
+          if (window._addMapMarkers) {
+            window._addMapMarkers(mapData);
+          }
+          setTimeout(() => leafletMap.invalidateSize(), 100);
+        } catch (mapErr) {
+          console.warn('Map update failed:', mapErr);
+        }
       }
     } catch (err) {
       showError(`Could not load ${region} cities: ${err.message}`);
