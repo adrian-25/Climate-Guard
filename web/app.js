@@ -108,8 +108,10 @@ async function init() {
     // Initialize mode switch
     initModeSwitch();
 
-    // Initialize region switch (sets visual state, does NOT reload cities)
+    // Initialize region switch (visual state; navigation handled by button clicks)
     initRegionSwitch();
+    // Apply visual text changes for the current region
+    setRegion(state.region, false);
 
     // Start in Live mode — show live panel, hide historical controls
     const deepLinkedCity = query.get('city');
@@ -1104,12 +1106,37 @@ function initRegionSwitch() {
   const europeBtn = document.getElementById('region-europe-btn');
   if (!indiaBtn || !europeBtn) return;
 
-  // Read region from URL
+  // Set visual active state from current URL (no reload needed here — init() already loaded correct data)
   const urlRegion = new URLSearchParams(location.search).get('region') || 'india';
-  setRegion(urlRegion, false);
+  if (urlRegion === 'europe') {
+    europeBtn.classList.add('region-btn--active');
+    indiaBtn.classList.remove('region-btn--active');
+  } else {
+    indiaBtn.classList.add('region-btn--active');
+    europeBtn.classList.remove('region-btn--active');
+  }
 
-  indiaBtn.addEventListener('click',  () => setRegion('india'));
-  europeBtn.addEventListener('click', () => setRegion('europe'));
+  // On click: navigate to the same page with the new region param
+  // This is the most reliable approach — avoids all stale-closure bugs
+  indiaBtn.addEventListener('click', () => {
+    if (state.region !== 'india') {
+      const q = new URLSearchParams(location.search);
+      q.set('region', 'india');
+      q.delete('city');
+      q.delete('mode');
+      location.href = '/?' + q.toString();
+    }
+  });
+
+  europeBtn.addEventListener('click', () => {
+    if (state.region !== 'europe') {
+      const q = new URLSearchParams(location.search);
+      q.set('region', 'europe');
+      q.delete('city');
+      q.delete('mode');
+      location.href = '/?' + q.toString();
+    }
+  });
 }
 
 async function setRegion(region, reload = true) {
@@ -1142,41 +1169,32 @@ async function setRegion(region, reload = true) {
   }
 
   if (reload) {
-    // Update URL
+    // Navigation is now handled by initRegionSwitch button listeners.
+    // This path is kept only for internal calls that update the map/cities
+    // without a full page reload (e.g. future programmatic region changes).
     const q = new URLSearchParams(location.search);
     q.set('region', region);
     q.delete('city');
     history.replaceState(null, '', `/?${q}`);
-    // Reset state
     state.selectedCity = null;
     state.cities = [];
-    dom.results.classList.remove('visible');
+    document.getElementById('results')?.classList.remove('visible');
     hideError();
-    // Reload cities for new region
     try {
       state.cities = await api(`/cities?region=${region}`);
       renderCities();
       populateChartCitySelect();
-      // Refresh map for the new region
       if (leafletMap) {
         const bounds = getCurrentBounds();
         leafletMap.setMaxBounds(bounds);
         leafletMap.fitBounds(bounds, { animate: true, padding: [12, 12] });
-        // Remove all circle markers (use a separate layer group)
-        if (window._markerLayer) {
-          window._markerLayer.clearLayers();
-        } else {
-          window._markerLayer = L.layerGroup().addTo(leafletMap);
-        }
+        if (window._markerLayer) window._markerLayer.clearLayers();
+        else window._markerLayer = L.layerGroup().addTo(leafletMap);
         try {
           const mapData = await api(`/map-data?region=${region}`);
-          if (window._addMapMarkers) {
-            window._addMapMarkers(mapData);
-          }
+          if (window._addMapMarkers) window._addMapMarkers(mapData);
           setTimeout(() => leafletMap.invalidateSize(), 100);
-        } catch (mapErr) {
-          console.warn('Map update failed:', mapErr);
-        }
+        } catch (mapErr) { console.warn('Map update failed:', mapErr); }
       }
     } catch (err) {
       showError(`Could not load ${region} cities: ${err.message}`);
@@ -1186,6 +1204,9 @@ async function setRegion(region, reload = true) {
 
 // Override renderCities to group Europe cities by country
 function renderCities() {
+  const cityGrid = document.getElementById('city-grid');
+  if (!cityGrid) return;
+
   if (state.region === 'europe') {
     // Group by country
     const byCountry = {};
@@ -1217,10 +1238,10 @@ function renderCities() {
         </button>
       `).join('');
     });
-    dom.cityGrid.innerHTML = html;
+    cityGrid.innerHTML = html;
   } else {
     // Original India rendering
-    dom.cityGrid.innerHTML = state.cities.map(city => `
+    cityGrid.innerHTML = state.cities.map(city => `
       <button class="city-card" data-city="${city.key}" id="city-${city.key}"
               aria-pressed="false" type="button">
         <span class="city-card__check" aria-hidden="true">
