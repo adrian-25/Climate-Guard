@@ -19,7 +19,7 @@
 2026-09-01 22:29:55  INFO        Remaining: 65,095 rows
 2026-09-01 22:29:55  INFO      
 2026-09-01 22:29:55  INFO      Checking for unexpected NaNs in core lag/rolling columns …
-2026-09-01 22:29:55  INFO        No unexpected NaNs found in lag/rolling/target columns. ✓
+2026-09-01 22:29:55  INFO        No unexpected NaNs found in core lag/rolling/target columns. ✓
 2026-09-01 22:29:55  INFO      
 2026-09-01 22:29:55  INFO      ══════════════════════════════════════════════════════════════════════
 2026-09-01 22:29:55  INFO      LEAKAGE AUDIT
