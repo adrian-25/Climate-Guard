@@ -125,6 +125,15 @@ function scatterOptions(xLabel, yLabel, auc) {
   };
 }
 
+// The region selector re-renders charts on the same canvas elements. Chart.js
+// keeps a canvas-to-chart registry, so destroy the previous chart first rather
+// than leaving the selector with a console error after a region change.
+function destroyCanvasChart(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  const chart = canvas && Chart.getChart?.(canvas);
+  if (chart) chart.destroy();
+}
+
 // ----------------------------------------------------------------
 // Main — controlled by region switch at bottom of file
 // ----------------------------------------------------------------
@@ -161,6 +170,7 @@ function renderEvaluation(evaluation) {
   document.getElementById('baseline-comparison').innerHTML = `<table class="comp-table"><thead><tr><th>Approach</th>${metrics.map(metric => `<th class="right">${metric.toUpperCase()}</th>`).join('')}</tr></thead><tbody>${rows.map(([name, value]) => `<tr><td class="comp-city">${name}</td>${metrics.map(metric => `<td class="comp-metric right">${value[metric].toFixed(4)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 
   const points = evaluation.calibration.bin_mean_predicted.map((x, index) => ({ x, y: evaluation.calibration.bin_fraction_positive[index] }));
+  destroyCanvasChart('calibration-chart');
   new Chart(document.getElementById('calibration-chart'), {
     type: 'scatter',
     data: { datasets: [
@@ -248,6 +258,7 @@ function renderROCChart(roc) {
 
   const opts = scatterOptions('False positive rate', 'True positive rate');
 
+  destroyCanvasChart('roc-chart');
   new Chart(document.getElementById('roc-chart'), {
     type: 'scatter',
     data: {
@@ -287,6 +298,7 @@ function renderPRChart(pr) {
 
   const opts = scatterOptions('Recall', 'Precision');
 
+  destroyCanvasChart('pr-chart');
   new Chart(document.getElementById('pr-chart'), {
     type: 'scatter',
     data: {
@@ -320,6 +332,7 @@ function renderFeatureImportance(fiData) {
   );
   const bgColors = colors.map(c => c + '28');
 
+  destroyCanvasChart('fi-chart');
   new Chart(document.getElementById('fi-chart'), {
     type: 'bar',
     data: {
@@ -417,6 +430,53 @@ function renderCityComparison(cities, region = 'india') {
 // ----------------------------------------------------------------
 // DL comparison (India only — guarded, handles missing results)
 // ----------------------------------------------------------------
+function renderDlPrChart(curves) {
+  const canvas = document.getElementById('dl-pr-chart');
+  const fallback = document.getElementById('dl-pr-fig');
+  const summary = document.getElementById('dl-pr-summary');
+  if (!canvas || !curves || Object.keys(curves).length === 0) return false;
+
+  if (window.dlPrChart) window.dlPrChart.destroy();
+
+  const modelOrder = [
+    'RF production',
+    'RF fair',
+    'GRU raw-seq ens',
+    'GRU raw-seq focal ens',
+    'LSTM raw-seq ens',
+    'GRU feat110 ens',
+  ];
+  const colors = ['#5C5550', '#8C8580', '#C8421B', '#D97706', '#7A4D00', '#2E6B5A'];
+  const datasets = modelOrder
+    .filter(name => curves[name]?.recall?.length && curves[name]?.precision?.length)
+    .map((name, index) => ({
+      label: `${name} (PR-AUC = ${Number(curves[name].auc).toFixed(4)})`,
+      data: curves[name].recall.map((recall, pointIndex) => ({
+        x: recall,
+        y: curves[name].precision[pointIndex],
+      })),
+      borderColor: colors[index],
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      pointRadius: 0,
+      showLine: true,
+      tension: 0,
+    }));
+
+  if (!datasets.length) return false;
+  canvas.style.display = 'block';
+  if (fallback) fallback.style.display = 'none';
+  window.dlPrChart = new Chart(canvas, {
+    type: 'scatter',
+    data: { datasets },
+    options: scatterOptions('Recall', 'Precision'),
+  });
+  if (summary) {
+    summary.textContent = `Interactive curve values come from the same held-out India test rows as the table: ${datasets.map(dataset => dataset.label).join('; ')}.`;
+  }
+  return true;
+}
+
 function renderDlComparison(data) {
   const section = document.getElementById('dl-comparison-section');
   if (!section) return;
@@ -427,16 +487,24 @@ function renderDlComparison(data) {
   const unavailEl = document.getElementById('dl-unavailable');
 
   // Guard: 503 / not generated yet
-  if (!data || data.status === 'not_generated') {
+  if (!data || data.status === 'not_generated' || !Array.isArray(data.rows)) {
     if (unavailEl) unavailEl.hidden = false;
     return;
   }
+  if (unavailEl) unavailEl.hidden = true;
 
   // ── Summary table (ensemble rows + RF baselines only) ──────────────────────
-  const ENSEMBLE_MODELS = ['RF production', 'RF fair', 'GRU raw-seq ens', 'LSTM raw-seq ens', 'GRU feat110 ens'];
+  const ENSEMBLE_MODELS = [
+    'RF production',
+    'RF fair',
+    'GRU raw-seq ens',
+    'GRU raw-seq focal ens',
+    'LSTM raw-seq ens',
+    'GRU feat110 ens',
+  ];
   const rows = (data.rows || []).filter(r => ENSEMBLE_MODELS.includes(r.model));
 
-  const colHeaders = ['Model', 'Features', 'Threshold', 'F1', 'Precision', 'Recall', 'PR-AUC'];
+  const colHeaders = ['Model', 'Features', 'Threshold', 'F1', 'Precision', 'Recall', 'PR-AUC', 'Brier', 'ECE'];
   const tableRows = rows.map(r => {
     const note = r.note || '';
     // Extract CI note for DL rows only
@@ -451,7 +519,9 @@ function renderDlComparison(data) {
       <td class="comp-metric right">${r.Precision.toFixed(4)}</td>
       <td class="comp-metric right">${r.Recall.toFixed(4)}</td>
       <td class="comp-metric right">${r['PR-AUC'].toFixed(4)}</td>
-    </tr>${ciNote ? `<tr><td colspan="7" style="padding-top:0; padding-bottom:var(--sp-2);">${ciNote}</td></tr>` : ''}`;
+      <td class="comp-metric right">${r.Brier.toFixed(4)}</td>
+      <td class="comp-metric right">${r.ECE.toFixed(4)}</td>
+    </tr>${ciNote ? `<tr><td colspan="9" style="padding-top:0; padding-bottom:var(--sp-2);">${ciNote}</td></tr>` : ''}`;
   }).join('');
 
   const tableHtml = `<table class="comp-table">
@@ -479,7 +549,9 @@ function renderDlComparison(data) {
   }
 
   loadFigure('dl-per-city-fig', 'dl-per-city-unavail', 'per_city_f1');
-  loadFigure('dl-pr-fig',       'dl-pr-unavail',       'pr_curves');
+  if (!renderDlPrChart(data.pr_curves)) {
+    loadFigure('dl-pr-fig', 'dl-pr-unavail', 'pr_curves');
+  }
   loadFigure('dl-ig-fig',       'dl-ig-unavail',       'dl_feature_importance_ig');
 }
 
@@ -525,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fetch('/api/evaluation/latest').then(r => r.ok ? r.json() : null).then(renderEvaluation).catch(() => renderEvaluation(null));
       fetch('/api/evaluation/live-track-record').then(r => r.ok ? r.json() : null).then(renderLiveTrackRecord).catch(() => {});
       fetch('/api/dl/comparison')
-        .then(r => r.json())
+        .then(r => r.ok ? r.json() : null)
         .then(renderDlComparison)
         .catch(() => renderDlComparison(null));
     } else {

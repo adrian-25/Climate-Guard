@@ -56,6 +56,7 @@ def _make_row(
         "PR-AUC": _r(metrics.get("pr_auc")),
         "ROC-AUC": _r(metrics.get("roc_auc")),
         "Brier": _r(metrics.get("brier")),
+        "ECE": _r(metrics.get("ece")),
         "note": note,
     }
 
@@ -73,6 +74,7 @@ def _plot_pr_curves(
         "RF production": "#C8421B",
         "RF fair": "#8C8580",
         "GRU raw-seq ens": "#2563EB",
+        "GRU raw-seq focal ens": "#D97706",
         "LSTM raw-seq ens": "#7C3AED",
         "GRU feat110 ens": "#059669",
     }
@@ -119,7 +121,7 @@ def _plot_per_city(rows: list[dict], out_path: Path) -> None:
         r["model"] for r in rows if "DL" not in r["model"] or "ens" in r["model"].lower()
     ]
     palette = {"RF production": "#C8421B", "RF fair": "#8C8580"}
-    dl_colors = ["#2563EB", "#7C3AED", "#059669"]
+    dl_colors = ["#2563EB", "#D97706", "#7C3AED", "#059669"]
     dl_i = 0
     offset = -width
     for row in rows:
@@ -158,6 +160,7 @@ def _plot_calibration(
         "RF production": "#C8421B",
         "RF fair": "#8C8580",
         "GRU raw-seq ens": "#2563EB",
+        "GRU raw-seq focal ens": "#D97706",
         "LSTM raw-seq ens": "#7C3AED",
         "GRU feat110 ens": "#059669",
     }
@@ -237,6 +240,7 @@ def main() -> None:
         "gru_raw_seq": "GRU raw-seq ens",
         "lstm_raw_seq": "LSTM raw-seq ens",
         "gru_feat110_seq": "GRU feat110 ens",
+        "gru_raw_seq_focal": "GRU raw-seq focal ens",
     }
     for key, dl_data in results["dl"].items():
         if "error" in dl_data:
@@ -249,6 +253,7 @@ def main() -> None:
         mean_pa = dl_data.get("mean_prauc")
         std_pa = dl_data.get("std_prauc")
         cfg = dl_data["input_config"]
+        loss_name = dl_data.get("loss", "weighted-bce")
         n_seeds = dl_data["n_seeds_completed"]
         ci = dl_data.get("bootstrap_ci_vs_rf_prod", {})
         ci_fair = dl_data.get("bootstrap_ci_vs_rf_fair", {})
@@ -299,6 +304,7 @@ def main() -> None:
                 f"Val-optimal (≈{ens_thr:.2f})",
                 ens_m,
                 note=f"Ensemble of {n_seeds} seeds; "
+                f"loss={loss_name}; "
                 f"mean F1={mean_f1}±{std_f1}; "
                 f"PR-AUC={mean_pa}±{std_pa}. {ci_note}",
             )
@@ -337,6 +343,7 @@ def main() -> None:
         "PR-AUC",
         "ROC-AUC",
         "Brier",
+        "ECE",
         "note",
     ]
     df = pd.DataFrame(rows, columns=csv_cols)
@@ -377,6 +384,15 @@ def main() -> None:
             }
             for k, v in results["dl"].items()
             if "probs" in v
+        },
+        "ensemble_diagnostics": {
+            key: {
+                "loss": value.get("loss", "weighted-bce"),
+                "uncertainty": value.get("ensemble", {}).get("uncertainty"),
+                "test_ece": value.get("ensemble", {}).get("metrics_val_opt", {}).get("ece"),
+            }
+            for key, value in results["dl"].items()
+            if "probs" in value
         },
         "per_city": {
             name: {city: (m if m else None) for city, m in pc.items()}

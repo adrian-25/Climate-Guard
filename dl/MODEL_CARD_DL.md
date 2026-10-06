@@ -12,7 +12,7 @@
 |-------------------|------------------------------|------------------------------|------------------------------|
 | Architecture      | 2-layer GRU + city embedding | 2-layer LSTM + city embedding| 2-layer GRU + city embedding |
 | Hidden size       | 64                           | 64                           | 64                           |
-| Sequence length   | 14 days                      | 14 days                      | 14 days                      |
+| Sequence length   | 21 days                      | 21 days                      | 7 days                       |
 | Input features    | 21 raw + calendar            | 21 raw + calendar            | 104 engineered               |
 | Seeds / ensemble  | 5 (ensemble mean prob)       | 5 (ensemble mean prob)       | 3 (ensemble mean prob)       |
 | Framework         | PyTorch 2.5.1+cpu            | PyTorch 2.5.1+cpu            | PyTorch 2.5.1+cpu            |
@@ -95,6 +95,7 @@ Test set: India 2023–2025, 4,865 rows, 38 positives.
 | GRU raw-seq ens   | 0.7586 | 0.6735    | 0.8684 | 0.8414 | 0.9981  |
 | LSTM raw-seq ens  | 0.7234 | 0.6071    | 0.8947 | 0.8664 | 0.9984  |
 | GRU feat110 ens   | 0.7273 | 0.6400    | 0.8421 | 0.8579 | 0.9981  |
+| GRU raw-seq focal ens | 0.7529 | 0.6809 | 0.8421 | 0.8264 | 0.9977 |
 
 Thresholds are calibrated on the validation set (val-optimal F1). The production
 RF uses a fixed 0.70 threshold.
@@ -106,9 +107,20 @@ RF uses a fixed 0.70 threshold.
 | GRU raw-seq ens | [-0.080, +0.197]   | [-0.035, +0.240]   | Competitive; CI includes zero  |
 | LSTM raw-seq ens| [-0.114, +0.165]   | [-0.068, +0.205]   | Competitive; CI includes zero  |
 | GRU feat110 ens | [-0.083, +0.167]   | [-0.057, +0.224]   | Competitive; CI includes zero  |
+| GRU raw-seq focal ens | [-0.076, +0.191] | [-0.050, +0.249] | Competitive; CI includes zero |
 
 The wide CIs reflect the small number of positive test events (38 total across
 5 cities). No DL model statistically outperforms either RF baseline.
+
+### Focal-loss and calibration diagnostics
+
+The focal-loss GRU is a fixed γ=2, three-seed ablation trained with the same
+capped positive-class weight and validation-only early stopping as the main
+GRU. It did not improve the weighted-BCE GRU: F1 0.7529 vs 0.7586 and PR-AUC
+0.8264 vs 0.8414. Its test expected calibration error was also higher (0.0368
+vs 0.0136). The comparison JSON reports Brier score, fixed-bin ECE, and
+cross-seed probability standard deviation for every DL ensemble; these are
+research diagnostics and do not calibrate or alter the production forecast.
 
 ---
 
@@ -154,8 +166,10 @@ signals.
 
 - Ensemble mean probability reduces variance but does not eliminate it. Single-seed
   results (reported in `dl_vs_rf.json`) show seed-to-seed F1 variation of ±0.04.
-- The 14-day sequence length was chosen to capture multi-day heat build-up. Longer
-  sequences may improve performance but require more context history at inference time.
+- The raw-sequence models use 21 days to capture multi-day heat build-up; the
+  engineered-feature GRU uses 7 days because each timestep already contains
+  lag and rolling features. Longer sequences may improve performance but require
+  more context history at inference time.
 - The model has not been evaluated on out-of-distribution years (post-2025) or on
   cities not in the training set.
 - Before any production consideration, the DL module would require: independent
@@ -172,6 +186,7 @@ signals.
 | `dl/artifacts/gru_raw_seq_seed*/`  | GRU raw-seq checkpoints (seeds 0–4)  |
 | `dl/artifacts/lstm_raw_seq_seed*/` | LSTM raw-seq checkpoints (seeds 0–4) |
 | `dl/artifacts/gru_feat110_seq_seed*/` | GRU feat110 checkpoints (seeds 0–2)|
+| `dl/artifacts/gru_raw_seq_focal_seed*/` | Fixed γ=2 focal-loss GRU checkpoints (seeds 0–2) |
 | `dl/artifacts/rf_fair.joblib`      | RF-fair baseline (joblib)            |
 | `dl/artifacts/rf_fair_info.json`   | RF-fair training metadata            |
 | `dl/results/dl_vs_rf.json`         | Full metrics + bootstrap CIs (JSON)  |

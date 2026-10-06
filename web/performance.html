@@ -115,7 +115,7 @@
 
     <!-- DL comparison (India only, populated by JS when /api/dl/comparison is available) -->
     <section id="dl-comparison-section" aria-labelledby="dl-heading" style="margin-bottom: var(--sp-10);" hidden>
-      <h2 class="section-title" id="dl-heading">Deep learning comparison (research)</h2>
+      <h2 class="section-title" id="dl-heading">Deep learning vs Random Forest (experimental)</h2>
       <p class="section-subhead">
         GRU and LSTM sequence models trained on the same India training window (1990&ndash;2019) and
         evaluated on the same held-out test set. This is a research comparison only&mdash;ClimateGuard
@@ -146,9 +146,14 @@
         <p id="dl-per-city-unavail" class="live-disclaimer" hidden>Figure not yet generated. Run: python -m dl.compare</p>
       </div>
 
-      <!-- PR curves figure -->
+      <!-- Interactive PR curves. The retained PNG is a fallback for a missing JSON payload. -->
       <div class="chart-card" style="margin-bottom: var(--sp-6);">
         <div class="chart-card__title">Precision&ndash;recall curves &mdash; DL vs RF</div>
+        <canvas id="dl-pr-chart"
+                aria-label="Interactive precision-recall curves for the production Random Forest, fair Random Forest baseline, GRU and LSTM ensembles"></canvas>
+        <p id="dl-pr-summary" class="live-disclaimer" style="margin-top: var(--sp-4);">
+          The table above provides the numerical PR-AUC for every model; this chart shows how precision changes as recall increases.
+        </p>
         <img id="dl-pr-fig"
              src=""
              alt="Precision-recall curves comparing GRU ensemble, LSTM ensemble, RF production and RF fair"

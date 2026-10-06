@@ -96,3 +96,16 @@ def test_city_embedding_dim():
     model = build_model(n_features=21, arch="gru")
     assert model.city_embed.embedding_dim == CITY_EMBED_DIM
     assert model.city_embed.num_embeddings == NUM_INDIA_CITIES
+
+
+def test_weighted_focal_loss_is_finite_and_backpropagates():
+    """The rare-event focal-loss ablation must produce a usable gradient."""
+    from dl.train import WeightedFocalLoss
+
+    logits = _torch.tensor([2.0, -1.0, 0.5], requires_grad=True)
+    targets = _torch.tensor([1.0, 0.0, 1.0])
+    loss = WeightedFocalLoss(pos_weight=10.0)(logits, targets)
+    assert _torch.isfinite(loss)
+    loss.backward()
+    assert logits.grad is not None
+    assert _torch.isfinite(logits.grad).all()

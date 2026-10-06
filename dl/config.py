@@ -65,6 +65,9 @@ EPOCHS = 60
 LR = 3e-4
 PATIENCE = 8  # early stopping on val PR-AUC
 POS_WEIGHT_CAP = 50.0  # cap for BCEWithLogitsLoss pos_weight (avoid extreme values)
+# One pre-registered rare-event ablation. Its gamma is fixed before looking at
+# test results; selection continues to use validation PR-AUC only.
+FOCAL_GAMMA = 2.0
 NUM_WORKERS = 0  # Windows-safe (no forking)
 
 # ── Architecture ─────────────────────────────────────────────────────────────

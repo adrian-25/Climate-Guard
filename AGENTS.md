@@ -63,3 +63,7 @@ Run the existing interface tests with `python tests/test_prediction_interface.py
   to Performance page (India only, hidden for Europe, handles 503 gracefully). 307 tests pass;
   Ruff + Black clean. dl/README_DL.md and dl/MODEL_CARD_DL.md document method and results.
   DL module does not affect production RF, model_registry.json, or any existing route.
+- DL follow-up: a fixed gamma=2 focal-loss GRU ablation (three seeds) was trained and evaluated
+  with the same leakage-safe protocol. It did not improve the weighted-BCE GRU (F1 0.7529 vs
+  0.7586; PR-AUC 0.8264 vs 0.8414), and its ECE was higher (0.0368 vs 0.0136). DL comparison
+  artifacts and the Performance page now report Brier, ECE, and cross-seed probability spread.

@@ -50,6 +50,15 @@ def test_metrics_na_for_all_negative():
     assert m["roc_auc"] is None
 
 
+def test_expected_calibration_error_is_bounded():
+    from dl.evaluate import expected_calibration_error
+
+    labels, probs, _ = _fixture()
+    ece = expected_calibration_error(labels, probs)
+    assert ece is not None
+    assert 0.0 <= ece <= 1.0
+
+
 def test_per_city_na_for_no_positives():
     """Cities with no positives must return None (n/a), not a metrics dict."""
     from dl.evaluate import per_city_metrics

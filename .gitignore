@@ -18,6 +18,7 @@ __pycache__/
 # Virtual environments
 # ------------------------------------------------------------
 .venv/
+.venv-dl/
 venv/
 env/
 ENV/
@@ -101,3 +102,6 @@ desktop.ini
 # ------------------------------------------------------------
 _scratch/
 _*.py
+!dl/__init__.py
+!tests/__init__.py
+!tests/dl/__init__.py

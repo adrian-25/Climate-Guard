@@ -342,7 +342,15 @@ python tests/test_prediction_interface.py
 python -m pytest tests/test_prediction_interface.py -v
 ```
 
-18 tests cover: model loading, feature validation, probability bounds, threshold application, batch prediction, error handling, and explainability access. All pass.
+For the full regression suite, run:
+
+```bash
+python -m pytest
+```
+
+The current suite contains 309 passing tests covering model loading, feature
+validation, probability bounds, threshold application, batch prediction, error
+handling, explainability, live-data seams, and the DL comparison module.
 
 ---
 
@@ -369,6 +377,8 @@ python -m pytest tests/test_prediction_interface.py -v
 | `docs/prediction_interface.md` | Phase 15 interface documentation |
 | `docs/part2_integration_contract.md` | Integration contract for Part 2 |
 | `docs/part3_integration_contract.md` | Integration contract for Part 3 |
+| `dl/README_DL.md` | DL training, evaluation, and reproducibility guide |
+| `dl/MODEL_CARD_DL.md` | DL model card, limitations, and comparison results |
 
 ---
 
@@ -380,17 +390,25 @@ the production RF on the held-out test set.
 
 **Key findings (India test set 2023–2025, 38 positives / 4,865 rows):**
 
-| Model            | F1     | PR-AUC |
-|------------------|--------|--------|
-| RF production    | 0.6947 | 0.8339 |
-| GRU raw-seq ens  | 0.7586 | 0.8414 |
-| LSTM raw-seq ens | 0.7234 | 0.8664 |
-| GRU feat110 ens  | 0.7273 | 0.8579 |
+| Model                 | F1     | PR-AUC | Brier  | ECE    |
+|-----------------------|--------|--------|--------|--------|
+| RF production         | 0.6947 | 0.8339 | 0.0083 | 0.0208 |
+| GRU raw-seq ens       | 0.7586 | 0.8414 | 0.0090 | 0.0136 |
+| LSTM raw-seq ens      | 0.7234 | 0.8664 | 0.0082 | 0.0124 |
+| GRU feat110 ens       | 0.7273 | 0.8579 | 0.0066 | 0.0105 |
+| GRU raw-seq focal ens | 0.7529 | 0.8264 | 0.0132 | 0.0368 |
 
 All bootstrap 95% CIs for the F1 difference include zero — results are
 competitive with no statistically significant difference vs either RF baseline.
 One exception: LSTM vs RF-fair ΔPR-AUC CI = [0.002, 0.274] excludes zero, but
 with only 38 test positives this should be interpreted with caution.
+The fixed-gamma focal-loss ablation did not improve on the weighted-BCE GRU and
+has higher calibration error, so it remains a documented research result rather
+than a selected model.
+The Brier score and ten-bin expected calibration error (ECE) are test-set
+diagnostics, not a claim that the DL probabilities are operationally calibrated.
+Each DL ensemble also records cross-seed probability spread as an uncertainty
+signal in the machine-readable comparison artifact.
 Feature attribution (Integrated Gradients) shows Spearman ρ = 0.687 between DL
 and RF importance rankings on 21 common features.
 

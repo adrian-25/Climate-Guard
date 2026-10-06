@@ -52,6 +52,13 @@ from .model import build_model
 INDIA_CITIES_TEST_POS = {"delhi": 18, "lucknow": 16, "nagpur": 4, "ahmedabad": 0, "mumbai": 0}
 
 
+def _run_tag(arch: str, input_config: str, loss_name: str, seed: int) -> str:
+    """Return the artifact directory tag used by ``dl.train``."""
+    base = f"{arch}_{input_config.replace('-', '_')}"
+    suffix = "" if loss_name == "weighted-bce" else f"_{loss_name.replace('-', '_')}"
+    return f"{base}{suffix}_seed{seed}"
+
+
 # ---------------------------------------------------------------------------
 # Metrics helpers
 # ---------------------------------------------------------------------------
@@ -62,6 +69,30 @@ def _safe(fn, *args, **kwargs):
         return float(fn(*args, **kwargs))
     except Exception:
         return None
+
+
+def expected_calibration_error(
+    labels: np.ndarray, probs: np.ndarray, n_bins: int = 10
+) -> float | None:
+    """Return fixed-bin expected calibration error for a probability vector."""
+    valid = ~np.isnan(probs.astype(float))
+    labels_i = labels[valid].astype(float)
+    probs_v = probs[valid].astype(float)
+    if len(probs_v) == 0:
+        return None
+
+    total = float(len(probs_v))
+    ece = 0.0
+    for lower, upper in zip(
+        np.linspace(0.0, 1.0, n_bins, endpoint=False), np.linspace(0.1, 1.0, n_bins)
+    ):
+        mask = (probs_v >= lower) & ((probs_v < upper) if upper < 1.0 else (probs_v <= upper))
+        if not mask.any():
+            continue
+        ece += abs(float(labels_i[mask].mean()) - float(probs_v[mask].mean())) * (
+            mask.sum() / total
+        )
+    return float(ece)
 
 
 def compute_metrics(labels: np.ndarray, probs: np.ndarray, threshold: float) -> dict:
@@ -77,6 +108,7 @@ def compute_metrics(labels: np.ndarray, probs: np.ndarray, threshold: float) -> 
             "pr_auc": None,
             "roc_auc": None,
             "brier": None,
+            "ece": None,
             "tp": 0,
             "fp": 0,
             "fn": 0,
@@ -96,6 +128,7 @@ def compute_metrics(labels: np.ndarray, probs: np.ndarray, threshold: float) -> 
         "pr_auc": _safe(average_precision_score, labels_i, probs_v) if has_both else None,
         "roc_auc": _safe(roc_auc_score, labels_i, probs_v) if has_both else None,
         "brier": _safe(brier_score_loss, labels_i, probs_v),
+        "ece": expected_calibration_error(labels_i, probs_v),
         "tp": tp,
         "fp": fp,
         "fn": fn,
@@ -247,13 +280,14 @@ def _load_dl_probs(
     input_config: str,
     seed: int,
     device: torch.device,
+    loss_name: str = "weighted-bce",
 ) -> tuple[np.ndarray, np.ndarray, float]:
     """Load best checkpoint and get test + val probs; return threshold from val."""
     from torch.utils.data import DataLoader
 
     from .config import BATCH_SIZE, NUM_WORKERS
 
-    tag = f"{arch}_{input_config.replace('-','_')}_seed{seed}"
+    tag = _run_tag(arch, input_config, loss_name, seed)
     save_dir = DL_ARTIFACTS / tag
     ckpt_path = save_dir / "best.pt"
     scaler_path = save_dir / "scaler.pkl"
@@ -391,26 +425,32 @@ def evaluate_all() -> dict:
 
     # ── DL models ─────────────────────────────────────────────────────────────
     dl_configs = [
-        ("gru", "raw-seq", [0, 1, 2, 3, 4]),
-        ("lstm", "raw-seq", [0, 1, 2, 3, 4]),
-        ("gru", "feat110-seq", [0, 1, 2]),
+        ("gru", "raw-seq", [0, 1, 2, 3, 4], "weighted-bce"),
+        ("lstm", "raw-seq", [0, 1, 2, 3, 4], "weighted-bce"),
+        ("gru", "feat110-seq", [0, 1, 2], "weighted-bce"),
+        # Fixed gamma=2 focal-loss experiment. Train/validation select only;
+        # checkpoints may be absent until ``python -m dl.train --loss focal`` runs.
+        ("gru", "raw-seq", [0, 1, 2], "focal"),
     ]
 
     dl_results = {}
-    for arch, cfg, seeds in dl_configs:
-        key = f"{arch}_{cfg.replace('-','_')}"
-        print(f"\n[evaluate] {arch.upper()} {cfg}...")
+    for arch, cfg, seeds, loss_name in dl_configs:
+        key = f"{arch}_{cfg.replace('-', '_')}"
+        if loss_name != "weighted-bce":
+            key = f"{key}_{loss_name.replace('-', '_')}"
+        print(f"\n[evaluate] {arch.upper()} {cfg} ({loss_name})...")
         all_probs = []
+        all_probs_val = []
         per_seed = []
         for s in seeds:
-            tag = f"{arch}_{cfg.replace('-','_')}_seed{s}"
+            tag = _run_tag(arch, cfg, loss_name, s)
             ckpt_dir = DL_ARTIFACTS / tag
             if not (ckpt_dir / "best.pt").exists():
                 print(f"  seed {s}: checkpoint not found, skipping")
                 continue
             try:
                 probs_t, probs_v, thr_v = _load_dl_probs(
-                    arch, cfg, s, torch.device(get_device_str())
+                    arch, cfg, s, torch.device(get_device_str()), loss_name
                 )
                 metrics_v = compute_metrics(y_te, probs_t, thr_v)
                 metrics_5 = compute_metrics(y_te, probs_t, 0.50)
@@ -426,6 +466,7 @@ def evaluate_all() -> dict:
                     }
                 )
                 all_probs.append(probs_t)
+                all_probs_val.append(probs_v)
                 print(
                     f"  seed {s} @val_thr={thr_v:.2f}: "
                     f"F1={metrics_v['f1']:.4f}  PR-AUC={metrics_v['pr_auc']:.4f}"
@@ -439,6 +480,7 @@ def evaluate_all() -> dict:
 
         # Ensemble (mean probability)
         ens_probs = np.stack(all_probs).mean(axis=0)
+        ens_probs_val = np.stack(all_probs_val).mean(axis=0)
         ens_thr_v = np.mean([p["threshold_val"] for p in per_seed])
         ens_m_v = compute_metrics(y_te, ens_probs, ens_thr_v)
         ens_m_5 = compute_metrics(y_te, ens_probs, 0.50)
@@ -482,6 +524,7 @@ def evaluate_all() -> dict:
         dl_results[key] = {
             "arch": arch,
             "input_config": cfg,
+            "loss": loss_name,
             "seeds": seeds,
             "n_seeds_completed": len(per_seed),
             "per_seed": [{k: v for k, v in p.items() if k != "probs"} for p in per_seed],
@@ -490,6 +533,14 @@ def evaluate_all() -> dict:
                 "metrics_val_opt": ens_m_v,
                 "metrics_050": ens_m_5,
                 "metrics_070": ens_m_7,
+                "uncertainty": {
+                    "type": "cross_seed_probability_standard_deviation",
+                    "mean": round(float(np.std(np.stack(all_probs), axis=0).mean()), 6),
+                    "p95": round(float(np.percentile(np.std(np.stack(all_probs), axis=0), 95)), 6),
+                    "validation_mean": round(
+                        float(np.std(np.stack(all_probs_val), axis=0).mean()), 6
+                    ),
+                },
             },
             "mean_f1": round(np.mean(f1s), 4) if f1s else None,
             "std_f1": round(np.std(f1s), 4) if f1s else None,

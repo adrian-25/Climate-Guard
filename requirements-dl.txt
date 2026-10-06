@@ -1,19 +1,16 @@
-# Deep-learning comparison module — install SEPARATELY from requirements.txt
-# Usage:  pip install -r requirements-dl.txt
+# Deep-learning comparison module — install AFTER requirements.txt.
+# Usage:  pip install -r requirements.txt && pip install -r requirements-dl.txt
 #
-# PyTorch CPU build (RTX 3050 requires admin for CUDA access; CPU is fine for
-# the small GRU/LSTM models used here — ~1-2 min per training run).
-# To use CUDA (if you have admin):
-#   pip install torch==2.5.1+cu118 --index-url https://download.pytorch.org/whl/cu118
+# PyTorch CPU build (CPU is suitable for these compact GRU/LSTM runs).
+# Keep PyPI as the primary index so Captum and Matplotlib resolve reliably;
+# use the PyTorch CPU wheel index only for the CPU torch wheel.
+# To use CUDA, install the matching official PyTorch wheel separately after
+# checking the local CUDA driver compatibility.
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.5.1+cpu
---index-url https://download.pytorch.org/whl/cpu
 
 # Interpretability
 captum==0.9.0
 
 # Plotting — Agg backend, no display needed
 matplotlib==3.11.1
-
-# Pinned to match the existing production environment (do not change)
-numpy==2.4.6
-fastapi==0.133.1

@@ -1,0 +1,16 @@
+{
+  "arch": "gru",
+  "input_config": "raw-seq",
+  "loss": "focal",
+  "focal_gamma": 2.0,
+  "seed": 1,
+  "seq_len": 21,
+  "n_features": 21,
+  "pos_weight": 50.0,
+  "best_epoch": 23,
+  "best_val_prauc": 0.686955,
+  "train_seconds": 154.9,
+  "checkpoint": "C:\\Users\\Adrian\\Documents\\climate guard\\dl\\artifacts\\gru_raw_seq_focal_seed1\\best.pt",
+  "scaler": "C:\\Users\\Adrian\\Documents\\climate guard\\dl\\artifacts\\gru_raw_seq_focal_seed1\\scaler.pkl",
+  "device": "cpu"
+}

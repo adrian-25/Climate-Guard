@@ -5,6 +5,9 @@
 - Product: alert subscriptions, 7-day outlook, PWA/export/print/share tools.
 - Operations: Docker, Render blueprint, CI coverage/audit/Docker build.
 - Credibility: evaluation artifact, baseline comparisons, calibration, and live outcome tracking.
+- DL: added a fixed gamma=2 focal-loss GRU ablation and calibration diagnostics (Brier, ECE,
+  cross-seed probability spread). The focal ablation did not beat the weighted-BCE GRU and
+  remains research-only.
 
 ## Phase 8 — DL comparison module
 
