@@ -1,0 +1,140 @@
+# ClimateGuard — Deep Learning Comparison Module
+
+This module trains GRU and LSTM sequence models on the same India training data
+as the production Random Forest, evaluates them on the same held-out test set,
+and compares their performance with bootstrap confidence intervals.
+
+**Status: research comparison only.** The production application uses the Random
+Forest model. The DL module is a read-only addition that cannot overwrite model
+files, training data, or existing API routes.
+
+---
+
+## Architecture
+
+```
+dl/
+├── config.py       — paths, hyperparameters, feature lists
+├── data.py         — HeatwaveSequenceDataset (leakage-safe windowing)
+├── model.py        — GRUClassifier / LSTMClassifier with city embedding
+├── train.py        — training loop, early stopping, scaler, checkpoint
+├── baselines.py    — RF-fair baseline (train-only window, no qualifying_day)
+├── evaluate.py     — per-model metrics, bootstrap CIs vs both RF baselines
+├── compare.py      — orchestrates evaluation; writes dl/results/
+├── explain.py      — Integrated Gradients attribution; RF vs DL importance
+├── artifacts/      — trained checkpoints (*.pt), scalers, RF-fair joblib
+└── results/        — generated CSVs, JSON, PNGs (not committed to main history)
+```
+
+---
+
+## Key design choices
+
+### Leakage-safe windows (`data.py`)
+
+Standard sliding-window datasets silently drop the first `seq_len − 1` rows per
+city because they lack enough history. If these are replaced with NaN-padded rows
+the test-set size becomes inconsistent with the RF evaluation.
+
+`HeatwaveSequenceDataset` solves this with a _context prefix_: when the dataset
+for a split is constructed, the last `seq_len − 1` rows of the *preceding* split
+are passed as `context_feat`. Validation uses training-period context; test uses
+validation-period context. Every one of the 4,865 India test rows gets a real
+prediction window with no padding and no leakage from future data.
+
+### RF-fair baseline (`baselines.py`)
+
+The production RF was trained on train + validation combined (1990–2022) and uses
+110 features including the `qualifying_day` flag (which encodes part of the label
+definition). To give the DL models a fair comparison baseline, `rf_fair` is trained
+on the training window only (1990–2019) with `qualifying_day`, `heatwave_lag1`,
+`city_encoded`, `is_coastal`, `latitude`, and `longitude` removed — the same
+exclusions applied to the DL feature sets.
+
+### Bootstrap confidence intervals (`evaluate.py`)
+
+Both RF-production and RF-fair F1 and PR-AUC differences are tested with 1,000
+bootstrap resamples using 14-day temporal blocks (to respect autocorrelation in
+heatwave sequences). If a 95% CI includes zero the result is described as
+"competitive, no statistically significant difference" — never "outperforms".
+
+---
+
+## Results (India test set 2023–2025, 38 positives / 4,865 rows)
+
+| Model             | Features                   | F1     | Precision | Recall | PR-AUC |
+|-------------------|----------------------------|--------|-----------|--------|--------|
+| RF production     | 110 (incl. qualifying_day) | 0.6947 | 0.5789    | 0.8684 | 0.8339 |
+| RF fair           | 104 (no qualifying_day)    | 0.6535 | 0.5238    | 0.8684 | 0.7605 |
+| GRU raw-seq ens   | 21 raw+calendar            | 0.7586 | 0.6735    | 0.8684 | 0.8414 |
+| LSTM raw-seq ens  | 21 raw+calendar            | 0.7234 | 0.6071    | 0.8947 | 0.8664 |
+| GRU feat110 ens   | 104 (no qualifying_day)    | 0.7273 | 0.6400    | 0.8421 | 0.8579 |
+
+**Bootstrap CI interpretation (vs RF-production, F1 difference):**
+
+| DL model        | 95% CI           | Verdict                                                     |
+|-----------------|------------------|-------------------------------------------------------------|
+| GRU raw-seq ens | [-0.080, +0.197] | Competitive; no statistically significant difference        |
+| LSTM raw-seq ens| [-0.114, +0.165] | Competitive; no statistically significant difference        |
+| GRU feat110 ens | [-0.083, +0.167] | Competitive; no statistically significant difference        |
+
+All CIs also include zero vs RF-fair. The test set has only 38 positive events
+across five cities (Ahmedabad and Mumbai have zero), so power is limited.
+
+**Feature attribution (Integrated Gradients, GRU seed 0):**
+Top features: `tmax_departure`, `temperature_2m_max`, `temperature_2m_mean`,
+`relative_humidity_2m_mean`, `et0_fao_evapotranspiration`.
+Spearman rank correlation between DL and RF importance on 21 common features:
+ρ = 0.687 (p = 0.001). 4 of 5 DL top features appear in the RF top-5 restricted
+to the same feature subset.
+
+---
+
+## Commands
+
+All commands run from the repository root. Set `PYTHONPATH=.` first (or rely on
+`pyproject.toml`'s `pythonpath = ["."]` setting).
+
+```bash
+# Train (CPU; ~5 min per seed)
+python -m dl.train --arch gru  --config raw-seq      --seeds 0 1 2 3 4
+python -m dl.train --arch lstm --config raw-seq      --seeds 0 1 2 3 4
+python -m dl.train --arch gru  --config feat110-seq  --seeds 0 1 2
+
+# Evaluate and compare (writes dl/results/)
+python -m dl.compare
+
+# Feature attribution (writes dl/results/dl_feature_importance_ig.png etc.)
+python -m dl.explain
+
+# Tests
+python -m pytest tests/dl/ -q           # 26 DL tests (require torch)
+python -m pytest --ignore=tests/dl -q   # 278 existing tests (no torch needed)
+```
+
+---
+
+## CI notes
+
+The DL tests use `pytest.importorskip("torch")` so they skip cleanly in
+environments without `torch` installed. The standard CI pipeline
+(`python -m pytest`) skips `tests/dl/` by default if torch is absent.
+
+Running the full suite with torch installed: **307 tests pass**.
+
+---
+
+## Limitations
+
+- Only India cities are included (Europe skipped by design).
+- Test set has 38 positive events; per-city results for Delhi (18), Lucknow (16),
+  Nagpur (4) are noisy. Ahmedabad and Mumbai have no test positives.
+- DL models use 21 raw meteorological features only; the production RF's
+  `qualifying_day` feature (which encodes part of the label definition) gives RF
+  an advantage that is measured by the RF-fair baseline.
+- Training used CPU (torch 2.5.1+cpu). GPU training is not required for these
+  small models but would be faster on a CUDA-enabled machine.
+- Hindi and Marathi alert templates are machine-drafted and require native-speaker
+  review before production use (see Phase 3 notes in AGENTS.md).
+- ClimateGuard is a research model, not an official warning system. Predictions
+  should not replace IMD bulletins or other authoritative sources.

@@ -372,6 +372,33 @@ python -m pytest tests/test_prediction_interface.py -v
 
 ---
 
+## Deep learning comparison module
+
+ClimateGuard includes a research-only DL comparison module (`dl/`) that trains
+GRU and LSTM sequence models on the same India data and evaluates them against
+the production RF on the held-out test set.
+
+**Key findings (India test set 2023–2025, 38 positives / 4,865 rows):**
+
+| Model            | F1     | PR-AUC |
+|------------------|--------|--------|
+| RF production    | 0.6947 | 0.8339 |
+| GRU raw-seq ens  | 0.7586 | 0.8414 |
+| LSTM raw-seq ens | 0.7234 | 0.8664 |
+| GRU feat110 ens  | 0.7273 | 0.8579 |
+
+All bootstrap 95% CIs for the F1 difference include zero — results are
+competitive with no statistically significant difference vs either RF baseline.
+Feature attribution (Integrated Gradients) shows Spearman ρ = 0.687 between DL
+and RF importance rankings on 21 common features.
+
+The DL module does not affect the production RF, `model_registry.json`,
+`predictor.py`, or any existing route. See [`dl/README_DL.md`](dl/README_DL.md)
+for full usage, commands, and limitations. The model card for the DL models is at
+[`dl/MODEL_CARD_DL.md`](dl/MODEL_CARD_DL.md).
+
+---
+
 ## Important Notes
 
 - **Do NOT retrain** the model. `models/final/climateguard_final_model.joblib` is a locked artifact.

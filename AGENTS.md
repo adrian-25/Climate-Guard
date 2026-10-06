@@ -53,3 +53,13 @@ Run the existing interface tests with `python tests/test_prediction_interface.py
   Black checks passed. Desktop/mobile screenshots and live/historical browser flows passed
   without console errors. Docker Compose configuration validated, but a Docker image build
   could not run because Docker Desktop's daemon was unavailable on this host.
+- Phase 8 DL comparison module: GRU and LSTM sequence models trained on the same India
+  training window (1990–2019) with leakage-safe windowed datasets (every test row gets a real
+  prediction via context prefix — no NaN padding). RF-fair baseline trained for a controlled
+  comparison. Bootstrap CIs (14-day blocks, 1000 resamples) vs both production RF and RF-fair
+  all include zero — competitive, no statistically significant difference. Feature attribution
+  via Integrated Gradients; Spearman rho=0.687 between DL/RF importance rankings. Additive
+  /api/dl/comparison and /api/dl/figure/{name} read-only routes in app.py. DL section added
+  to Performance page (India only, hidden for Europe, handles 503 gracefully). 307 tests pass;
+  Ruff + Black clean. dl/README_DL.md and dl/MODEL_CARD_DL.md document method and results.
+  DL module does not affect production RF, model_registry.json, or any existing route.

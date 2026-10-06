@@ -60,8 +60,12 @@ from src.cities import CITIES
 from src.integration.pipeline import ClimateGuardPipeline
 from src.prediction import ClimateGuardPredictor
 
-INDIA_CITIES = {key: city for key, city in CITIES.items() if city.get("dataset_region", "india") == "india"}
-EUROPE_CITIES = {key: city for key, city in CITIES.items() if city.get("dataset_region") == "europe"}
+INDIA_CITIES = {
+    key: city for key, city in CITIES.items() if city.get("dataset_region", "india") == "india"
+}
+EUROPE_CITIES = {
+    key: city for key, city in CITIES.items() if city.get("dataset_region") == "europe"
+}
 
 LIVE_TRACKING_DB = live_tracking.database_path(PROJECT_ROOT)
 ALERT_DATABASE = alerts.database_path(PROJECT_ROOT)
@@ -180,7 +184,11 @@ try:
     from src.europe_service import load_europe_service
 
     europe_service = load_europe_service()
-    print("[startup] Europe-v1 model loaded" if europe_service else "[startup] Europe-v1 artifacts are not installed")
+    print(
+        "[startup] Europe-v1 model loaded"
+        if europe_service
+        else "[startup] Europe-v1 artifacts are not installed"
+    )
 except Exception as europe_error:  # optional regional model must not block India
     europe_service = None
     print(f"[startup] Europe-v1 unavailable: {europe_error}")
@@ -418,9 +426,12 @@ def get_official_alert_context(city: str):
         else:
             source_name, source_url = "National meteorological service", "https://meteofrance.com/"
         return {
-            "city": city, "city_name": info["name"], "status": "not_automatically_verified",
+            "city": city,
+            "city_name": info["name"],
+            "status": "not_automatically_verified",
             "message": "Check the relevant national meteorological service and local authority for official alerts. ClimateGuard predictions are not official warnings.",
-            "source_name": source_name, "source_url": source_url,
+            "source_name": source_name,
+            "source_url": source_url,
         }
     return {
         "city": city,
@@ -628,7 +639,11 @@ def reconcile_live_outcomes() -> None:
 @app.get("/api/cities")
 def get_cities(region: str = "india"):
     """Return cities for one model region; the legacy default remains India."""
-    selected = INDIA_CITIES if region.lower() == "india" else EUROPE_CITIES if region.lower() == "europe" else None
+    selected = (
+        INDIA_CITIES
+        if region.lower() == "india"
+        else EUROPE_CITIES if region.lower() == "europe" else None
+    )
     if selected is None:
         raise HTTPException(422, "region must be 'india' or 'europe'")
     result = []
@@ -837,12 +852,20 @@ def get_performance(region: str = "india"):
             raise HTTPException(503, "Europe-v1 artifacts are unavailable.")
         data = europe_service.metadata
         return {
-            "confusion_matrix": data["confusion_matrix"], "roc": data["roc"], "pr": data["pr"],
-            "global_metrics": data["global_metrics"], "city_metrics": data["city_metrics"],
-            "threshold": data["threshold"], "total_test_samples": data["total_test_samples"],
-            "positive_samples": data["positive_samples"], "negative_samples": data["negative_samples"],
-            "baselines": data["baselines"], "calibration": data["calibration"],
-            "definition": data["definition"], "limitations": data["limitations"], "region": "europe",
+            "confusion_matrix": data["confusion_matrix"],
+            "roc": data["roc"],
+            "pr": data["pr"],
+            "global_metrics": data["global_metrics"],
+            "city_metrics": data["city_metrics"],
+            "threshold": data["threshold"],
+            "total_test_samples": data["total_test_samples"],
+            "positive_samples": data["positive_samples"],
+            "negative_samples": data["negative_samples"],
+            "baselines": data["baselines"],
+            "calibration": data["calibration"],
+            "definition": data["definition"],
+            "limitations": data["limitations"],
+            "region": "europe",
         }
     if region.lower() != "india":
         raise HTTPException(422, "region must be 'india' or 'europe'")
@@ -1064,6 +1087,7 @@ def get_live_city(request: Request, city: str):
     if city in EUROPE_CITIES:
         try:
             from src.europe_live import get_europe_live_forecast
+
             return get_europe_live_forecast(city)
         except Exception as exc:
             raise HTTPException(503, f"Europe live data unavailable: {exc}") from exc
@@ -1080,11 +1104,11 @@ def get_live_city(request: Request, city: str):
 # ---------------------------------------------------------------------------
 _DL_RESULTS = PROJECT_ROOT / "dl" / "results"
 _DL_FIGURES = {
-    "pr_curves":             _DL_RESULTS / "pr_curves.png",
-    "per_city_f1":           _DL_RESULTS / "per_city_f1.png",
-    "calibration":           _DL_RESULTS / "calibration.png",
-    "dl_feature_importance_ig":   _DL_RESULTS / "dl_feature_importance_ig.png",
-    "dl_ig_heatmap":         _DL_RESULTS / "dl_ig_heatmap.png",
+    "pr_curves": _DL_RESULTS / "pr_curves.png",
+    "per_city_f1": _DL_RESULTS / "per_city_f1.png",
+    "calibration": _DL_RESULTS / "calibration.png",
+    "dl_feature_importance_ig": _DL_RESULTS / "dl_feature_importance_ig.png",
+    "dl_ig_heatmap": _DL_RESULTS / "dl_ig_heatmap.png",
 }
 
 
@@ -1120,8 +1144,7 @@ def get_dl_figure(name: str):
     if name not in _DL_FIGURES:
         raise HTTPException(
             404,
-            detail=f"Unknown figure: {name!r}. "
-                   f"Valid: {sorted(_DL_FIGURES.keys())}",
+            detail=f"Unknown figure: {name!r}. " f"Valid: {sorted(_DL_FIGURES.keys())}",
         )
     path = _DL_FIGURES[name]
     if not path.exists():

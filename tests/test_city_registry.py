@@ -2,8 +2,17 @@ from src.cities import CITIES, CITY_REGISTRY
 
 INDIA_KEYS = ["delhi", "lucknow", "nagpur", "ahmedabad", "mumbai"]
 EUROPE_KEYS = [
-    "madrid", "seville", "valencia", "barcelona", "zaragoza", "bilbao",
-    "lisbon", "porto", "evora", "andorra_la_vella", "monaco",
+    "madrid",
+    "seville",
+    "valencia",
+    "barcelona",
+    "zaragoza",
+    "bilbao",
+    "lisbon",
+    "porto",
+    "evora",
+    "andorra_la_vella",
+    "monaco",
 ]
 VALID_STATUSES = {"validated", "europe-v1"}
 
@@ -37,7 +46,8 @@ def test_model_status_stripped_from_public_cities():
 def test_region_routing():
     """dataset_region field routes cities to the correct model."""
     from src.cities import CITIES
-    india  = {k for k, v in CITIES.items() if v.get("dataset_region") == "india"}
+
+    india = {k for k, v in CITIES.items() if v.get("dataset_region") == "india"}
     europe = {k for k, v in CITIES.items() if v.get("dataset_region") == "europe"}
-    assert india  == set(INDIA_KEYS)
+    assert india == set(INDIA_KEYS)
     assert europe == set(EUROPE_KEYS)
