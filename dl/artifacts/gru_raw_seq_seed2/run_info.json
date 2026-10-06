@@ -1,0 +1,14 @@
+{
+  "arch": "gru",
+  "input_config": "raw-seq",
+  "seed": 2,
+  "seq_len": 21,
+  "n_features": 21,
+  "pos_weight": 50.0,
+  "best_epoch": 19,
+  "best_val_prauc": 0.669759,
+  "train_seconds": 164.9,
+  "checkpoint": "C:\\Users\\Adrian\\Documents\\climate guard\\dl\\artifacts\\gru_raw_seq_seed2\\best.pt",
+  "scaler": "C:\\Users\\Adrian\\Documents\\climate guard\\dl\\artifacts\\gru_raw_seq_seed2\\scaler.pkl",
+  "device": "cpu"
+}

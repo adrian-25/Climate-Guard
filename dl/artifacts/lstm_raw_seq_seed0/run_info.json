@@ -1,0 +1,14 @@
+{
+  "arch": "lstm",
+  "input_config": "raw-seq",
+  "seed": 0,
+  "seq_len": 21,
+  "n_features": 21,
+  "pos_weight": 50.0,
+  "best_epoch": 17,
+  "best_val_prauc": 0.671356,
+  "train_seconds": 124.3,
+  "checkpoint": "C:\\Users\\Adrian\\Documents\\climate guard\\dl\\artifacts\\lstm_raw_seq_seed0\\best.pt",
+  "scaler": "C:\\Users\\Adrian\\Documents\\climate guard\\dl\\artifacts\\lstm_raw_seq_seed0\\scaler.pkl",
+  "device": "cpu"
+}

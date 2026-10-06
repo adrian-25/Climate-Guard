@@ -1,0 +1,19 @@
+# Deep-learning comparison module — install SEPARATELY from requirements.txt
+# Usage:  pip install -r requirements-dl.txt
+#
+# PyTorch CPU build (RTX 3050 requires admin for CUDA access; CPU is fine for
+# the small GRU/LSTM models used here — ~1-2 min per training run).
+# To use CUDA (if you have admin):
+#   pip install torch==2.5.1+cu118 --index-url https://download.pytorch.org/whl/cu118
+torch==2.5.1+cpu
+--index-url https://download.pytorch.org/whl/cpu
+
+# Interpretability
+captum==0.9.0
+
+# Plotting — Agg backend, no display needed
+matplotlib==3.11.1
+
+# Pinned to match the existing production environment (do not change)
+numpy==2.4.6
+fastapi==0.133.1

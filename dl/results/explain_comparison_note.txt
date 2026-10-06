@@ -1,0 +1,1 @@
+Computed on 21 features common to both DL (raw-seq) and RF. Spearman rho=0.687 (p=0.001). Top-5 overlap: ['et0_fao_evapotranspiration', 'temperature_2m_max', 'temperature_2m_mean', 'tmax_departure']. Note: qualifying_day excluded from DL; RF relies on it heavily.

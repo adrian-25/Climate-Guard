@@ -93,3 +93,9 @@ models/phase10/**/scaler.joblib
 .coverage
 htmlcov/
 desktop.ini
+
+# ------------------------------------------------------------
+# Scratch / temporary development scripts (never committed)
+# ------------------------------------------------------------
+_scratch/
+_*.py
