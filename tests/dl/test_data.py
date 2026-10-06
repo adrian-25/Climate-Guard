@@ -16,10 +16,18 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[2]
 
 # Skip the entire module if the required split files are not present
-# (CI checkout may not include large data files).
-_DATA_PRESENT = (ROOT / "data" / "splits" / "temporal" / "X_test.csv").exists()
+# (CI checkout does not include large gitignored data files such as X_train.csv).
+# X_train.csv (46.7 MB) and ml_temporal.csv (59 MB) are gitignored and must be
+# regenerated locally; load_splits() will raise FileNotFoundError without them.
+_DATA_PRESENT = (ROOT / "data" / "splits" / "temporal" / "X_train.csv").exists() and (
+    ROOT / "data" / "splits" / "temporal" / "X_test.csv"
+).exists()
 if not _DATA_PRESENT:
-    pytest.skip("temporal split data files not present", allow_module_level=True)
+    pytest.skip(
+        "large split data files not present (X_train.csv is gitignored); "
+        "run the data pipeline locally to regenerate",
+        allow_module_level=True,
+    )
 
 # ---------------------------------------------------------------------------
 # Fixtures

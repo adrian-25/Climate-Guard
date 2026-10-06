@@ -152,6 +152,10 @@ def _permutation_importance(model, ds, device, n_perm=5):
         return average_precision_score(np.concatenate(labs).astype(int), np.concatenate(probs))
 
     baseline_score = _score(dl)
+    # HeatwaveSequenceDataset stores features/labels/cities as private tensors:
+    # _target_feat (N, F), _target_labels (N,), _target_cities (N,).
+    # seq_len is a public attribute. These are stable internal fields; if the
+    # dataset API changes, update here accordingly.
     n_feat = ds._target_feat.shape[1]
     drops = []
     rng = np.random.default_rng(42)
@@ -191,7 +195,7 @@ def main() -> None:
         print("[explain] Run dl.train first.")
         return
 
-    n_feat = ds._target_feat.shape[1]
+    n_feat = ds._target_feat.shape[1]  # see _permutation_importance for field docs
     feat_names = FEAT_NAMES[:n_feat]
 
     # ── Find N_EXAMPLES high-risk test windows ────────────────────────────────

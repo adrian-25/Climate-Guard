@@ -522,8 +522,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // India-only extras: evaluation, live track record, DL comparison
     if (region === 'india') {
-      fetch('/api/evaluation').then(r => r.ok ? r.json() : null).then(renderEvaluation).catch(() => renderEvaluation(null));
-      fetch('/api/live-track-record').then(r => r.ok ? r.json() : null).then(renderLiveTrackRecord).catch(() => {});
+      fetch('/api/evaluation/latest').then(r => r.ok ? r.json() : null).then(renderEvaluation).catch(() => renderEvaluation(null));
+      fetch('/api/evaluation/live-track-record').then(r => r.ok ? r.json() : null).then(renderLiveTrackRecord).catch(() => {});
       fetch('/api/dl/comparison')
         .then(r => r.json())
         .then(renderDlComparison)

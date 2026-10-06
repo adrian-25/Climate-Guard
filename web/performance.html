@@ -122,8 +122,10 @@
         uses the Random Forest model in production.
       </p>
       <div class="live-disclaimer" id="dl-research-note" style="margin-bottom: var(--sp-5);">
-        All bootstrap confidence intervals for the F1 difference (DL minus RF) include zero.
-        Results are described as competitive with no statistically significant difference.
+        Bootstrap confidence intervals for F1 differences (DL minus RF) all include zero.
+        For PR-AUC differences, the LSTM ensemble vs RF-fair CI excludes zero ([0.002, 0.274]),
+        suggesting a possible advantage, though the test set contains only 38 positive events.
+        All results should be interpreted cautiously given the small positive count.
         Deep-learning models trained on 21 raw meteorological features; the production RF uses
         110 engineered features including the qualifying-day flag.
       </div>

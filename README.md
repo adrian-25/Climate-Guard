@@ -389,6 +389,8 @@ the production RF on the held-out test set.
 
 All bootstrap 95% CIs for the F1 difference include zero — results are
 competitive with no statistically significant difference vs either RF baseline.
+One exception: LSTM vs RF-fair ΔPR-AUC CI = [0.002, 0.274] excludes zero, but
+with only 38 test positives this should be interpreted with caution.
 Feature attribution (Integrated Gradients) shows Spearman ρ = 0.687 between DL
 and RF importance rankings on 21 common features.
 

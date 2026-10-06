@@ -254,26 +254,42 @@ def main() -> None:
         ci_fair = dl_data.get("bootstrap_ci_vs_rf_fair", {})
         ci_note = ""
         if ci:
-            iz = ci.get("includes_zero_f1")
-            verdict = (
+            iz_f1 = ci.get("includes_zero_f1")
+            iz_pr = ci.get("includes_zero_prauc")
+            verdict_f1 = (
                 "competitive, no statistically significant difference"
-                if iz
+                if iz_f1
+                else "significantly different"
+            )
+            verdict_pr = (
+                "competitive, no statistically significant difference"
+                if iz_pr
                 else "significantly different"
             )
             ci_note = (
                 f"vs RF-prod ΔF1 95% CI [{ci.get('f1_ci_lower')}, {ci.get('f1_ci_upper')}] "
-                f"includes_zero={iz} ({verdict})"
+                f"includes_zero={iz_f1} ({verdict_f1}); "
+                f"ΔPR-AUC CI [{ci.get('prauc_ci_lower')}, {ci.get('prauc_ci_upper')}] "
+                f"includes_zero={iz_pr} ({verdict_pr})"
             )
         if ci_fair:
-            iz2 = ci_fair.get("includes_zero_f1")
-            verdict2 = (
+            iz2_f1 = ci_fair.get("includes_zero_f1")
+            iz2_pr = ci_fair.get("includes_zero_prauc")
+            verdict2_f1 = (
                 "competitive, no statistically significant difference"
-                if iz2
+                if iz2_f1
+                else "significantly different"
+            )
+            verdict2_pr = (
+                "competitive, no statistically significant difference"
+                if iz2_pr
                 else "significantly different"
             )
             ci_note += (
                 f"; vs RF-fair ΔF1 [{ci_fair.get('f1_ci_lower')}, {ci_fair.get('f1_ci_upper')}] "
-                f"includes_zero={iz2} ({verdict2})"
+                f"includes_zero={iz2_f1} ({verdict2_f1}); "
+                f"ΔPR-AUC CI [{ci_fair.get('prauc_ci_lower')}, {ci_fair.get('prauc_ci_upper')}] "
+                f"includes_zero={iz2_pr} ({verdict2_pr})"
             )
         rows.append(
             _make_row(

@@ -38,7 +38,7 @@
       "PR-AUC": 0.8414,
       "ROC-AUC": 0.9981,
       "Brier": 0.009,
-      "note": "Ensemble of 5 seeds; mean F1=0.7377\u00b10.0381; PR-AUC=0.8403\u00b10.0203. vs RF-prod \u0394F1 95% CI [-0.08046, 0.19732] includes_zero=True (competitive, no statistically significant difference); vs RF-fair \u0394F1 [-0.03511, 0.24015] includes_zero=True (competitive, no statistically significant difference)"
+      "note": "Ensemble of 5 seeds; mean F1=0.7377\u00b10.0381; PR-AUC=0.8403\u00b10.0203. vs RF-prod \u0394F1 95% CI [-0.08046, 0.19732] includes_zero=True (competitive, no statistically significant difference); \u0394PR-AUC CI [-0.08253, 0.10418] includes_zero=True (competitive, no statistically significant difference); vs RF-fair \u0394F1 [-0.03511, 0.24015] includes_zero=True (competitive, no statistically significant difference); \u0394PR-AUC CI [-0.01439, 0.23406] includes_zero=True (competitive, no statistically significant difference)"
     },
     {
       "model": "LSTM raw-seq ens",
@@ -51,7 +51,7 @@
       "PR-AUC": 0.8664,
       "ROC-AUC": 0.9984,
       "Brier": 0.0082,
-      "note": "Ensemble of 5 seeds; mean F1=0.7124\u00b10.0347; PR-AUC=0.8562\u00b10.0089. vs RF-prod \u0394F1 95% CI [-0.11441, 0.16469] includes_zero=True (competitive, no statistically significant difference); vs RF-fair \u0394F1 [-0.06833, 0.20452] includes_zero=True (competitive, no statistically significant difference)"
+      "note": "Ensemble of 5 seeds; mean F1=0.7124\u00b10.0347; PR-AUC=0.8562\u00b10.0089. vs RF-prod \u0394F1 95% CI [-0.11441, 0.16469] includes_zero=True (competitive, no statistically significant difference); \u0394PR-AUC CI [-0.02628, 0.14191] includes_zero=True (competitive, no statistically significant difference); vs RF-fair \u0394F1 [-0.06833, 0.20452] includes_zero=True (competitive, no statistically significant difference); \u0394PR-AUC CI [0.00167, 0.27421] includes_zero=False (significantly different)"
     },
     {
       "model": "GRU feat110 ens",
@@ -64,7 +64,7 @@
       "PR-AUC": 0.8579,
       "ROC-AUC": 0.9981,
       "Brier": 0.0066,
-      "note": "Ensemble of 3 seeds; mean F1=0.7361\u00b10.0219; PR-AUC=0.8509\u00b10.0126. vs RF-prod \u0394F1 95% CI [-0.08309, 0.16686] includes_zero=True (competitive, no statistically significant difference); vs RF-fair \u0394F1 [-0.05737, 0.22445] includes_zero=True (competitive, no statistically significant difference)"
+      "note": "Ensemble of 3 seeds; mean F1=0.7361\u00b10.0219; PR-AUC=0.8509\u00b10.0126. vs RF-prod \u0394F1 95% CI [-0.08309, 0.16686] includes_zero=True (competitive, no statistically significant difference); \u0394PR-AUC CI [-0.03079, 0.14461] includes_zero=True (competitive, no statistically significant difference); vs RF-fair \u0394F1 [-0.05737, 0.22445] includes_zero=True (competitive, no statistically significant difference); \u0394PR-AUC CI [-0.00039, 0.27608] includes_zero=True (competitive, no statistically significant difference)"
     },
     {
       "model": "GRU raw-seq seed0",
@@ -34914,7 +34914,7 @@
         "recall": 0.9375,
         "pr_auc": 0.814467927873951,
         "roc_auc": 0.9958202716823407,
-        "brier": 0.022026821908777607,
+        "brier": 0.022026821908777604,
         "tp": 15,
         "fp": 13,
         "fn": 1,

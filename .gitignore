@@ -51,6 +51,7 @@ runtime/
 # Large derived feature datasets (over 50 MB — not pushable)
 # Raw pipeline can regenerate these from data/raw/
 # Local files are NOT deleted — only excluded from Git.
+# tests/dl/test_data.py skips cleanly when these are absent.
 # ------------------------------------------------------------
 data/features/climateguard_features.csv
 data/features/ml_temporal.csv
@@ -58,6 +59,7 @@ data/features/ml_temporal.csv
 # ------------------------------------------------------------
 # Large split training file (46.7 MB — over GitHub soft limit)
 # val/test splits are small enough and ARE committed.
+# tests/dl/test_data.py skips cleanly when X_train.csv is absent.
 # ------------------------------------------------------------
 data/splits/temporal/X_train.csv
 
