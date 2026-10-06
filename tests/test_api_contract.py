@@ -91,3 +91,46 @@ def test_subscription_endpoints_require_confirmation(monkeypatch, tmp_path):
     ]
     assert client.get(f"/api/confirm/{token}").json()["status"] == "confirmed"
     assert client.get("/api/alerts/preview?city=delhi&level=HIGH&lang=mr").status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# /api/dl routes — contract tests (work without torch installed)
+# ---------------------------------------------------------------------------
+
+
+def test_dl_comparison_returns_data_or_503():
+    """Endpoint must return the DL vs RF JSON or a clear 503 if not generated."""
+    response = client.get("/api/dl/comparison")
+    assert response.status_code in (200, 503), f"Unexpected status: {response.status_code}"
+    if response.status_code == 200:
+        body = response.json()
+        assert "rows" in body, "Response must contain 'rows' key"
+        assert "summary" in body, "Response must contain 'summary' key"
+        assert isinstance(body["rows"], list)
+    else:
+        body = response.json()
+        assert "detail" in body
+        assert body["detail"]["status"] == "not_generated"
+
+
+def test_dl_figure_rejects_unknown_name():
+    """Unknown figure names must return 404 with a detail message."""
+    response = client.get("/api/dl/figure/nonexistent_figure")
+    assert response.status_code == 404
+    assert "detail" in response.json()
+
+
+def test_dl_figure_valid_names_return_image_or_503():
+    """Valid figure names must return image/png or 503 if not yet generated."""
+    valid_names = [
+        "pr_curves",
+        "per_city_f1",
+        "calibration",
+        "dl_feature_importance_ig",
+        "dl_ig_heatmap",
+    ]
+    for name in valid_names:
+        response = client.get(f"/api/dl/figure/{name}")
+        assert response.status_code in (200, 503), f"{name}: unexpected {response.status_code}"
+        if response.status_code == 200:
+            assert response.headers["content-type"] == "image/png"

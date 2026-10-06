@@ -414,6 +414,75 @@ function renderCityComparison(cities, region = 'india') {
   `;
 }
 
+// ----------------------------------------------------------------
+// DL comparison (India only — guarded, handles missing results)
+// ----------------------------------------------------------------
+function renderDlComparison(data) {
+  const section = document.getElementById('dl-comparison-section');
+  if (!section) return;
+
+  // Show the section (it is hidden by default)
+  section.hidden = false;
+
+  const unavailEl = document.getElementById('dl-unavailable');
+
+  // Guard: 503 / not generated yet
+  if (!data || data.status === 'not_generated') {
+    if (unavailEl) unavailEl.hidden = false;
+    return;
+  }
+
+  // ── Summary table (ensemble rows + RF baselines only) ──────────────────────
+  const ENSEMBLE_MODELS = ['RF production', 'RF fair', 'GRU raw-seq ens', 'LSTM raw-seq ens', 'GRU feat110 ens'];
+  const rows = (data.rows || []).filter(r => ENSEMBLE_MODELS.includes(r.model));
+
+  const colHeaders = ['Model', 'Features', 'Threshold', 'F1', 'Precision', 'Recall', 'PR-AUC'];
+  const tableRows = rows.map(r => {
+    const note = r.note || '';
+    // Extract CI note for DL rows only
+    const ciMatch = note.match(/vs RF-prod \u0394F1 95% CI \[([^\]]+)\] includes_zero=\w+ \(([^)]+)\)/);
+    const ciNote = ciMatch ? `<br><span style="font-size:0.75rem; color:var(--ink-muted);">vs RF-prod 95% CI [${ciMatch[1]}]: ${ciMatch[2]}</span>` : '';
+    const isBaseline = r.model.startsWith('RF');
+    return `<tr${isBaseline ? ' style="color:var(--ink-muted);"' : ''}>
+      <td class="comp-city">${r.model}</td>
+      <td style="font-size:0.8rem;">${r.features}</td>
+      <td style="font-size:0.8rem;">${r.threshold_rule}</td>
+      <td class="comp-metric right">${r.F1.toFixed(4)}</td>
+      <td class="comp-metric right">${r.Precision.toFixed(4)}</td>
+      <td class="comp-metric right">${r.Recall.toFixed(4)}</td>
+      <td class="comp-metric right">${r['PR-AUC'].toFixed(4)}</td>
+    </tr>${ciNote ? `<tr><td colspan="7" style="padding-top:0; padding-bottom:var(--sp-2);">${ciNote}</td></tr>` : ''}`;
+  }).join('');
+
+  const tableHtml = `<table class="comp-table">
+    <thead><tr>${colHeaders.map(h => `<th${h !== 'Model' && h !== 'Features' && h !== 'Threshold' ? ' class="right"' : ''}>${h}</th>`).join('')}</tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>`;
+
+  const tableEl = document.getElementById('dl-summary-table');
+  if (tableEl) tableEl.innerHTML = tableHtml;
+
+  // ── Figures ────────────────────────────────────────────────────────────────
+  function loadFigure(imgId, unavailId, figureName) {
+    const img = document.getElementById(imgId);
+    const unavail = document.getElementById(unavailId);
+    if (!img) return;
+    img.src = `/api/dl/figure/${figureName}`;
+    img.style.display = 'block';
+    img.onerror = () => {
+      img.style.display = 'none';
+      if (unavail) unavail.hidden = false;
+    };
+    img.onload = () => {
+      if (unavail) unavail.hidden = true;
+    };
+  }
+
+  loadFigure('dl-per-city-fig', 'dl-per-city-unavail', 'per_city_f1');
+  loadFigure('dl-pr-fig',       'dl-pr-unavail',       'pr_curves');
+  loadFigure('dl-ig-fig',       'dl-ig-unavail',       'dl_feature_importance_ig');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Read region from URL
   const params = new URLSearchParams(location.search);
@@ -450,6 +519,20 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPRChart(perfData.pr);
     if (region === 'india') renderFeatureImportance(fiData);
     renderCityComparison(cityData, region);
+
+    // India-only extras: evaluation, live track record, DL comparison
+    if (region === 'india') {
+      fetch('/api/evaluation').then(r => r.ok ? r.json() : null).then(renderEvaluation).catch(() => renderEvaluation(null));
+      fetch('/api/live-track-record').then(r => r.ok ? r.json() : null).then(renderLiveTrackRecord).catch(() => {});
+      fetch('/api/dl/comparison')
+        .then(r => r.json())
+        .then(renderDlComparison)
+        .catch(() => renderDlComparison(null));
+    } else {
+      // Hide DL section for non-India regions
+      const dlSection = document.getElementById('dl-comparison-section');
+      if (dlSection) dlSection.hidden = true;
+    }
   }
 
   indiaBtn?.addEventListener('click',  () => loadRegion('india'));

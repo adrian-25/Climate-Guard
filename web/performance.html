@@ -113,6 +113,65 @@
       </p>
     </section>
 
+    <!-- DL comparison (India only, populated by JS when /api/dl/comparison is available) -->
+    <section id="dl-comparison-section" aria-labelledby="dl-heading" style="margin-bottom: var(--sp-10);" hidden>
+      <h2 class="section-title" id="dl-heading">Deep learning comparison (research)</h2>
+      <p class="section-subhead">
+        GRU and LSTM sequence models trained on the same India training window (1990&ndash;2019) and
+        evaluated on the same held-out test set. This is a research comparison only&mdash;ClimateGuard
+        uses the Random Forest model in production.
+      </p>
+      <div class="live-disclaimer" id="dl-research-note" style="margin-bottom: var(--sp-5);">
+        All bootstrap confidence intervals for the F1 difference (DL minus RF) include zero.
+        Results are described as competitive with no statistically significant difference.
+        Deep-learning models trained on 21 raw meteorological features; the production RF uses
+        110 engineered features including the qualifying-day flag.
+      </div>
+
+      <!-- Summary table -->
+      <div class="city-comparison-wrap" style="margin-bottom: var(--sp-6);">
+        <div id="dl-summary-table"><!-- Populated by JS --></div>
+      </div>
+
+      <!-- Per-city F1 figure -->
+      <div class="chart-card" style="margin-bottom: var(--sp-6);">
+        <div class="chart-card__title">Per-city F1 &mdash; DL vs RF baselines</div>
+        <img id="dl-per-city-fig"
+             src=""
+             alt="Per-city F1 scores for GRU, LSTM and RF baselines across Delhi, Lucknow and Nagpur"
+             style="width:100%; height:auto; display:none;"
+             loading="lazy">
+        <p id="dl-per-city-unavail" class="live-disclaimer" hidden>Figure not yet generated. Run: python -m dl.compare</p>
+      </div>
+
+      <!-- PR curves figure -->
+      <div class="chart-card" style="margin-bottom: var(--sp-6);">
+        <div class="chart-card__title">Precision&ndash;recall curves &mdash; DL vs RF</div>
+        <img id="dl-pr-fig"
+             src=""
+             alt="Precision-recall curves comparing GRU ensemble, LSTM ensemble, RF production and RF fair"
+             style="width:100%; height:auto; display:none;"
+             loading="lazy">
+        <p id="dl-pr-unavail" class="live-disclaimer" hidden>Figure not yet generated. Run: python -m dl.compare</p>
+      </div>
+
+      <!-- IG feature importance figure -->
+      <div class="chart-card" style="margin-bottom: var(--sp-6);">
+        <div class="chart-card__title">DL feature attribution (Integrated Gradients &mdash; GRU seed 0)</div>
+        <img id="dl-ig-fig"
+             src=""
+             alt="Bar chart of DL feature importances computed by Integrated Gradients"
+             style="width:100%; height:auto; display:none;"
+             loading="lazy">
+        <p id="dl-ig-unavail" class="live-disclaimer" hidden>Figure not yet generated. Run: python -m dl.explain</p>
+      </div>
+
+      <!-- Unavailable notice (shown when /api/dl/comparison returns 503) -->
+      <p id="dl-unavailable" class="live-disclaimer" hidden>
+        DL comparison results are not yet available. Run <code>python -m dl.compare</code> from the project root.
+      </p>
+    </section>
+
   </div>
   </main>
 
