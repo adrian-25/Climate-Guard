@@ -72,6 +72,15 @@ def test_live_track_record_has_clear_insufficient_data_state():
     assert response.json()["status"] in {"not_enough_data", "available"}
 
 
+def test_browser_weather_fallback_rejects_unknown_city_and_invalid_payload():
+    unknown = client.post("/api/live/not-a-city/browser-weather", json={"daily": {}})
+    assert unknown.status_code == 400
+
+    invalid = client.post("/api/live/delhi/browser-weather", json={"daily": {}})
+    assert invalid.status_code == 200
+    assert invalid.json()["error_type"] == "client_weather_invalid"
+
+
 def test_subscription_endpoints_require_confirmation(monkeypatch, tmp_path):
     monkeypatch.setattr(app, "ALERT_DATABASE", tmp_path / "alerts.sqlite3")
     response = client.post(

@@ -18,7 +18,7 @@
 ## How to use the website
 
 1. Open the dashboard at `http://localhost:8001` after starting the server.
-2. Stay in **Live** mode for the current 7-day Open-Meteo outlook, then select one of the five validated cities. Each day shows the risk level, probability, maximum temperature, humidity, wind, and practical advice. Live results are cached for 30 minutes; if the provider is busy, the dashboard retries automatically and will label any recent cached result as stale rather than presenting it as current.
+2. Stay in **Live** mode for the current 7-day Open-Meteo outlook, then select one of the five validated cities. Each day shows the risk level, probability, maximum temperature, humidity, wind, and practical advice. Live results are cached for 30 minutes. If a cloud host's shared IP is rate-limited, the browser securely fetches the public weather payload directly and sends the bounded daily data to the server for feature engineering and inference; this is labelled in the forecast notes.
 3. Switch to **Historical** mode to choose a dataset date and run a next-day prediction. Use **Show feature explanation** for the SHAP-based explanation and select a city below the map for trend charts.
 4. Use **Model performance** to review calibration, baselines, limitations, and the accumulating live track record before drawing conclusions from a forecast.
 5. Download a city’s historical data as CSV, print a report, or share the current city through the page URL.

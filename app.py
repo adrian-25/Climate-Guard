@@ -16,7 +16,7 @@ import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -1048,7 +1048,7 @@ def serve_about():
 try:
     from live_data import CITIES as LIVE_CITIES
     from live_data import cache_status as live_cache_status
-    from live_data import get_live_forecast
+    from live_data import get_live_forecast, get_live_forecast_from_browser_payload
 
     _LIVE_DATA_AVAILABLE = True
     print("[startup] Live data module loaded (Open-Meteo integration available)")
@@ -1103,6 +1103,30 @@ def get_live_city(request: Request, city: str):
         log_live_predictions(city, result)
         dispatch_alerts_for_live_forecast(city, result)
     return result
+
+
+@app.post("/api/live/{city}/browser-weather")
+@limiter.limit("12/minute")
+def predict_from_browser_weather(request: Request, city: str, payload: Dict[str, Any]):
+    """Run live inference on a bounded Open-Meteo payload fetched by the browser.
+
+    This is an availability fallback for a public weather provider rate-limiting
+    a hosting platform's shared outbound IP. It deliberately does not log a
+    forecast or send alerts because client-supplied weather data is not a
+    server-to-server provenance source.
+    """
+    if not _LIVE_DATA_AVAILABLE:
+        raise HTTPException(503, "Live data module unavailable. Check server logs.")
+
+    city = city.lower().strip()
+    if city not in CITIES:
+        raise HTTPException(400, f"Unknown city: {city}. Valid: {list(CITIES.keys())}")
+    if city in EUROPE_CITIES:
+        raise HTTPException(
+            400, "Browser weather fallback is currently available for India cities only."
+        )
+
+    return get_live_forecast_from_browser_payload(city, payload.get("daily"), pipeline)
 
 
 # ---------------------------------------------------------------------------

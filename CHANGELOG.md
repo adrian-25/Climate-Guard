@@ -11,6 +11,8 @@
 - Live data: handle temporary Open-Meteo rate limits with a five-minute request cooldown,
   clearly-labelled stale-cache fallback, automatic browser retry, and an optional server-only
   `OPEN_METEO_API_KEY` for the dedicated provider endpoint.
+- Live data: when a hosting platform's shared IP is rate-limited, fall back to a browser-direct
+  Open-Meteo download while retaining server-side validation, feature engineering, and inference.
 
 ## Phase 8 — DL comparison module
 

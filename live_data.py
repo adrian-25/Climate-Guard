@@ -444,7 +444,9 @@ def _prob_to_risk(prob: float) -> str:
 # ---------------------------------------------------------------------------
 # Main function: fetch + engineer + predict
 # ---------------------------------------------------------------------------
-def get_live_forecast(city_key: str, pipeline) -> Dict[str, Any]:
+def get_live_forecast(
+    city_key: str, pipeline, raw_weather: Optional[pd.DataFrame] = None
+) -> Dict[str, Any]:
     """
     Fetch live weather, build features, run the full pipeline, return structured result.
 
@@ -460,11 +462,6 @@ def get_live_forecast(city_key: str, pipeline) -> Dict[str, Any]:
     """
     global _RATE_LIMITED_UNTIL
 
-    # --- Check cache ---
-    cached = _cache_get(city_key)
-    if cached is not None:
-        return _cached_result(cached)
-
     city_info = CITIES[city_key]
     warnings: List[str] = [
         "Forecast-based predictions are estimates and may differ from the model's "
@@ -472,35 +469,43 @@ def get_live_forecast(city_key: str, pipeline) -> Dict[str, Any]:
         "Not an official warning. Follow IMD advisories during heat emergencies.",
     ]
 
-    # --- Fetch from Open-Meteo ---
-    # Avoid repeatedly sending a cloud-hosted shared IP into an upstream 429.
-    # If a recent successful result exists, it is preferable to label and return
-    # that result rather than pretending the stale result is current.
-    stale_cached = _stale_cache_get(city_key)
-    if time.time() < _RATE_LIMITED_UNTIL:
-        if stale_cached is not None:
-            return _cached_result(stale_cached, stale=True)
-        retry_in_seconds = max(1, round(_RATE_LIMITED_UNTIL - time.time()))
-        return _rate_limit_result(city_key, city_info, retry_in_seconds)
+    if raw_weather is None:
+        # --- Check cache ---
+        cached = _cache_get(city_key)
+        if cached is not None:
+            return _cached_result(cached)
 
-    try:
-        raw_df = _fetch_open_meteo(city_key, past_days=30, forecast_days=7)
-    except OpenMeteoRateLimitError as exc:
-        _RATE_LIMITED_UNTIL = time.time() + exc.retry_after_seconds
-        if stale_cached is not None:
-            return _cached_result(stale_cached, stale=True)
-        return _rate_limit_result(city_key, city_info, exc.retry_after_seconds)
-    except Exception as exc:
-        return {
-            "city": city_key,
-            "city_info": city_info,
-            "error": str(exc),
-            "error_type": "fetch_failed",
-            "days": [],
-            "source": "Open-Meteo API",
-            "last_updated": None,
-            "cache_used": False,
-        }
+        # --- Fetch from Open-Meteo ---
+        # Avoid repeatedly sending a cloud-hosted shared IP into an upstream 429.
+        # If a recent successful result exists, it is preferable to label and return
+        # that result rather than pretending the stale result is current.
+        stale_cached = _stale_cache_get(city_key)
+        if time.time() < _RATE_LIMITED_UNTIL:
+            if stale_cached is not None:
+                return _cached_result(stale_cached, stale=True)
+            retry_in_seconds = max(1, round(_RATE_LIMITED_UNTIL - time.time()))
+            return _rate_limit_result(city_key, city_info, retry_in_seconds)
+
+        try:
+            raw_df = _fetch_open_meteo(city_key, past_days=30, forecast_days=7)
+        except OpenMeteoRateLimitError as exc:
+            _RATE_LIMITED_UNTIL = time.time() + exc.retry_after_seconds
+            if stale_cached is not None:
+                return _cached_result(stale_cached, stale=True)
+            return _rate_limit_result(city_key, city_info, exc.retry_after_seconds)
+        except Exception as exc:
+            return {
+                "city": city_key,
+                "city_info": city_info,
+                "error": str(exc),
+                "error_type": "fetch_failed",
+                "days": [],
+                "source": "Open-Meteo API",
+                "last_updated": None,
+                "cache_used": False,
+            }
+    else:
+        raw_df = raw_weather
 
     # --- Engineer features ---
     try:
@@ -649,6 +654,65 @@ def get_live_forecast(city_key: str, pipeline) -> Dict[str, Any]:
 
     _cache_set(city_key, result)
     return result
+
+
+def get_live_forecast_from_browser_payload(city_key: str, daily: Any, pipeline) -> Dict[str, Any]:
+    """Predict from Open-Meteo daily data fetched directly by a user's browser.
+
+    This fallback only moves the public weather download away from a shared cloud
+    IP. Feature engineering and inference still run on the server, and the
+    payload has a narrow, validated shape before it is processed.
+    """
+    city_info = CITIES[city_key]
+    try:
+        raw_df = _daily_payload_to_frame(city_key, daily)
+    except (TypeError, ValueError) as exc:
+        return {
+            "city": city_key,
+            "city_info": city_info,
+            "error": f"Browser weather data could not be validated: {exc}",
+            "error_type": "client_weather_invalid",
+            "days": [],
+            "source": "Open-Meteo API",
+            "last_updated": None,
+            "cache_used": False,
+        }
+
+    result = get_live_forecast(city_key, pipeline, raw_weather=raw_df)
+    if not result.get("error"):
+        warnings = list(result.get("warnings", []))
+        warnings.append(
+            "Weather data was fetched directly by this browser because the hosted "
+            "service's shared network was rate-limited."
+        )
+        result["warnings"] = warnings
+        result["browser_weather_fallback"] = True
+    return result
+
+
+def _daily_payload_to_frame(city_key: str, daily: Any) -> pd.DataFrame:
+    """Validate a bounded Open-Meteo daily payload and convert it to a frame."""
+    if not isinstance(daily, dict):
+        raise TypeError("daily must be an object")
+
+    expected_columns = {"time", *OPEN_METEO_DAILY_VARS}
+    missing_columns = expected_columns.difference(daily)
+    if missing_columns:
+        raise ValueError(f"missing daily fields: {sorted(missing_columns)}")
+
+    time_values = daily["time"]
+    if not isinstance(time_values, list) or not 31 <= len(time_values) <= 45:
+        raise ValueError("daily time must contain 31 to 45 dates")
+    if any(
+        not isinstance(value, list) or len(value) != len(time_values) for value in daily.values()
+    ):
+        raise ValueError("daily fields must be equally sized arrays")
+
+    frame = pd.DataFrame({name: daily[name] for name in expected_columns})
+    frame = frame.rename(columns={"time": "date"})
+    frame["date"] = pd.to_datetime(frame["date"], errors="raise")
+    frame["city_key"] = city_key
+    return frame
 
 
 def _rate_limit_result(

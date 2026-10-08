@@ -80,6 +80,17 @@ class LiveDataTests(unittest.TestCase):
         self.assertTrue(result["cache_stale"])
         self.assertTrue(any("rate-limited" in warning for warning in result["warnings"]))
 
+    def test_browser_daily_payload_is_bounded_and_converted_to_a_city_frame(self):
+        dates = pd.date_range("2026-01-01", periods=31).strftime("%Y-%m-%d").tolist()
+        daily = {"time": dates}
+        daily.update({field: [1.0] * len(dates) for field in live_data.OPEN_METEO_DAILY_VARS})
+
+        frame = live_data._daily_payload_to_frame("delhi", daily)
+
+        self.assertEqual(len(frame), 31)
+        self.assertEqual(frame.loc[0, "city_key"], "delhi")
+        self.assertTrue(pd.api.types.is_datetime64_any_dtype(frame["date"]))
+
     def test_risk_boundaries(self):
         self.assertEqual(live_data._prob_to_risk(0.0), "LOW")
         self.assertEqual(live_data._prob_to_risk(0.3), "MODERATE")

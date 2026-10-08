@@ -990,7 +990,19 @@ async function loadLive(cityKey) {
   if (contentEl) contentEl.style.display = 'none';
 
   try {
-    const data = await api(`/live/${cityKey}`);
+    let data = await api(`/live/${cityKey}`);
+
+    // Render's shared outbound IP can be rate-limited by Open-Meteo even when
+    // the visitor's own browser is allowed. In that case, fetch the public
+    // weather payload in-browser and send only the bounded daily data back for
+    // server-side feature engineering and inference.
+    if (data.error_type === 'rate_limited') {
+      try {
+        data = await getBrowserWeatherPrediction(cityKey);
+      } catch (fallbackError) {
+        console.warn('Browser weather fallback unavailable:', fallbackError);
+      }
+    }
 
     if (data.error) {
       if (errorEl) {
@@ -1040,6 +1052,35 @@ async function loadLive(cityKey) {
   } finally {
     loadingEl.style.display = 'none';
   }
+}
+
+const BROWSER_WEATHER_DAILY_FIELDS = [
+  'temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean',
+  'apparent_temperature_max', 'apparent_temperature_min', 'apparent_temperature_mean',
+  'precipitation_sum', 'wind_speed_10m_max', 'wind_gusts_10m_max',
+  'relative_humidity_2m_max', 'relative_humidity_2m_min', 'relative_humidity_2m_mean',
+  'surface_pressure_mean', 'shortwave_radiation_sum', 'et0_fao_evapotranspiration',
+];
+
+async function getBrowserWeatherPrediction(cityKey) {
+  const city = state.cities.find(item => item.key === cityKey);
+  if (!city) throw new Error('Selected city is unavailable.');
+
+  const query = new URLSearchParams({
+    latitude: city.lat,
+    longitude: city.lon,
+    daily: BROWSER_WEATHER_DAILY_FIELDS.join(','),
+    timezone: 'Asia/Kolkata',
+    past_days: '30',
+    forecast_days: '7',
+  });
+  const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${query}`);
+  if (!weatherResponse.ok) throw new Error(`Weather provider returned HTTP ${weatherResponse.status}.`);
+  const weather = await weatherResponse.json();
+  return api(`/live/${cityKey}/browser-weather`, {
+    method: 'POST',
+    body: JSON.stringify({ daily: weather.daily }),
+  });
 }
 
 function renderOfficialAlert(alert) {
