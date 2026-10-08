@@ -30,11 +30,17 @@ ClimateGuard is a research model, not an official warning system. Follow IMD and
 
 ```bash
 pip install -r requirements-dev.txt
+# Windows PowerShell: Copy-Item .env.example .env
+# macOS/Linux:       cp .env.example .env
 uvicorn app:app --host 0.0.0.0 --port 8001
 python -m pytest
 ```
 
-For Docker, copy `.env.example` to `.env` and run `docker compose up --build`. The runtime SQLite directory is a named volume. See [deployment instructions](docs/deployment.md), [MODEL_CARD.md](MODEL_CARD.md), and [CHANGELOG.md](CHANGELOG.md).
+The server now reads `.env` automatically for local runs, while variables
+provided by Docker or a hosting platform take precedence. For Docker, copy
+`.env.example` to `.env` and run `docker compose up --build`. The runtime SQLite
+directory is a named volume. See [deployment instructions](docs/deployment.md),
+[MODEL_CARD.md](MODEL_CARD.md), and [CHANGELOG.md](CHANGELOG.md).
 
 ```mermaid
 flowchart LR

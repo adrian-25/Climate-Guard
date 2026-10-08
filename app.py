@@ -55,6 +55,12 @@ outcome_scheduler = BackgroundScheduler(timezone="Asia/Kolkata")
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.settings import load_project_environment
+
+# Local development reads .env automatically; deployment environment variables
+# retain precedence so Render and Docker settings cannot be accidentally masked.
+load_project_environment(PROJECT_ROOT)
+
 from src import alerts, live_tracking
 from src.cities import CITIES
 from src.integration.pipeline import ClimateGuardPipeline
