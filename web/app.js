@@ -994,8 +994,17 @@ async function loadLive(cityKey) {
 
     if (data.error) {
       if (errorEl) {
-        errorEl.textContent = `Live data unavailable: ${data.error}. Use Historical mode to browse the test set.`;
+        errorEl.textContent = `Live data unavailable: ${data.error} You can use Historical mode to browse the test set.`;
         errorEl.style.display = 'flex';
+      }
+      if (data.error_type === 'rate_limited' && !state.liveRefreshTimer) {
+        const retryAfter = Math.max(60, Number(data.retry_after_seconds) || 300) * 1000;
+        state.liveRefreshTimer = setTimeout(() => {
+          state.liveRefreshTimer = null;
+          if (document.visibilityState === 'visible' && state.mode === 'live' && state.selectedCity) {
+            loadLive(state.selectedCity);
+          }
+        }, retryAfter);
       }
       loadingEl.style.display = 'none';
       return;
@@ -1025,7 +1034,7 @@ async function loadLive(cityKey) {
     }
   } catch (err) {
     if (errorEl) {
-      errorEl.textContent = `Could not fetch live data: ${err.message}. Switching to Historical mode.`;
+      errorEl.textContent = `Could not fetch live data: ${err.message}. You can use Historical mode to browse the test set.`;
       errorEl.style.display = 'flex';
     }
   } finally {

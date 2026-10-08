@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import time
 import traceback
 from datetime import date, datetime, timedelta
@@ -124,12 +125,39 @@ OPEN_METEO_DAILY_VARS = [
 ]
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
+OPEN_METEO_CUSTOMER_URL = "https://customer-api.open-meteo.com/v1/forecast"
+OPEN_METEO_REQUEST_TIMEOUT_SECONDS = 12
+
+
+class OpenMeteoRateLimitError(RuntimeError):
+    """Raised when Open-Meteo temporarily rejects a request for rate limiting."""
+
+    def __init__(self, retry_after_seconds: int) -> None:
+        self.retry_after_seconds = retry_after_seconds
+        super().__init__("Open-Meteo is temporarily rate-limiting live weather requests.")
+
+
+def _open_meteo_request_settings() -> tuple[str, Dict[str, str]]:
+    """Return the configured Open-Meteo endpoint and optional customer API key.
+
+    The public endpoint remains the zero-configuration default. Deployments can
+    set ``OPEN_METEO_API_KEY`` to use Open-Meteo's dedicated customer endpoint,
+    which avoids public shared-IP rate limits without exposing the key to clients.
+    """
+    api_key = os.getenv("OPEN_METEO_API_KEY", "").strip()
+    if api_key:
+        return OPEN_METEO_CUSTOMER_URL, {"apikey": api_key}
+    return OPEN_METEO_URL, {}
+
 
 # ---------------------------------------------------------------------------
 # In-memory cache
 # ---------------------------------------------------------------------------
 _CACHE: Dict[str, Dict] = {}
 CACHE_TTL_SECONDS = 1800  # 30 minutes
+STALE_CACHE_MAX_AGE_SECONDS = 24 * 60 * 60
+RATE_LIMIT_COOLDOWN_SECONDS = 5 * 60
+_RATE_LIMITED_UNTIL = 0.0
 
 
 def _cache_get(city_key: str) -> Optional[Dict]:
@@ -144,6 +172,33 @@ def _cache_get(city_key: str) -> Optional[Dict]:
 
 def _cache_set(city_key: str, data: Dict) -> None:
     _CACHE[city_key] = {**data, "fetched_at": time.time()}
+
+
+def _stale_cache_get(city_key: str) -> Optional[Dict]:
+    """Return a recent expired entry for outage fallback, never older than one day."""
+    entry = _CACHE.get(city_key)
+    if entry is None:
+        return None
+    if time.time() - entry["fetched_at"] > STALE_CACHE_MAX_AGE_SECONDS:
+        return None
+    return entry
+
+
+def _cached_result(entry: Dict, *, stale: bool = False) -> Dict[str, Any]:
+    """Return a client-safe cached response with freshness clearly labelled."""
+    result = dict(entry)
+    age_seconds = round(time.time() - entry["fetched_at"], 1)
+    result["cache_used"] = True
+    result["cache_age_seconds"] = age_seconds
+    result["cache_stale"] = stale
+    if stale:
+        warnings = list(result.get("warnings", []))
+        warnings.append(
+            "Live weather provider is temporarily rate-limited. Showing the last "
+            f"successful forecast from {round(age_seconds / 60)} minute(s) ago."
+        )
+        result["warnings"] = warnings
+    return result
 
 
 def cache_status() -> Dict[str, Any]:
@@ -178,16 +233,26 @@ def _fetch_open_meteo(city_key: str, past_days: int = 30, forecast_days: int = 7
         "past_days": past_days,
         "forecast_days": forecast_days,
     }
+    endpoint, customer_params = _open_meteo_request_settings()
+    params.update(customer_params)
 
     try:
         resp = http_requests.get(
-            OPEN_METEO_URL,
+            endpoint,
             params=params,
-            timeout=12,
+            timeout=OPEN_METEO_REQUEST_TIMEOUT_SECONDS,
+            headers={"User-Agent": "ClimateGuard/1.0 (research dashboard)"},
         )
+        if resp.status_code == 429:
+            retry_after = _retry_after_seconds(getattr(resp, "headers", {}))
+            raise OpenMeteoRateLimitError(retry_after)
         resp.raise_for_status()
+    except OpenMeteoRateLimitError:
+        raise
     except http_requests.exceptions.Timeout:
-        raise RuntimeError("Open-Meteo request timed out (12 s). Try again shortly.")
+        raise RuntimeError(
+            f"Open-Meteo request timed out ({OPEN_METEO_REQUEST_TIMEOUT_SECONDS} s). Try again shortly."
+        )
     except http_requests.exceptions.RequestException as exc:
         raise RuntimeError(f"Open-Meteo fetch failed: {exc}")
 
@@ -211,6 +276,15 @@ def _fetch_open_meteo(city_key: str, past_days: int = 30, forecast_days: int = 7
             )
 
     return df
+
+
+def _retry_after_seconds(headers: Any) -> int:
+    """Use an upstream Retry-After value when it is a short numeric delay."""
+    try:
+        retry_after = int(headers.get("Retry-After", RATE_LIMIT_COOLDOWN_SECONDS))
+    except (AttributeError, TypeError, ValueError):
+        retry_after = RATE_LIMIT_COOLDOWN_SECONDS
+    return max(1, min(retry_after, RATE_LIMIT_COOLDOWN_SECONDS))
 
 
 # ---------------------------------------------------------------------------
@@ -384,13 +458,12 @@ def get_live_forecast(city_key: str, pipeline) -> Dict[str, Any]:
     dict with keys: city, city_info, days (list of per-day results),
                     source, last_updated, cache_used, warnings, error (if failed)
     """
+    global _RATE_LIMITED_UNTIL
+
     # --- Check cache ---
     cached = _cache_get(city_key)
     if cached is not None:
-        result = dict(cached)
-        result["cache_used"] = True
-        result["cache_age_seconds"] = round(time.time() - cached["fetched_at"], 1)
-        return result
+        return _cached_result(cached)
 
     city_info = CITIES[city_key]
     warnings: List[str] = [
@@ -400,8 +473,23 @@ def get_live_forecast(city_key: str, pipeline) -> Dict[str, Any]:
     ]
 
     # --- Fetch from Open-Meteo ---
+    # Avoid repeatedly sending a cloud-hosted shared IP into an upstream 429.
+    # If a recent successful result exists, it is preferable to label and return
+    # that result rather than pretending the stale result is current.
+    stale_cached = _stale_cache_get(city_key)
+    if time.time() < _RATE_LIMITED_UNTIL:
+        if stale_cached is not None:
+            return _cached_result(stale_cached, stale=True)
+        retry_in_seconds = max(1, round(_RATE_LIMITED_UNTIL - time.time()))
+        return _rate_limit_result(city_key, city_info, retry_in_seconds)
+
     try:
         raw_df = _fetch_open_meteo(city_key, past_days=30, forecast_days=7)
+    except OpenMeteoRateLimitError as exc:
+        _RATE_LIMITED_UNTIL = time.time() + exc.retry_after_seconds
+        if stale_cached is not None:
+            return _cached_result(stale_cached, stale=True)
+        return _rate_limit_result(city_key, city_info, exc.retry_after_seconds)
     except Exception as exc:
         return {
             "city": city_key,
@@ -561,3 +649,24 @@ def get_live_forecast(city_key: str, pipeline) -> Dict[str, Any]:
 
     _cache_set(city_key, result)
     return result
+
+
+def _rate_limit_result(
+    city_key: str, city_info: Dict[str, Any], retry_in_seconds: int
+) -> Dict[str, Any]:
+    """Create a concise, non-sensitive response for a temporary provider 429."""
+    retry_minutes = max(1, math.ceil(retry_in_seconds / 60))
+    return {
+        "city": city_key,
+        "city_info": city_info,
+        "error": (
+            "The live weather provider is temporarily busy. ClimateGuard will retry "
+            f"in about {retry_minutes} minute(s)."
+        ),
+        "error_type": "rate_limited",
+        "retry_after_seconds": retry_in_seconds,
+        "days": [],
+        "source": "Open-Meteo API",
+        "last_updated": None,
+        "cache_used": False,
+    }

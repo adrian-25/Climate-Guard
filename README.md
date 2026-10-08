@@ -18,7 +18,7 @@
 ## How to use the website
 
 1. Open the dashboard at `http://localhost:8001` after starting the server.
-2. Stay in **Live** mode for the current 7-day Open-Meteo outlook, then select one of the five validated cities. Each day shows the risk level, probability, maximum temperature, humidity, wind, and practical advice.
+2. Stay in **Live** mode for the current 7-day Open-Meteo outlook, then select one of the five validated cities. Each day shows the risk level, probability, maximum temperature, humidity, wind, and practical advice. Live results are cached for 30 minutes; if the provider is busy, the dashboard retries automatically and will label any recent cached result as stale rather than presenting it as current.
 3. Switch to **Historical** mode to choose a dataset date and run a next-day prediction. Use **Show feature explanation** for the SHAP-based explanation and select a city below the map for trend charts.
 4. Use **Model performance** to review calibration, baselines, limitations, and the accumulating live track record before drawing conclusions from a forecast.
 5. Download a city’s historical data as CSV, print a report, or share the current city through the page URL.
@@ -41,6 +41,11 @@ provided by Docker or a hosting platform take precedence. For Docker, copy
 `.env.example` to `.env` and run `docker compose up --build`. The runtime SQLite
 directory is a named volume. See [deployment instructions](docs/deployment.md),
 [MODEL_CARD.md](MODEL_CARD.md), and [CHANGELOG.md](CHANGELOG.md).
+
+For a production deployment that needs a guaranteed live-weather capacity, set
+`OPEN_METEO_API_KEY` only in the host's secret environment panel. When blank,
+ClimateGuard uses Open-Meteo's public endpoint, which may be rate-limited on a
+shared cloud IP. The key is never sent to a browser or committed to the repository.
 
 ```mermaid
 flowchart LR

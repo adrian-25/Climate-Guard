@@ -8,6 +8,9 @@
 - DL: added a fixed gamma=2 focal-loss GRU ablation and calibration diagnostics (Brier, ECE,
   cross-seed probability spread). The focal ablation did not beat the weighted-BCE GRU and
   remains research-only.
+- Live data: handle temporary Open-Meteo rate limits with a five-minute request cooldown,
+  clearly-labelled stale-cache fallback, automatic browser retry, and an optional server-only
+  `OPEN_METEO_API_KEY` for the dedicated provider endpoint.
 
 ## Phase 8 — DL comparison module
 
