@@ -9,4 +9,5 @@ RUN mkdir -p /app/runtime && chown -R climateguard:climateguard /app/runtime
 USER climateguard
 EXPOSE 8001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD python -c "from urllib.request import urlopen; urlopen('http://127.0.0.1:8001/health', timeout=3)"
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8001"]
+# Render supplies PORT (normally 10000); Docker Compose keeps the local 8001 default.
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8001}"]
