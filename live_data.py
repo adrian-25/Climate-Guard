@@ -50,16 +50,18 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 # City metadata from the versioned active-model city registry
 # ---------------------------------------------------------------------------
 from src.cities import CITIES, CITY_ORDER
-from src.monitoring import ClimateDriftMonitor
 
 _DRIFT_BASELINE_PATH = PROJECT_ROOT / "models" / "monitoring" / "v1" / "drift_baseline.json"
 try:
+    # Drift monitoring is deliberately optional at runtime: a bad or missing
+    # monitoring artifact must not take down established live predictions.
+    from src.monitoring import ClimateDriftMonitor
+
     _DRIFT_MONITOR: Optional[ClimateDriftMonitor] = ClimateDriftMonitor.from_file(
         _DRIFT_BASELINE_PATH
     )
     _DRIFT_MONITOR_ERROR: Optional[str] = None
-except (OSError, ValueError, json.JSONDecodeError) as _drift_error:
-    # Monitoring must never prevent a valid forecast from being returned.
+except Exception as _drift_error:
     _DRIFT_MONITOR = None
     _DRIFT_MONITOR_ERROR = str(_drift_error)
 
