@@ -117,7 +117,7 @@
           <li><strong>City coverage gaps.</strong> Ahmedabad has no positive test-period examples; all 32 heatwave days fall in the training window. Mumbai has no positive examples at all. Neither city can be properly evaluated.</li>
           <li><strong>Class imbalance.</strong> Heatwave days are about 1% of all days. The model uses random undersampling during training, which may cause it to miss rare edge-case heatwaves.</li>
           <li><strong>Model horizon.</strong> Trained on 1990&ndash;2022 data. Climate patterns may drift past the training distribution.</li>
-          <li><strong>No drift detection.</strong> There is no automated check for distributional shift between historical training data and current inputs.</li>
+          <li><strong>Drift screening, not self-correction.</strong> Live India forecasts use a city/month-stratified input-distribution check after 30 complete historical feature rows are available. It does not measure forecast accuracy, diagnose climate change, or retrain the model automatically.</li>
         </ol>
       </section>
 

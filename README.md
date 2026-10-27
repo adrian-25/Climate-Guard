@@ -336,7 +336,9 @@ All lag and rolling features use `shift(1)` to exclude day T from rolling window
 4. Ahmedabad: zero test-set positives (all 32 events fall in 1990ΓÇô2019 training window)
 5. `qualifying_day` feature is correlated with the target by construction (same IMD threshold family)
 6. Model precision 0.58 ΓÇö ~42% false alarm rate
-7. No drift detection; retraining recommended for deployment beyond 2025
+7. Input-distribution drift is screened with city/month-stratified PSI once 30 complete
+   historical feature rows are available. It does not measure forecast accuracy, prove a
+   climate trend, or automatically retrain the model; observed outcomes still govern retraining.
 8. Feature engineering requires 30+ days of weather history per city
 
 See `docs/limitations.md` for the full discussion.

@@ -16,7 +16,7 @@ Architecture:
   - If Open-Meteo fetch fails, returns a clear error payload.
 
 Caveats (documented to users):
-  1. tmax_departure_zscore: computed from 30 days of live data.
+  1. tmax_departure_zscore: computed from recent live data.
      Training used 30-day windows of historical data — should match well.
   2. heatwave_lag1: computed from yesterday's qualifying_day flag derived
      from live data. May differ from historical by ±1 day around events.
@@ -50,6 +50,18 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 # City metadata from the versioned active-model city registry
 # ---------------------------------------------------------------------------
 from src.cities import CITIES, CITY_ORDER
+from src.monitoring import ClimateDriftMonitor
+
+_DRIFT_BASELINE_PATH = PROJECT_ROOT / "models" / "monitoring" / "v1" / "drift_baseline.json"
+try:
+    _DRIFT_MONITOR: Optional[ClimateDriftMonitor] = ClimateDriftMonitor.from_file(
+        _DRIFT_BASELINE_PATH
+    )
+    _DRIFT_MONITOR_ERROR: Optional[str] = None
+except (OSError, ValueError, json.JSONDecodeError) as _drift_error:
+    # Monitoring must never prevent a valid forecast from being returned.
+    _DRIFT_MONITOR = None
+    _DRIFT_MONITOR_ERROR = str(_drift_error)
 
 SEASON_MAP = {
     12: 0,
@@ -137,6 +149,14 @@ class OpenMeteoRateLimitError(RuntimeError):
         super().__init__("Open-Meteo is temporarily rate-limiting live weather requests.")
 
 
+class OpenMeteoProviderUnavailableError(RuntimeError):
+    """Raised when the public weather provider has a temporary server-side outage."""
+
+    def __init__(self, retry_after_seconds: int) -> None:
+        self.retry_after_seconds = retry_after_seconds
+        super().__init__("Open-Meteo is temporarily unavailable for live weather requests.")
+
+
 def _open_meteo_request_settings() -> tuple[str, Dict[str, str]]:
     """Return the configured Open-Meteo endpoint and optional customer API key.
 
@@ -158,6 +178,27 @@ CACHE_TTL_SECONDS = 1800  # 30 minutes
 STALE_CACHE_MAX_AGE_SECONDS = 24 * 60 * 60
 RATE_LIMIT_COOLDOWN_SECONDS = 5 * 60
 _RATE_LIMITED_UNTIL = 0.0
+PROVIDER_UNAVAILABLE_COOLDOWN_SECONDS = 2 * 60
+_PROVIDER_UNAVAILABLE_UNTIL = 0.0
+_LATEST_DRIFT_BY_CITY: Dict[str, Dict[str, Any]] = {}
+
+
+def latest_drift_assessment(city_key: str) -> Dict[str, Any]:
+    """Return the latest in-memory assessment without fetching weather data."""
+    if _DRIFT_MONITOR is None:
+        return {
+            "status": "unavailable",
+            "message": "Drift monitoring baseline is unavailable.",
+            "reason": _DRIFT_MONITOR_ERROR,
+        }
+    latest = _LATEST_DRIFT_BY_CITY.get(city_key)
+    if latest is None:
+        return {
+            "status": "not_yet_assessed",
+            "message": "Run a live forecast for this city to collect a drift assessment.",
+            "reference": _DRIFT_MONITOR.info(),
+        }
+    return latest.copy()
 
 
 def _cache_get(city_key: str) -> Optional[Dict]:
@@ -184,7 +225,9 @@ def _stale_cache_get(city_key: str) -> Optional[Dict]:
     return entry
 
 
-def _cached_result(entry: Dict, *, stale: bool = False) -> Dict[str, Any]:
+def _cached_result(
+    entry: Dict, *, stale: bool = False, stale_notice: Optional[str] = None
+) -> Dict[str, Any]:
     """Return a client-safe cached response with freshness clearly labelled."""
     result = dict(entry)
     age_seconds = round(time.time() - entry["fetched_at"], 1)
@@ -193,9 +236,9 @@ def _cached_result(entry: Dict, *, stale: bool = False) -> Dict[str, Any]:
     result["cache_stale"] = stale
     if stale:
         warnings = list(result.get("warnings", []))
+        warnings.append(stale_notice or "Live weather data is temporarily unavailable.")
         warnings.append(
-            "Live weather provider is temporarily rate-limited. Showing the last "
-            f"successful forecast from {round(age_seconds / 60)} minute(s) ago."
+            f"Showing the last successful forecast from {round(age_seconds / 60)} minute(s) ago."
         )
         result["warnings"] = warnings
     return result
@@ -246,8 +289,11 @@ def _fetch_open_meteo(city_key: str, past_days: int = 30, forecast_days: int = 7
         if resp.status_code == 429:
             retry_after = _retry_after_seconds(getattr(resp, "headers", {}))
             raise OpenMeteoRateLimitError(retry_after)
+        if resp.status_code in {500, 502, 503, 504}:
+            retry_after = _retry_after_seconds(getattr(resp, "headers", {}))
+            raise OpenMeteoProviderUnavailableError(retry_after)
         resp.raise_for_status()
-    except OpenMeteoRateLimitError:
+    except (OpenMeteoRateLimitError, OpenMeteoProviderUnavailableError):
         raise
     except http_requests.exceptions.Timeout:
         raise RuntimeError(
@@ -460,7 +506,7 @@ def get_live_forecast(
     dict with keys: city, city_info, days (list of per-day results),
                     source, last_updated, cache_used, warnings, error (if failed)
     """
-    global _RATE_LIMITED_UNTIL
+    global _RATE_LIMITED_UNTIL, _PROVIDER_UNAVAILABLE_UNTIL
 
     city_info = CITIES[city_key]
     warnings: List[str] = [
@@ -482,28 +528,56 @@ def get_live_forecast(
         stale_cached = _stale_cache_get(city_key)
         if time.time() < _RATE_LIMITED_UNTIL:
             if stale_cached is not None:
-                return _cached_result(stale_cached, stale=True)
+                return _cached_result(
+                    stale_cached,
+                    stale=True,
+                    stale_notice="Live weather provider is temporarily rate-limited.",
+                )
             retry_in_seconds = max(1, round(_RATE_LIMITED_UNTIL - time.time()))
             return _rate_limit_result(city_key, city_info, retry_in_seconds)
+        if time.time() < _PROVIDER_UNAVAILABLE_UNTIL:
+            retry_in_seconds = max(1, round(_PROVIDER_UNAVAILABLE_UNTIL - time.time()))
+            if stale_cached is not None:
+                return _cached_result(
+                    stale_cached,
+                    stale=True,
+                    stale_notice="Live weather provider is temporarily unavailable.",
+                )
+            return _provider_unavailable_result(city_key, city_info, retry_in_seconds)
 
         try:
-            raw_df = _fetch_open_meteo(city_key, past_days=30, forecast_days=7)
+            # 40 source days leave at least 30 complete model-input rows after
+            # seven-day temporal features warm up, which is required for PSI.
+            raw_df = _fetch_open_meteo(city_key, past_days=40, forecast_days=7)
         except OpenMeteoRateLimitError as exc:
             _RATE_LIMITED_UNTIL = time.time() + exc.retry_after_seconds
             if stale_cached is not None:
-                return _cached_result(stale_cached, stale=True)
+                return _cached_result(
+                    stale_cached,
+                    stale=True,
+                    stale_notice="Live weather provider is temporarily rate-limited.",
+                )
             return _rate_limit_result(city_key, city_info, exc.retry_after_seconds)
+        except OpenMeteoProviderUnavailableError as exc:
+            _PROVIDER_UNAVAILABLE_UNTIL = time.time() + exc.retry_after_seconds
+            if stale_cached is not None:
+                return _cached_result(
+                    stale_cached,
+                    stale=True,
+                    stale_notice="Live weather provider is temporarily unavailable.",
+                )
+            return _provider_unavailable_result(city_key, city_info, exc.retry_after_seconds)
         except Exception as exc:
-            return {
-                "city": city_key,
-                "city_info": city_info,
-                "error": str(exc),
-                "error_type": "fetch_failed",
-                "days": [],
-                "source": "Open-Meteo API",
-                "last_updated": None,
-                "cache_used": False,
-            }
+            _PROVIDER_UNAVAILABLE_UNTIL = time.time() + PROVIDER_UNAVAILABLE_COOLDOWN_SECONDS
+            if stale_cached is not None:
+                return _cached_result(
+                    stale_cached,
+                    stale=True,
+                    stale_notice="Live weather provider could not be reached temporarily.",
+                )
+            return _provider_unavailable_result(
+                city_key, city_info, PROVIDER_UNAVAILABLE_COOLDOWN_SECONDS
+            )
     else:
         raw_df = raw_weather
 
@@ -538,6 +612,8 @@ def get_live_forecast(
             "last_updated": datetime.utcnow().isoformat() + "Z",
             "cache_used": False,
         }
+
+    drift = _assess_recent_drift(city_key, feat_df, today)
 
     # --- Predict each day ---
     days: List[Dict] = []
@@ -589,6 +665,8 @@ def get_live_forecast(
                     "probability": round(prob, 4),
                     "prediction": pred_label,
                     "risk_level": risk,
+                    "risk_score": round(prob * 100, 1),
+                    "risk_score_scale": "0_to_100_probability",
                     "temperature_max": (
                         round(float(row["temperature_2m_max"]), 1)
                         if not pd.isna(row["temperature_2m_max"])
@@ -645,14 +723,16 @@ def get_live_forecast(
         "cache_used": False,
         "warnings": warnings,
         "feature_notes": [
-            "tmax_departure_zscore: computed from 30-day rolling window of live data.",
+            "tmax_departure_zscore: computed from a 30-day rolling window of live data.",
             "heatwave_lag1: derived from yesterday's qualifying_day flag (live proxy).",
             "Forecast days use Open-Meteo NWP data, not ERA5 reanalysis.",
         ],
+        "drift": drift,
         "error": None,
     }
 
     _cache_set(city_key, result)
+    _LATEST_DRIFT_BY_CITY[city_key] = drift
     return result
 
 
@@ -701,8 +781,8 @@ def _daily_payload_to_frame(city_key: str, daily: Any) -> pd.DataFrame:
         raise ValueError(f"missing daily fields: {sorted(missing_columns)}")
 
     time_values = daily["time"]
-    if not isinstance(time_values, list) or not 31 <= len(time_values) <= 45:
-        raise ValueError("daily time must contain 31 to 45 dates")
+    if not isinstance(time_values, list) or not 31 <= len(time_values) <= 60:
+        raise ValueError("daily time must contain 31 to 60 dates")
     if any(
         not isinstance(value, list) or len(value) != len(time_values) for value in daily.values()
     ):
@@ -713,6 +793,28 @@ def _daily_payload_to_frame(city_key: str, daily: Any) -> pd.DataFrame:
     frame["date"] = pd.to_datetime(frame["date"], errors="raise")
     frame["city_key"] = city_key
     return frame
+
+
+def _assess_recent_drift(
+    city_key: str, feature_rows: pd.DataFrame, today: pd.Timestamp
+) -> Dict[str, Any]:
+    """Assess valid observed rows only; forecast rows must not affect PSI."""
+    if _DRIFT_MONITOR is None:
+        return {
+            "status": "unavailable",
+            "message": "Drift monitoring baseline is unavailable.",
+            "reason": _DRIFT_MONITOR_ERROR,
+        }
+    history = feature_rows[feature_rows["date"] <= today].copy()
+    try:
+        return _DRIFT_MONITOR.assess(history, city=city_key).to_dict()
+    except (TypeError, ValueError) as exc:
+        return {
+            "status": "unavailable",
+            "message": "Drift monitoring could not assess the current feature history.",
+            "reason": str(exc),
+            "reference": _DRIFT_MONITOR.info(),
+        }
 
 
 def _rate_limit_result(
@@ -728,6 +830,27 @@ def _rate_limit_result(
             f"in about {retry_minutes} minute(s)."
         ),
         "error_type": "rate_limited",
+        "retry_after_seconds": retry_in_seconds,
+        "days": [],
+        "source": "Open-Meteo API",
+        "last_updated": None,
+        "cache_used": False,
+    }
+
+
+def _provider_unavailable_result(
+    city_key: str, city_info: Dict[str, Any], retry_in_seconds: int
+) -> Dict[str, Any]:
+    """Create a concise, non-sensitive response for a temporary provider outage."""
+    retry_minutes = max(1, math.ceil(retry_in_seconds / 60))
+    return {
+        "city": city_key,
+        "city_info": city_info,
+        "error": (
+            "The live weather provider is temporarily unavailable. ClimateGuard will retry "
+            f"in about {retry_minutes} minute(s)."
+        ),
+        "error_type": "provider_unavailable",
         "retry_after_seconds": retry_in_seconds,
         "days": [],
         "source": "Open-Meteo API",

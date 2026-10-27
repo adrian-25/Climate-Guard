@@ -13,6 +13,12 @@
   `OPEN_METEO_API_KEY` for the dedicated provider endpoint.
 - Live data: when a hosting platform's shared IP is rate-limited, fall back to a browser-direct
   Open-Meteo download while retaining server-side validation, feature engineering, and inference.
+- Explainability: route dashboard explanations through the canonical SHAP/global-importance
+  module and expose a fully labelled additive `/api/explain/v2` response.
+- Risk: expose the existing model probability as a transparent 0--100 operational risk score;
+  this does not alter the production threshold or create an official alert index.
+- Monitoring: add a versioned, city/month-stratified PSI baseline and live input-drift screening
+  after 30 complete historical feature rows. It is monitoring-only and never retrains the model.
 
 ## Phase 8 — DL comparison module
 

@@ -162,6 +162,11 @@ class TestRiskProbabilityValidation(unittest.TestCase):
         result2 = self.assessor.assess(0.2, 0)
         self.assertEqual(result2.prediction, 0)
 
+    def test_risk_score_is_probability_on_zero_to_one_hundred_scale(self):
+        """Risk score is an additive, transparent view of model probability."""
+        result = self.assessor.assess(0.7234, 1)
+        self.assertEqual(result.risk_score, 72.3)
+
 
 # ===========================================================================
 # Group B — Risk threshold boundary values
@@ -260,6 +265,8 @@ class TestRiskLevelGeneration(unittest.TestCase):
         self.assertIn("heatwave_probability", d)
         self.assertIn("prediction", d)
         self.assertIn("risk_level", d)
+        self.assertIn("risk_score", d)
+        self.assertEqual(d["risk_score_scale"], "0_to_100_probability")
         self.assertIn("city", d)
         self.assertIn("date", d)
 

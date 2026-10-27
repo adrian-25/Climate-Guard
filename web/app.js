@@ -996,7 +996,7 @@ async function loadLive(cityKey) {
     // the visitor's own browser is allowed. In that case, fetch the public
     // weather payload in-browser and send only the bounded daily data back for
     // server-side feature engineering and inference.
-    if (data.error_type === 'rate_limited') {
+    if (['rate_limited', 'provider_unavailable'].includes(data.error_type)) {
       try {
         data = await getBrowserWeatherPrediction(cityKey);
       } catch (fallbackError) {
@@ -1009,7 +1009,7 @@ async function loadLive(cityKey) {
         errorEl.textContent = `Live data unavailable: ${data.error} You can use Historical mode to browse the test set.`;
         errorEl.style.display = 'flex';
       }
-      if (data.error_type === 'rate_limited' && !state.liveRefreshTimer) {
+      if (['rate_limited', 'provider_unavailable'].includes(data.error_type) && !state.liveRefreshTimer) {
         const retryAfter = Math.max(60, Number(data.retry_after_seconds) || 300) * 1000;
         state.liveRefreshTimer = setTimeout(() => {
           state.liveRefreshTimer = null;
@@ -1023,6 +1023,7 @@ async function loadLive(cityKey) {
     }
 
     renderLiveStrip(data);
+    renderLiveDrift(data.drift);
     renderTodayAdvice(data.days?.[0]);
     renderOfficialAlert(await api(`/official-alerts/${cityKey}`));
 
@@ -1071,7 +1072,7 @@ async function getBrowserWeatherPrediction(cityKey) {
     longitude: city.lon,
     daily: BROWSER_WEATHER_DAILY_FIELDS.join(','),
     timezone: 'Asia/Kolkata',
-    past_days: '30',
+    past_days: '40',
     forecast_days: '7',
   });
   const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${query}`);
@@ -1125,6 +1126,23 @@ function renderLiveStrip(data) {
       ${nRules > 0 ? `<div class="live-day-rules">${nRules} rule${nRules > 1 ? 's' : ''} triggered</div>` : ''}
     </div>`;
   }).join('');
+}
+
+function renderLiveDrift(drift) {
+  const el = document.getElementById('live-drift');
+  if (!el) return;
+  if (!drift) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'block';
+  if (drift.status === 'available') {
+    const psi = drift.overall_psi != null ? drift.overall_psi.toFixed(3) : '—';
+    const level = String(drift.level || 'monitor').replaceAll('_', ' ');
+    el.textContent = `Input drift screening: ${level} (average PSI ${psi}; ${drift.sample_size} recent feature rows). This checks input distributions only, not forecast accuracy.`;
+    return;
+  }
+  el.textContent = drift.message || 'Input drift screening is not yet available for this city.';
 }
 
 async function renderTodayAdvice(day) {

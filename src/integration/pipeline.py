@@ -67,14 +67,14 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.etl import ETLPipeline, ETLResult
+from src.expert_rules import EXPERT_RULES_DISCLAIMER, ExpertRuleEngine
 from src.prediction import ClimateGuardPredictor
 from src.risk_engine import ClimateGuardRiskEngine
-from src.expert_rules import ExpertRuleEngine, EXPERT_RULES_DISCLAIMER
-
 
 # ---------------------------------------------------------------------------
 # ClimateGuardResult
 # ---------------------------------------------------------------------------
+
 
 class ClimateGuardResult:
     """
@@ -121,29 +121,29 @@ class ClimateGuardResult:
         warnings: List[str],
         metadata: Dict,
     ):
-        self.valid            = valid
-        self.input_metadata   = input_metadata
-        self.validation       = validation
-        self.prediction       = prediction
-        self.risk             = risk
-        self.recommendations  = recommendations
-        self.explanation      = explanation
-        self.expert_rules     = expert_rules
-        self.warnings         = warnings
-        self.metadata         = metadata
+        self.valid = valid
+        self.input_metadata = input_metadata
+        self.validation = validation
+        self.prediction = prediction
+        self.risk = risk
+        self.recommendations = recommendations
+        self.explanation = explanation
+        self.expert_rules = expert_rules
+        self.warnings = warnings
+        self.metadata = metadata
 
     def to_dict(self) -> Dict:
         """Return the full result as a plain dictionary."""
         return {
-            "input":           self.input_metadata,
-            "validation":      self.validation,
-            "prediction":      self.prediction,
-            "risk":            self.risk,
+            "input": self.input_metadata,
+            "validation": self.validation,
+            "prediction": self.prediction,
+            "risk": self.risk,
             "recommendations": self.recommendations,
-            "explanation":     self.explanation,
-            "expert_rules":    self.expert_rules,
-            "warnings":        self.warnings,
-            "metadata":        self.metadata,
+            "explanation": self.explanation,
+            "expert_rules": self.expert_rules,
+            "warnings": self.warnings,
+            "metadata": self.metadata,
         }
 
     def to_json(self, indent: int = 2) -> str:
@@ -152,11 +152,11 @@ class ClimateGuardResult:
 
     def __repr__(self) -> str:
         status = "VALID" if self.valid else "INVALID"
-        city   = self.input_metadata.get("city_key", "unknown")
-        date   = self.input_metadata.get("date",     "unknown")
-        prob   = self.prediction.get("probability", "N/A") if self.prediction else "N/A"
-        level  = self.risk.get("level", "N/A") if self.risk else "N/A"
-        n_exp  = sum(1 for r in self.expert_rules if r.get("triggered"))
+        city = self.input_metadata.get("city_key", "unknown")
+        date = self.input_metadata.get("date", "unknown")
+        prob = self.prediction.get("probability", "N/A") if self.prediction else "N/A"
+        level = self.risk.get("level", "N/A") if self.risk else "N/A"
+        n_exp = sum(1 for r in self.expert_rules if r.get("triggered"))
         return (
             f"ClimateGuardResult({status}, city={city}, date={date}, "
             f"prob={prob}, risk={level}, expert_rules_triggered={n_exp})"
@@ -166,6 +166,7 @@ class ClimateGuardResult:
 # ---------------------------------------------------------------------------
 # ClimateGuardPipeline
 # ---------------------------------------------------------------------------
+
 
 class ClimateGuardPipeline:
     """
@@ -215,11 +216,11 @@ class ClimateGuardPipeline:
         )
 
         # Part 3 components
-        self._etl_pipeline  = ETLPipeline()
+        self._etl_pipeline = ETLPipeline()
         self._expert_engine = ExpertRuleEngine()
 
         self._include_explanation = include_explanation
-        self._top_n               = top_n
+        self._top_n = top_n
 
     # ------------------------------------------------------------------
     # Main interface
@@ -257,8 +258,8 @@ class ClimateGuardPipeline:
         ClimateGuardResult
             Always returned — check result.valid for pipeline success.
         """
-        _incl  = self._include_explanation if include_explanation is None else include_explanation
-        _top_n = self._top_n               if top_n               is None else top_n
+        _incl = self._include_explanation if include_explanation is None else include_explanation
+        _top_n = self._top_n if top_n is None else top_n
 
         pipeline_warnings: List[str] = []
 
@@ -316,15 +317,24 @@ class ClimateGuardPipeline:
         # Extract prediction and risk from Part 2 result
         prediction_dict = {
             "probability": engine_result.heatwave_probability,
-            "prediction":  engine_result.prediction,
+            "prediction": engine_result.prediction,
         }
         risk_dict = {
             "level": engine_result.risk_level,
+            # Keep the legacy 0--1 probability field intact; add the explicit
+            # human-readable 0--100 score as an additive contract field.
             "score": engine_result.heatwave_probability,
+            "score_0_to_100": engine_result.risk_score,
+            "score_scale": "0_to_100_probability",
+            "score_note": (
+                "Probability expressed on a 0--100 scale; not an official IMD warning "
+                "or a separate impact score."
+            ),
         }
         recommendations = (
             engine_result.recommendations.get("recommendations", [])
-            if engine_result.recommendations else []
+            if engine_result.recommendations
+            else []
         )
         explanation = engine_result.explanation
 
@@ -381,9 +391,7 @@ class ClimateGuardPipeline:
             One result per row.
         """
         if not isinstance(df, pd.DataFrame):
-            raise TypeError(
-                f"analyze_batch() expects a pd.DataFrame; got {type(df).__name__}."
-            )
+            raise TypeError(f"analyze_batch() expects a pd.DataFrame; got {type(df).__name__}.")
         results = []
         for _, row in df.iterrows():
             result = self.analyze(
@@ -479,10 +487,10 @@ class ClimateGuardPipeline:
 
     def _build_metadata(self, shap_available: bool = False) -> Dict:
         return {
-            "pipeline_version":    "1.0.0",
-            "part1_threshold":     self._predictor.threshold,
-            "part1_n_features":    self._predictor.n_features,
-            "shap_available":      shap_available,
+            "pipeline_version": "1.0.0",
+            "part1_threshold": self._predictor.threshold,
+            "part1_n_features": self._predictor.n_features,
+            "shap_available": shap_available,
             "explanation_enabled": self._include_explanation,
             "expert_rules_disclaimer": EXPERT_RULES_DISCLAIMER,
         }

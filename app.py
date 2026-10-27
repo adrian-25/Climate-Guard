@@ -575,24 +575,56 @@ def log_live_predictions(city: str, result: dict) -> None:
 
 
 def dispatch_alerts_for_live_forecast(city: str, result: dict) -> None:
-    """Deliver eligible alerts after a fresh live refresh; failures stay isolated."""
+    """Deliver eligible alerts without allowing optional alert failures to block a forecast."""
+    try:
+        subscriptions = alerts.confirmed_for_city(ALERT_DATABASE, city)
+    except Exception as exc:
+        logger.warning(
+            json.dumps(
+                {
+                    "event": "alert_subscription_lookup_failed",
+                    "city": city,
+                    "error": str(exc),
+                }
+            )
+        )
+        return
+
     now = datetime.now(alerts.IST)
     for day in result.get("days", []):
         level = str(day.get("risk_level", "LOW")).upper()
         probability = day.get("probability")
         if day.get("error") or probability is None or level not in alerts.RISK_RANK:
             continue
-        for subscription in alerts.confirmed_for_city(ALERT_DATABASE, city):
-            alerts.deliver_if_due(
-                ALERT_DATABASE, subscription, day["date"], level, float(probability), now
-            )
+        for subscription in subscriptions:
+            try:
+                alerts.deliver_if_due(
+                    ALERT_DATABASE, subscription, day["date"], level, float(probability), now
+                )
+            except Exception as exc:
+                logger.warning(
+                    json.dumps(
+                        {
+                            "event": "alert_delivery_dispatch_failed",
+                            "city": city,
+                            "subscription_id": subscription.get("id"),
+                            "error": str(exc),
+                        }
+                    )
+                )
 
 
 def refresh_subscriber_alerts() -> None:
     """Scheduled refresh for confirmed cities; no subscription means no network work."""
     if not _LIVE_DATA_AVAILABLE:
         return
-    for city in alerts.subscribed_cities(ALERT_DATABASE):
+    try:
+        cities = alerts.subscribed_cities(ALERT_DATABASE)
+    except Exception as exc:
+        logger.warning(json.dumps({"event": "alert_subscription_lookup_failed", "error": str(exc)}))
+        return
+
+    for city in cities:
         try:
             result = get_live_forecast(city, pipeline)
             if not result.get("error"):
@@ -913,7 +945,7 @@ def get_feature_importance():
 @app.post("/api/explain")
 @limiter.limit("15/minute")
 def explain_prediction(request: Request, req: PredictRequest):
-    """Run prediction with per-feature importance for explainability."""
+    """Legacy explanation response backed by the canonical Part 2 explainer."""
     city = req.city.lower().strip()
     date = req.date.strip()
 
@@ -926,60 +958,61 @@ def explain_prediction(request: Request, req: PredictRequest):
     if len(matches) == 0:
         raise HTTPException(404, f"No data for {city} on {date}")
 
-    row_features = X_test.loc[matches.index[0], feature_cols].values.reshape(1, -1)
-    prob = float(predictor.model.predict_proba(row_features)[0, 1])
-
-    # Use Tree SHAP for fast per-prediction explanation
-    try:
-        import shap
-
-        explainer = shap.TreeExplainer(predictor.model)
-        shap_values = explainer.shap_values(row_features)
-        # For binary classification, shap_values[1] = class 1 (heatwave)
-        if isinstance(shap_values, list):
-            sv = shap_values[1][0]
-        else:
-            sv = shap_values[0]
-
-        # Top 15 most impactful features (by absolute SHAP value)
-        top_indices = np.argsort(np.abs(sv))[::-1][:15]
-        contributions = [
-            {
-                "feature": feature_cols[i],
-                "shap_value": round(float(sv[i]), 6),
-                "feature_value": round(float(row_features[0, i]), 4),
-                "direction": "increases" if sv[i] > 0 else "decreases",
-            }
-            for i in top_indices
-        ]
-        base_value = (
-            float(explainer.expected_value[1])
-            if isinstance(explainer.expected_value, (list, np.ndarray))
-            else float(explainer.expected_value)
-        )
-    except Exception as e:
-        # Fallback: use feature importances * feature values
-        contributions = []
-        fi = predictor.model.feature_importances_
-        weighted = fi * np.abs(row_features[0])
-        top_indices = np.argsort(weighted)[::-1][:15]
-        for i in top_indices:
-            contributions.append(
-                {
-                    "feature": feature_cols[i],
-                    "shap_value": round(float(fi[i]), 6),
-                    "feature_value": round(float(row_features[0, i]), 4),
-                    "direction": "important",
-                }
-            )
-        base_value = 0.5
+    row_features = X_test.loc[[matches.index[0]], feature_cols]
+    probability = float(predictor.model.predict_proba(row_features)[0, 1])
+    explanation = pipeline.risk_engine.explainer.explain(
+        row_features,
+        prediction=int(probability >= predictor.threshold),
+        probability=probability,
+        top_n=15,
+    )
+    contributions = [
+        {
+            "feature": item["feature"],
+            "shap_value": round(float(item["contribution"]), 6),
+            "feature_value": round(float(item["value"]), 4),
+            "direction": {
+                "increases_risk": "increases",
+                "decreases_risk": "decreases",
+                "neutral": "neutral",
+            }.get(item["direction"], "global_importance"),
+        }
+        for item in explanation.top_features
+    ]
 
     return {
-        "probability": round(prob, 4),
+        "probability": round(probability, 4),
         "contributions": contributions,
-        "base_value": round(base_value, 4),
-        "method": "SHAP TreeExplainer",
+        "base_value": (
+            round(float(explanation.shap_base_value), 4)
+            if explanation.shap_base_value is not None
+            else None
+        ),
+        "method": "SHAP TreeExplainer" if explanation.method == "shap" else "global_rf_importance",
     }
+
+
+@app.post("/api/explain/v2")
+@limiter.limit("15/minute")
+def explain_prediction_v2(request: Request, req: PredictRequest):
+    """Return a fully labelled local explanation without legacy field aliases."""
+    city = req.city.lower().strip()
+    date = req.date.strip()
+    if city not in INDIA_CITIES:
+        raise HTTPException(400, f"Unknown or unsupported city: {city}")
+    matches = test_data[(test_data["city_key"] == city) & (test_data["date"] == date)]
+    if len(matches) == 0:
+        raise HTTPException(404, f"No data for {city} on {date}")
+    row_features = X_test.loc[[matches.index[0]], feature_cols]
+    prediction = predictor.predict(row_features)
+    result = pipeline.risk_engine.explainer.explain(
+        row_features,
+        prediction=prediction.prediction_label,
+        probability=prediction.prediction_probability,
+        top_n=15,
+    ).to_dict()
+    result.update({"city": city, "date": date})
+    return result
 
 
 @app.get("/api/city-comparison")
@@ -1048,7 +1081,11 @@ def serve_about():
 try:
     from live_data import CITIES as LIVE_CITIES
     from live_data import cache_status as live_cache_status
-    from live_data import get_live_forecast, get_live_forecast_from_browser_payload
+    from live_data import (
+        get_live_forecast,
+        get_live_forecast_from_browser_payload,
+        latest_drift_assessment,
+    )
 
     _LIVE_DATA_AVAILABLE = True
     print("[startup] Live data module loaded (Open-Meteo integration available)")
@@ -1069,6 +1106,32 @@ def get_live_status():
         "cache_ttl_minutes": 30,
         "cache": live_cache_status(),
     }
+
+
+@app.get("/api/drift/status")
+def get_drift_status():
+    """Return the status of the versioned input-distribution monitor."""
+    if not _LIVE_DATA_AVAILABLE:
+        return {"available": False, "reason": "live_data module failed to load"}
+    status = latest_drift_assessment("delhi")
+    reference = status.get("reference")
+    return {
+        "available": status.get("status") != "unavailable",
+        "status": status.get("status"),
+        "reference": reference,
+        "message": status.get("message"),
+    }
+
+
+@app.get("/api/drift/{city}")
+def get_drift_assessment(city: str):
+    """Return the latest live-input drift assessment; never fetches weather data."""
+    if not _LIVE_DATA_AVAILABLE:
+        raise HTTPException(503, "Live data module unavailable. Check server logs.")
+    city = city.lower().strip()
+    if city not in INDIA_CITIES:
+        raise HTTPException(400, "Drift monitoring is currently available for India cities only.")
+    return latest_drift_assessment(city)
 
 
 @app.get("/api/live/{city}")

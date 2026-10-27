@@ -1,5 +1,8 @@
 """Read-only API contract tests; model/data files are never modified."""
 
+import sqlite3
+from unittest.mock import Mock
+
 from fastapi.testclient import TestClient
 
 import app
@@ -31,6 +34,7 @@ def test_dashboard_read_endpoints_succeed():
         "/api/performance",
         "/api/feature-importance",
         "/api/city-comparison",
+        "/api/drift/status",
     ):
         response = client.get(path)
         assert response.status_code == 200, path
@@ -60,6 +64,35 @@ def test_trends_return_city_data():
     assert response.json()["data"]
 
 
+def test_drift_city_endpoint_is_read_only_and_explicit_before_live_data():
+    response = client.get("/api/drift/delhi")
+    assert response.status_code == 200
+    assert response.json()["status"] in {"not_yet_assessed", "insufficient_history", "available"}
+
+
+def test_explain_v2_is_labelled_and_additive():
+    row = app.test_data.iloc[0]
+    response = client.post("/api/explain/v2", json={"city": row["city_key"], "date": row["date"]})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["explanation_method"] in {"shap", "global_rf_importance"}
+    assert body["top_features"]
+
+
+def test_legacy_explain_fields_and_predict_risk_score_are_preserved():
+    row = app.test_data.iloc[0]
+    payload = {"city": row["city_key"], "date": row["date"]}
+    legacy = client.post("/api/explain", json=payload)
+    assert legacy.status_code == 200
+    assert set(legacy.json()) == {"probability", "contributions", "base_value", "method"}
+
+    prediction = client.post("/api/predict", json=payload)
+    assert prediction.status_code == 200
+    risk = prediction.json()["risk"]
+    assert risk["score"] == prediction.json()["prediction"]["probability"]
+    assert 0 <= risk["score_0_to_100"] <= 100
+
+
 def test_latest_evaluation_is_read_only_and_available():
     response = client.get("/api/evaluation/latest")
     assert response.status_code == 200
@@ -79,6 +112,35 @@ def test_browser_weather_fallback_rejects_unknown_city_and_invalid_payload():
     invalid = client.post("/api/live/delhi/browser-weather", json={"daily": {}})
     assert invalid.status_code == 200
     assert invalid.json()["error_type"] == "client_weather_invalid"
+
+
+def test_live_forecast_is_returned_when_optional_alert_storage_is_unavailable(monkeypatch):
+    """An alert database failure must not turn a valid Open-Meteo forecast into a 500."""
+    forecast = {
+        "city": "delhi",
+        "error": None,
+        "cache_used": False,
+        "days": [
+            {
+                "date": "2026-10-17",
+                "probability": 0.82,
+                "prediction": "heatwave",
+                "risk_level": "EXTREME",
+            }
+        ],
+    }
+    monkeypatch.setattr(app, "get_live_forecast", Mock(return_value=forecast))
+    monkeypatch.setattr(app, "log_live_predictions", Mock())
+    monkeypatch.setattr(
+        app.alerts,
+        "confirmed_for_city",
+        Mock(side_effect=sqlite3.OperationalError("unable to open database file")),
+    )
+
+    response = client.get("/api/live/delhi")
+
+    assert response.status_code == 200
+    assert response.json()["days"] == forecast["days"]
 
 
 def test_subscription_endpoints_require_confirmation(monkeypatch, tmp_path):

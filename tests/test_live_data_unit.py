@@ -2,9 +2,11 @@
 
 import json
 import unittest
+from datetime import date, timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import numpy as np
 import pandas as pd
 import requests
 
@@ -44,6 +46,26 @@ class LiveDataTests(unittest.TestCase):
                 live_data._fetch_open_meteo("delhi")
         self.assertEqual(error.exception.retry_after_seconds, 120)
         self.assertNotIn("https://", str(error.exception))
+
+    def test_temporary_provider_outage_is_sanitised_for_clients(self):
+        fake = Mock()
+        fake.status_code = 503
+        fake.headers = {"Retry-After": "60"}
+        original_until = live_data._PROVIDER_UNAVAILABLE_UNTIL
+        original_cache = dict(live_data._CACHE)
+        live_data._CACHE.clear()
+        try:
+            with patch.object(live_data.http_requests, "get", return_value=fake):
+                result = live_data.get_live_forecast("lucknow", pipeline=Mock())
+        finally:
+            live_data._PROVIDER_UNAVAILABLE_UNTIL = original_until
+            live_data._CACHE.clear()
+            live_data._CACHE.update(original_cache)
+
+        self.assertEqual(result["error_type"], "provider_unavailable")
+        self.assertEqual(result["retry_after_seconds"], 60)
+        self.assertNotIn("https://", result["error"])
+        self.assertNotIn("503", result["error"])
 
     def test_rate_limit_response_is_concise_and_has_no_network_call(self):
         original_until = live_data._RATE_LIMITED_UNTIL
@@ -105,6 +127,34 @@ class LiveDataTests(unittest.TestCase):
             training_features = [item["name"] for item in json.load(handle)]
         self.assertEqual(list(live_data._FEATURE_NAMES), training_features)
         self.assertEqual(len(live_data._FEATURE_NAMES), 110)
+
+    def test_live_forecast_includes_drift_after_sufficient_history(self):
+        """A network-free live run includes PSI based on observed rows only."""
+        dates = pd.date_range(date.today() - timedelta(days=41), periods=48)
+        raw_weather = pd.DataFrame({"date": dates, "city_key": "delhi"})
+        for index, field in enumerate(live_data.OPEN_METEO_DAILY_VARS):
+            raw_weather[field] = [20.0 + index + (day * 0.2) for day in range(len(dates))]
+
+        pipeline = Mock()
+        pipeline.predictor.threshold = 0.70
+        pipeline.predictor.model.predict_proba.return_value = np.array([[0.8, 0.2]])
+        pipeline.expert_engine.evaluate.return_value = []
+        original_cache = dict(live_data._CACHE)
+        original_drift = dict(live_data._LATEST_DRIFT_BY_CITY)
+        try:
+            result = live_data.get_live_forecast(
+                "delhi", pipeline=pipeline, raw_weather=raw_weather
+            )
+        finally:
+            live_data._CACHE.clear()
+            live_data._CACHE.update(original_cache)
+            live_data._LATEST_DRIFT_BY_CITY.clear()
+            live_data._LATEST_DRIFT_BY_CITY.update(original_drift)
+
+        self.assertIsNone(result["error"])
+        self.assertEqual(result["drift"]["status"], "available")
+        self.assertGreaterEqual(result["drift"]["sample_size"], 30)
+        self.assertTrue(all("risk_score" in day for day in result["days"] if not day.get("error")))
 
 
 if __name__ == "__main__":

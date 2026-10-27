@@ -51,10 +51,10 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-
 # ---------------------------------------------------------------------------
 # Risk level enum
 # ---------------------------------------------------------------------------
+
 
 class RiskLevel(str, Enum):
     """
@@ -65,10 +65,11 @@ class RiskLevel(str, Enum):
 
     Values are ordered low→extreme; string comparisons work directly.
     """
-    LOW      = "LOW"
+
+    LOW = "LOW"
     MODERATE = "MODERATE"
-    HIGH     = "HIGH"
-    EXTREME  = "EXTREME"
+    HIGH = "HIGH"
+    EXTREME = "EXTREME"
 
     def __str__(self) -> str:
         return self.value
@@ -154,6 +155,7 @@ def probability_to_risk_level(probability: float) -> RiskLevel:
 # Result container
 # ---------------------------------------------------------------------------
 
+
 class RiskAssessmentResult:
     """
     Container for a single risk assessment result.
@@ -172,6 +174,10 @@ class RiskAssessmentResult:
     risk_level : str
         One of: "LOW", "MODERATE", "HIGH", "EXTREME".
         Derived from heatwave_probability using project-defined thresholds.
+    risk_score : float
+        The same model probability expressed on a 0--100 scale.  This is an
+        operational communication score, not a separately trained model or an
+        official IMD index.
 
     Notes
     -----
@@ -190,6 +196,7 @@ class RiskAssessmentResult:
         self.heatwave_probability = float(heatwave_probability)
         self.prediction = int(prediction)
         self.risk_level = str(risk_level)
+        self.risk_score = round(self.heatwave_probability * 100, 1)
         self.city = city
         self.date = date
 
@@ -199,6 +206,12 @@ class RiskAssessmentResult:
             "heatwave_probability": self.heatwave_probability,
             "prediction": self.prediction,
             "risk_level": self.risk_level,
+            "risk_score": self.risk_score,
+            "risk_score_scale": "0_to_100_probability",
+            "risk_score_note": (
+                "The risk score is the model probability expressed from 0 to 100; "
+                "it is not an official IMD warning or a separate impact score."
+            ),
         }
         if self.city is not None:
             d["city"] = self.city
@@ -223,6 +236,7 @@ class RiskAssessmentResult:
 # ---------------------------------------------------------------------------
 # RiskAssessor
 # ---------------------------------------------------------------------------
+
 
 class RiskAssessor:
     """
@@ -322,11 +336,13 @@ class RiskAssessor:
         table = []
         for i, (lower, level) in enumerate(RISK_THRESHOLDS):
             upper = RISK_THRESHOLDS[i - 1][0] if i > 0 else 1.01  # 1.01 = inclusive 1.0
-            table.append({
-                "lower_bound_inclusive": lower,
-                "upper_bound_exclusive": upper,
-                "risk_level": str(level),
-            })
+            table.append(
+                {
+                    "lower_bound_inclusive": lower,
+                    "upper_bound_exclusive": upper,
+                    "risk_level": str(level),
+                }
+            )
         return table
 
     def __repr__(self) -> str:

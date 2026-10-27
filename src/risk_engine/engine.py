@@ -93,15 +93,15 @@ _PROJECT_ROOT = _THIS_FILE.parent.parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from src.prediction import ClimateGuardPredictor
-from src.risk import RiskAssessor
 from src.adaptation import AdaptationEngine
 from src.explainability import ClimateGuardExplainer
-
+from src.prediction import ClimateGuardPredictor
+from src.risk import RiskAssessor
 
 # ---------------------------------------------------------------------------
 # Result container
 # ---------------------------------------------------------------------------
+
 
 class RiskEngineResult:
     """
@@ -114,6 +114,9 @@ class RiskEngineResult:
     heatwave_probability : float
     prediction : int (0 or 1)
     risk_level : str ("LOW" | "MODERATE" | "HIGH" | "EXTREME")
+    risk_score : float
+        The heatwave probability expressed on a 0--100 scale. It is a
+        communication aid, not a second model or official alert index.
     explanation : dict or None
         Explainability output.  None if include_explanation=False.
     recommendations : dict
@@ -130,12 +133,18 @@ class RiskEngineResult:
         risk_level: str,
         recommendations: Dict,
         explanation: Optional[Dict] = None,
+        risk_score: Optional[float] = None,
     ):
         self.city = city
         self.date = date
         self.heatwave_probability = float(heatwave_probability)
         self.prediction = int(prediction)
         self.risk_level = str(risk_level)
+        self.risk_score = (
+            float(risk_score)
+            if risk_score is not None
+            else round(self.heatwave_probability * 100, 1)
+        )
         self.recommendations = recommendations
         self.explanation = explanation
 
@@ -145,6 +154,8 @@ class RiskEngineResult:
             "heatwave_probability": self.heatwave_probability,
             "prediction": self.prediction,
             "risk_level": self.risk_level,
+            "risk_score": self.risk_score,
+            "risk_score_scale": "0_to_100_probability",
         }
         if self.city is not None:
             d["city"] = self.city
@@ -176,6 +187,7 @@ class RiskEngineResult:
 # ---------------------------------------------------------------------------
 # ClimateGuardRiskEngine
 # ---------------------------------------------------------------------------
+
 
 class ClimateGuardRiskEngine:
     """
@@ -280,8 +292,12 @@ class ClimateGuardRiskEngine:
         ValueError / TypeError
             Propagated from the predictor on invalid input.
         """
-        _include = self._default_include_explanation if include_explanation is None else include_explanation
-        _top_n   = self._default_top_n              if top_n              is None else top_n
+        _include = (
+            self._default_include_explanation
+            if include_explanation is None
+            else include_explanation
+        )
+        _top_n = self._default_top_n if top_n is None else top_n
 
         # Step 1 — Prediction (Part 1)
         pred_result = self._predictor.predict(features)
@@ -291,7 +307,7 @@ class ClimateGuardRiskEngine:
         effective_date = date if date is not None else pred_result.date
 
         probability = pred_result.prediction_probability
-        prediction  = pred_result.prediction_label
+        prediction = pred_result.prediction_label
 
         # Step 2 — Risk assessment
         risk_result = self._risk_assessor.assess(
@@ -324,6 +340,7 @@ class ClimateGuardRiskEngine:
             risk_level=risk_level,
             recommendations=recommendations,
             explanation=explanation,
+            risk_score=risk_result.risk_score,
         )
 
     def analyze_batch(
@@ -392,8 +409,7 @@ class ClimateGuardRiskEngine:
             "default_include_explanation": self._default_include_explanation,
             "default_top_n": self._default_top_n,
             "risk_thresholds": [
-                {"lower_inclusive": lb, "risk_level": str(rl)}
-                for lb, rl in RiskAssessor.THRESHOLDS
+                {"lower_inclusive": lb, "risk_level": str(rl)} for lb, rl in RiskAssessor.THRESHOLDS
             ],
             "adaptation_risk_levels": self._adaptation_engine.all_risk_levels(),
         }
