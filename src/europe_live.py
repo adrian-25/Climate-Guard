@@ -122,25 +122,30 @@ def europe_rules(row: pd.Series, probability: float) -> list[dict[str, Any]]:
     ]
 
 
-def _live_frame(city_key: str) -> pd.DataFrame:
+def _frame_from_daily_payload(city_key: str, daily: Any) -> pd.DataFrame:
+    """Validate a bounded daily Open-Meteo payload and attach Europe metadata."""
+    if city_key not in EUROPE_CITIES:
+        raise KeyError(city_key)
+    if not isinstance(daily, dict):
+        raise TypeError("daily must be an object")
+
+    expected_columns = {"time", *DAILY_VARIABLES}
+    missing_columns = expected_columns.difference(daily)
+    if missing_columns:
+        raise ValueError(f"missing daily fields: {sorted(missing_columns)}")
+    time_values = daily["time"]
+    if not isinstance(time_values, list) or not 31 <= len(time_values) <= 60:
+        raise ValueError("daily time must contain 31 to 60 dates")
+    if any(
+        not isinstance(daily[column], list) or len(daily[column]) != len(time_values)
+        for column in expected_columns
+    ):
+        raise ValueError("daily fields must be equally sized arrays")
+
     city = EUROPE_CITIES[city_key]
-    response = requests.get(
-        "https://api.open-meteo.com/v1/forecast",
-        params={
-            "latitude": city["lat"],
-            "longitude": city["lon"],
-            "past_days": 30,
-            "forecast_days": 7,
-            "daily": ",".join(DAILY_VARIABLES),
-            "timezone": city["timezone"],
-        },
-        timeout=20,
+    df = pd.DataFrame({column: daily[column] for column in expected_columns}).rename(
+        columns={"time": "date"}
     )
-    response.raise_for_status()
-    daily = response.json().get("daily", {})
-    if not daily or any(name not in daily for name in DAILY_VARIABLES):
-        raise ValueError("Open-Meteo did not return the Europe live data contract")
-    df = pd.DataFrame(daily).rename(columns={"time": "date"})
     df["date"] = pd.to_datetime(df["date"])
     df.insert(0, "city", city["name"])
     df.insert(1, "city_key", city_key)
@@ -167,6 +172,25 @@ def _live_frame(city_key: str) -> pd.DataFrame:
     return df
 
 
+def _live_frame(city_key: str) -> pd.DataFrame:
+    """Fetch and validate server-side Europe weather data from Open-Meteo."""
+    city = EUROPE_CITIES[city_key]
+    response = requests.get(
+        "https://api.open-meteo.com/v1/forecast",
+        params={
+            "latitude": city["lat"],
+            "longitude": city["lon"],
+            "past_days": 30,
+            "forecast_days": 7,
+            "daily": ",".join(DAILY_VARIABLES),
+            "timezone": city["timezone"],
+        },
+        timeout=20,
+    )
+    response.raise_for_status()
+    return _frame_from_daily_payload(city_key, response.json().get("daily", {}))
+
+
 def get_europe_live_forecast(city_key: str) -> dict[str, Any]:
     """Return the existing live endpoint's day payload shape for a Europe city."""
     cached = CACHE.get(city_key)
@@ -176,8 +200,45 @@ def get_europe_live_forecast(city_key: str) -> dict[str, Any]:
         raise KeyError(city_key)
     try:
         raw = _live_frame(city_key)
-    except requests.exceptions.RequestException:
+    except (requests.exceptions.RequestException, TypeError, ValueError):
         return _provider_unavailable_result(city_key)
+    result = _forecast_from_frame(city_key, raw)
+    CACHE[city_key] = {"fetched_at": time.time(), "value": result}
+    return result
+
+
+def get_europe_live_forecast_from_browser_payload(city_key: str, daily: Any) -> dict[str, Any]:
+    """Infer from a browser-fetched, schema-validated public weather payload.
+
+    This avoids a shared hosting IP being rate-limited while retaining server-side
+    feature engineering and Europe-v1 inference. Client payloads are not cached.
+    """
+    city = EUROPE_CITIES[city_key]
+    try:
+        raw = _frame_from_daily_payload(city_key, daily)
+    except (KeyError, TypeError, ValueError) as exc:
+        return {
+            "city": city_key,
+            "city_info": {**city, "dataset_region": "europe"},
+            "days": [],
+            "last_updated": None,
+            "source": "Open-Meteo",
+            "error": f"Browser weather data could not be validated: {exc}",
+            "error_type": "client_weather_invalid",
+            "cache_used": False,
+        }
+
+    result = _forecast_from_frame(city_key, raw)
+    result["browser_weather_fallback"] = True
+    result["source"] = "Open-Meteo (browser fallback)"
+    result["feature_notes"].append(
+        "Weather data was fetched directly by this browser because the hosted service was unavailable."
+    )
+    return result
+
+
+def _forecast_from_frame(city_key: str, raw: pd.DataFrame) -> dict[str, Any]:
+    """Run the fixed Europe-v1 pipeline over an already validated weather frame."""
     from feature_engineering import build_features_for_city
 
     feature_df = build_features_for_city(
@@ -224,7 +285,6 @@ def get_europe_live_forecast(city_key: str) -> dict[str, Any]:
             "Uses the shared ClimateGuard feature transformation and Europe’s percentile-based definition."
         ],
     }
-    CACHE[city_key] = {"fetched_at": time.time(), "value": result}
     return result
 
 

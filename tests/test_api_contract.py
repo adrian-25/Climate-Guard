@@ -114,6 +114,25 @@ def test_browser_weather_fallback_rejects_unknown_city_and_invalid_payload():
     assert invalid.json()["error_type"] == "client_weather_invalid"
 
 
+def test_europe_browser_weather_fallback_uses_europe_pipeline(monkeypatch):
+    from src import europe_live
+
+    expected = {"city": "porto", "days": [{"temperature_max": 28.1}]}
+    monkeypatch.setattr(
+        europe_live,
+        "get_europe_live_forecast_from_browser_payload",
+        Mock(return_value=expected),
+    )
+
+    response = client.post("/api/live/porto/browser-weather", json={"daily": {"time": []}})
+
+    assert response.status_code == 200
+    assert response.json() == expected
+    europe_live.get_europe_live_forecast_from_browser_payload.assert_called_once_with(
+        "porto", {"time": []}
+    )
+
+
 def test_live_forecast_is_returned_when_optional_alert_storage_is_unavailable(monkeypatch):
     """An alert database failure must not turn a valid Open-Meteo forecast into a 500."""
     forecast = {

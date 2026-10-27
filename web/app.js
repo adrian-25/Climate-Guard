@@ -1030,9 +1030,17 @@ async function loadLive(cityKey) {
     // Last updated timestamp
     const luEl = document.getElementById('live-last-updated');
     if (luEl && data.last_updated) {
+      if (state.region === 'europe') {
+        const selectedCity = state.cities.find(item => item.key === cityKey);
+        const timeZone = selectedCity?.timezone || 'UTC';
+        const dt = new Date(data.last_updated);
+        const hhmm = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone });
+        luEl.textContent = `Updated ${hhmm} local time`;
+      } else {
       const dt = new Date(data.last_updated);
       const hhmm = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
       luEl.textContent = `Updated ${hhmm} IST`;
+      }
     }
 
     if (contentEl) contentEl.style.display = 'block';
@@ -1058,7 +1066,7 @@ async function loadLive(cityKey) {
 const BROWSER_WEATHER_DAILY_FIELDS = [
   'temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean',
   'apparent_temperature_max', 'apparent_temperature_min', 'apparent_temperature_mean',
-  'precipitation_sum', 'wind_speed_10m_max', 'wind_gusts_10m_max',
+  'precipitation_sum', 'rain_sum', 'wind_speed_10m_max', 'wind_gusts_10m_max',
   'relative_humidity_2m_max', 'relative_humidity_2m_min', 'relative_humidity_2m_mean',
   'surface_pressure_mean', 'shortwave_radiation_sum', 'et0_fao_evapotranspiration',
 ];
@@ -1071,8 +1079,8 @@ async function getBrowserWeatherPrediction(cityKey) {
     latitude: city.lat,
     longitude: city.lon,
     daily: BROWSER_WEATHER_DAILY_FIELDS.join(','),
-    timezone: 'Asia/Kolkata',
-    past_days: '40',
+    timezone: city.timezone || 'Asia/Kolkata',
+    past_days: state.region === 'europe' ? '30' : '40',
     forecast_days: '7',
   });
   const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?${query}`);
@@ -1211,8 +1219,10 @@ async function setRegion(region, reload = true) {
   state.region = region;
   const indiaBtn  = document.getElementById('region-india-btn');
   const europeBtn = document.getElementById('region-europe-btn');
+  const liveDisclaimer = document.getElementById('live-model-disclaimer');
 
   if (region === 'europe') {
+    if (liveDisclaimer) liveDisclaimer.textContent = 'Forecast-based predictions are estimates and may differ from the model’s historical accuracy. Not an official warning — follow the relevant national meteorological service.';
     europeBtn?.classList.add('region-btn--active');
     indiaBtn?.classList.remove('region-btn--active');
     const h1 = document.getElementById('masthead-title');
@@ -1224,6 +1234,7 @@ async function setRegion(region, reload = true) {
     const rulesSubhead = document.querySelector('.rules-section .section-subhead');
     if (rulesSubhead) rulesSubhead.textContent = 'Four contextual rules based on Europe\u2019s relative heat definition. Not official national meteorological alerts.';
   } else {
+    if (liveDisclaimer) liveDisclaimer.textContent = 'Forecast-based predictions are estimates and may differ from the model’s historical accuracy. Not an official warning — follow IMD advisories.';
     indiaBtn?.classList.add('region-btn--active');
     europeBtn?.classList.remove('region-btn--active');
     const h1 = document.getElementById('masthead-title');

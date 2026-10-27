@@ -1185,9 +1185,9 @@ def predict_from_browser_weather(request: Request, city: str, payload: Dict[str,
     if city not in CITIES:
         raise HTTPException(400, f"Unknown city: {city}. Valid: {list(CITIES.keys())}")
     if city in EUROPE_CITIES:
-        raise HTTPException(
-            400, "Browser weather fallback is currently available for India cities only."
-        )
+        from src.europe_live import get_europe_live_forecast_from_browser_payload
+
+        return get_europe_live_forecast_from_browser_payload(city, payload.get("daily"))
 
     return get_live_forecast_from_browser_payload(city, payload.get("daily"), pipeline)
 
